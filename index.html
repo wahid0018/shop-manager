@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Shop Manager — v1.0.49</title>
+<title>Shop Manager — v1.0.51</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -926,6 +926,12 @@ details[open]>.recv-sum h3::before{content:"▾ ";}
 #sidebar .navbtn[data-view="salary"] .ic{color:#A5C29B;}
 
 #sidebar .navbtn[data-view="renewaltrack"] .ic{color:#9DB7D5;}
+
+/* v1.0.51 — side panel expands on hover (overlay, content does not shift) */
+@media screen and (min-width:701px){
+  #sidebar.peek{box-shadow:var(--sh2);z-index:120;}
+  body.sb-peek #main{margin-left:54px!important;width:calc(100% - 54px)!important;}
+}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -981,7 +987,7 @@ details[open]>.recv-sum h3::before{content:"▾ ";}
         <button class="collapse-toggle no-print" id="sidebarToggle" onclick="toggleSidebar()" title="Collapse sidebar">◂</button>
       </div>
       <div class="sub">Computer Sales &amp; Service</div>
-      <div class="app-ver" id="appVersion" title="App version">v1.0.47</div>
+      <div class="app-ver" id="appVersion" title="App version">v1.0.51</div>
     </div>
     <nav id="nav">
       <div class="navlabel adminonly">Overview</div>
@@ -4100,6 +4106,11 @@ function renderUISettings(){
       <p class="ui-note">Changes the text and control size across the working area.</p>
       <div class="scale-row">${[['0.88','Small'],['1','Default'],['1.1','Large'],['1.2','Extra large']].map(([v,l])=>`<button type="button" class="btn ghost sm scale-opt ${parseFloat(v)===sc?'active':''}" data-scale-choice="${v}" onclick="setUIScale('${v}')">${l}</button>`).join('')}</div>
     </div></div>
+    <div class="panel ui-set"><div class="panel-head"><h3>App Updates</h3></div><div class="panel-body">
+      <p class="ui-note">Installed version: <b>v${APP_VERSION}</b></p>
+      <p class="ui-note" id="updStatus" style="min-height:18px"></p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn amber sm" onclick="runUpdateCheck()">Check for updates</button><button type="button" class="btn amber sm" id="updApplyBtn" style="display:none" onclick="applyAppUpdate()">Update now</button><button type="button" class="btn ghost sm" onclick="applyAppUpdate()">Reload fresh copy</button></div>
+    </div></div>
     <div class="panel ui-set"><div class="panel-head"><h3>Install as App</h3></div><div class="panel-body">
       <p class="ui-note">Install Shop Manager on your Android phone so it opens full screen like a normal app.</p>
       <button type="button" class="btn amber sm" onclick="installPWA()">⬇ Install App</button>
@@ -4909,17 +4920,43 @@ async function installPWA(){
 if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost')){window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));}
 </script>
 <script>
-/* v1.0.40 app version + automatic update check (reads version.json from the same host) */
-const APP_VERSION='1.0.47';
+/* v1.0.50 app version + update checker: reads APP_VERSION from the published index.html (and version.json if present) */
+const APP_VERSION='1.0.51';
+let _latestVer=null,_lastCheck=0,_updShown=false;
+function _verCmp(a,b){const x=String(a).split('.').map(Number),y=String(b).split('.').map(Number);for(let i=0;i<Math.max(x.length,y.length);i++){const d=(x[i]||0)-(y[i]||0);if(d)return d>0?1:-1;}return 0;}
+function showUpdateBanner(v){if(_updShown)return;_updShown=true;const b=document.createElement('div');b.id='updBanner';b.className='no-print';
+  b.innerHTML='<span>New version <b>v'+v+'</b> is available</span><button class="btn amber sm" id="updNow">Update now</button><button class="btn ghost sm" id="updLater">Later</button>';
+  document.body.appendChild(b);document.getElementById('updNow').onclick=applyAppUpdate;document.getElementById('updLater').onclick=function(){b.remove();_updShown=false;};}
+async function applyAppUpdate(){try{const reg=await navigator.serviceWorker.getRegistration();if(reg){await reg.update();if(reg.waiting)reg.waiting.postMessage('SKIP_WAITING');}const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)));await fetch(location.href.split('#')[0].split('?')[0]+'?t='+Date.now(),{cache:'reload'});}catch(e){}location.reload();}
+async function checkForUpdates(){
+  if(location.protocol.indexOf('http')!==0)return{ok:false,msg:'Updates work only when the app is opened from its web address (https), not from a saved file.'};
+  let remote=null;
+  try{const r=await fetch(location.href.split('#')[0].split('?')[0]+'?t='+Date.now(),{cache:'no-store'});if(r.ok){const m=(await r.text()).match(/const APP_VERSION='([^']+)'/);if(m)remote=m[1];}}catch(e){}
+  try{const r=await fetch('version.json?t='+Date.now(),{cache:'no-store'});if(r.ok){const j=await r.json();if(j&&j.version&&(!remote||_verCmp(j.version,remote)>0))remote=j.version;}}catch(e){}
+  _lastCheck=Date.now();
+  if(!remote)return{ok:false,msg:'Could not reach the update server. Check your internet connection.'};
+  _latestVer=remote;const newer=_verCmp(remote,APP_VERSION)>0;if(newer)showUpdateBanner(remote);
+  return{ok:true,newer,latest:remote,msg:newer?'New version v'+remote+' is available':'You are on the latest version (v'+APP_VERSION+')'};
+}
+async function runUpdateCheck(){const st=document.getElementById('updStatus'),ap=document.getElementById('updApplyBtn');if(st)st.textContent='Checking…';const r=await checkForUpdates();if(st)st.textContent=r.msg;if(ap)ap.style.display=r.newer?'':'none';}
 (function(){
   var el=document.getElementById('appVersion');if(el)el.textContent='v'+APP_VERSION;
-  var shown=false;
-  function show(v){if(shown)return;shown=true;var b=document.createElement('div');b.id='updBanner';b.className='no-print';
-    b.innerHTML='<span>New version <b>v'+v+'</b> is available</span><button class="btn amber sm" id="updNow">Update now</button><button class="btn ghost sm" id="updLater">Later</button>';
-    document.body.appendChild(b);document.getElementById('updNow').onclick=apply;document.getElementById('updLater').onclick=function(){b.remove();shown=false;};}
-  async function apply(){try{var reg=await navigator.serviceWorker.getRegistration();if(reg){await reg.update();if(reg.waiting)reg.waiting.postMessage('SKIP_WAITING');}var ks=await caches.keys();await Promise.all(ks.map(function(k){return caches.delete(k);}));await fetch(location.href.split('#')[0],{cache:'reload'});}catch(e){}location.reload();}
-  async function check(){try{var r=await fetch('version.json?t='+Date.now(),{cache:'no-store'});if(!r.ok)return;var j=await r.json();if(j&&j.version&&j.version!==APP_VERSION)show(j.version);}catch(e){}}
-  if(location.protocol.indexOf('http')===0){check();setInterval(check,300000);document.addEventListener('visibilitychange',function(){if(!document.hidden)check();});}
+  if(location.protocol.indexOf('http')===0){setTimeout(checkForUpdates,3000);setInterval(checkForUpdates,300000);document.addEventListener('visibilitychange',function(){if(!document.hidden&&Date.now()-_lastCheck>120000)checkForUpdates();});}
+  /* desktop: a collapsed side panel expands while the mouse is over it, and folds back when it leaves */
+  var _pkT=0,_origToggle=toggleSidebar;
+  window.sbEndPeek=function(){var sb=document.getElementById('sidebar');if(!sb||!sb.classList.contains('peek'))return;sb.classList.remove('peek');sb.classList.add('collapsed');document.body.classList.remove('sb-peek');};
+  window.toggleSidebar=function(){var sb=document.getElementById('sidebar');
+    if(sb&&sb.classList.contains('peek')){sb.classList.remove('peek');document.body.classList.remove('sb-peek');var t=document.getElementById('sidebarToggle');t.textContent='◂';t.title='Collapse sidebar';localStorage.setItem('circuitdesk_sidebar_collapsed','0');return;}
+    _origToggle();};
+  var sbEl=document.getElementById('sidebar');
+  if(sbEl){
+    sbEl.addEventListener('mouseenter',function(){clearTimeout(_pkT);if(isMobileLayout()||!sbEl.classList.contains('collapsed'))return;_pkT=setTimeout(function(){if(!sbEl.classList.contains('collapsed'))return;sbEl.classList.remove('collapsed');sbEl.classList.add('peek');document.body.classList.add('sb-peek');},90);});
+    sbEl.addEventListener('mouseleave',function(){clearTimeout(_pkT);_pkT=setTimeout(window.sbEndPeek,160);});
+  }
+  /* auto-collapse the side panel after choosing a section */
+  document.querySelectorAll('.navbtn').forEach(function(b){b.addEventListener('click',function(){
+    try{if(isMobileLayout()){closeMobileSidebar();}else{var sb=document.getElementById('sidebar');if(sb&&sb.classList.contains('peek')){sbEndPeek();}else if(sb&&!sb.classList.contains('collapsed'))toggleSidebar();}}catch(e){}
+  });});
 })();
 </script>
 </body>

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Shop Manager — v1.0.51</title>
+<title>Shop Manager — v1.0.54</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -932,6 +932,41 @@ details[open]>.recv-sum h3::before{content:"▾ ";}
   #sidebar.peek{box-shadow:var(--sh2);z-index:120;}
   body.sb-peek #main{margin-left:54px!important;width:calc(100% - 54px)!important;}
 }
+
+/* v1.0.52 — WhatsApp sheet + mobile polish */
+.wa-btn{display:none;}
+@media (max-width:700px),(hover:none) and (pointer:coarse){.wa-btn{display:inline-flex;}}
+@media screen{
+  #waSheet{position:fixed;inset:0;z-index:100003;background:rgba(10,12,16,.55);display:flex;align-items:flex-end;justify-content:center;animation:v28fade .12s ease-out;}
+  .wa-box{width:min(480px,100%);background:var(--paper);color:var(--ink);border-radius:16px 16px 0 0;padding:14px 16px calc(16px + env(safe-area-inset-bottom,0px));box-shadow:var(--sh2);animation:v28pop .14s var(--ease);}
+  .wa-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+  .wa-box label{display:block;font-size:11px;margin-bottom:3px;color:var(--text-soft);}
+  .wa-box input{width:100%;font-size:16px;}
+  .wa-msg{font-size:12.5px;color:var(--text-soft);margin:10px 0;min-height:18px;}
+  .wa-btns{display:grid;gap:8px;}
+  .wa-btns .btn{width:100%;padding:11px;}
+}
+@media screen and (max-width:700px){
+  html{-webkit-tap-highlight-color:transparent;}
+  .content{padding:10px!important;}
+  input,select,textarea{font-size:16px!important;}
+  .row{gap:8px!important;}
+  .row>.field{flex:1 1 100%!important;min-width:0;}
+  .db-filter .field{flex:1 1 calc(50% - 8px)!important;}
+  .db-filter input[type=date]{width:100%;}
+  .panel-head{flex-wrap:wrap;gap:8px;}
+  .panel-head input{max-width:100%!important;width:100%;}
+  table th,table td{padding:7px 8px!important;font-size:12px!important;}
+  .btn{min-height:38px;}
+  .modal{width:100%!important;max-width:100%!important;max-height:92dvh;border-radius:16px 16px 0 0!important;}
+  .modal-bg{align-items:flex-end!important;padding:0!important;}
+  #updBanner{bottom:calc(14px + env(safe-area-inset-bottom,0px));}
+  .scale-row .btn{flex:1 1 calc(50% - 8px);}
+}
+
+/* v1.0.54 — dues register */
+#sidebar .navbtn[data-view="duesregister"] .ic{color:#D9A08A;}
+.dues-day td{background:var(--paper-dim);font-size:12px;padding:6px 10px!important;}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -987,7 +1022,7 @@ details[open]>.recv-sum h3::before{content:"▾ ";}
         <button class="collapse-toggle no-print" id="sidebarToggle" onclick="toggleSidebar()" title="Collapse sidebar">◂</button>
       </div>
       <div class="sub">Computer Sales &amp; Service</div>
-      <div class="app-ver" id="appVersion" title="App version">v1.0.51</div>
+      <div class="app-ver" id="appVersion" title="App version">v1.0.54</div>
     </div>
     <nav id="nav">
       <div class="navlabel adminonly">Overview</div>
@@ -1006,6 +1041,7 @@ details[open]>.recv-sum h3::before{content:"▾ ";}
       <button class="navbtn" data-view="salesregister"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M4 10h10M4 15h7"/><path d="M18 20v-7m0 0l-3 3m3-3l3 3"/></svg></span> <span class="label">Sales Register</span></button>
       <button class="navbtn" data-view="voucherregister"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M4 10h10M4 15h7"/><path d="M15 18l2 2 4-4"/></svg></span> <span class="label">Non-GST Sale Register</span></button>
       <button class="navbtn" data-view="serviceregister"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M4 10h10M4 15h7"/><circle cx="18" cy="17" r="3"/></svg></span> <span class="label">Service Register</span></button>
+      <button class="navbtn" data-view="duesregister"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M4 10h9M4 15h6"/><circle cx="17" cy="16" r="4"/><path d="M17 14v2l1.2 1"/></svg></span> <span class="label">Pending Dues Register</span></button>
       <button class="navbtn" data-view="warranty"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg></span> <span class="label">Warranty / Out Repair</span></button>
       <div class="navlabel">Records</div>
       <button class="navbtn adminonly" data-view="inventory"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg></span> <span class="label">Inventory</span></button>
@@ -1538,6 +1574,8 @@ function printBlankForm(kind){
       <button class="btn ghost sm" onclick="document.getElementById('invoiceWrap').remove()">Close</button>
       <button class="btn ghost sm" onclick="openInvoiceNewTab()">↗ Open in New Tab</button>
       <button class="btn amber sm" onclick="tryPrint()">🖨 Print Blank Form</button>
+      <button class="btn ghost sm" onclick="downloadInvoicePdf()">📄 PDF</button>
+      <button class="btn ghost sm wa-btn" onclick="sendInvoiceWhatsApp()">💬 WhatsApp PDF</button>
     </div>
     <div id="invoiceSheet" class="size-${currentPageSize.toLowerCase()}">
       <div class="inv-head">
@@ -1662,6 +1700,7 @@ const titles = {
   employees:['Employees','Staff who can be assigned to sales & service'],
   customers:['Customers','Save repeat customers to pick them instantly in Sale & Quotation'],
   todos:['To-Do List','Organize tasks across multiple pages'],
+  duesregister:['Pending Dues Register','Unpaid sales, Non-GST sales and services by date'],
   renewaltrack:['Software Renewals','Subscription tracking by financial year'],
   salary:['Salary Register','Monthly salary, advances and payments'],
   myapprovals:['My Approvals','Your requests sent to Admin'],
@@ -1674,7 +1713,7 @@ function route(view){
   document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active', b.dataset.view===view));
   document.getElementById('pageTitle').textContent = titles[view][0];
   document.getElementById('pageCrumb').textContent = titles[view][1];
-  const renderers = {renewaltrack:renderRenewals, salary:renderSalary, myapprovals:renderMyApprovals, uisettings:renderUISettings, dashboard:renderDashboardPlus, approvals:renderApprovals, purchase:()=>renderPurchase(), paymentvoucher:()=>renderPaymentVoucher(), sale:()=>renderSale(), voucher:()=>renderVoucher(), voucherregister:renderVoucherRegister, service:()=>renderService(), quotation:()=>renderQuotation(), salesregister:renderSalesRegister, purchaseregister:renderPurchaseRegister, serviceregister:renderServiceRegister, warranty:renderWarranty, inventory:renderInventory, employees:renderEmployees, customers:renderCustomers, todos:renderTodos, settings:renderSettings};
+  const renderers = {duesregister:renderDuesRegister, renewaltrack:renderRenewals, salary:renderSalary, myapprovals:renderMyApprovals, uisettings:renderUISettings, dashboard:renderDashboardPlus, approvals:renderApprovals, purchase:()=>renderPurchase(), paymentvoucher:()=>renderPaymentVoucher(), sale:()=>renderSale(), voucher:()=>renderVoucher(), voucherregister:renderVoucherRegister, service:()=>renderService(), quotation:()=>renderQuotation(), salesregister:renderSalesRegister, purchaseregister:renderPurchaseRegister, serviceregister:renderServiceRegister, warranty:renderWarranty, inventory:renderInventory, employees:renderEmployees, customers:renderCustomers, todos:renderTodos, settings:renderSettings};
   currentPageKey=view;
   renderers[view]();
   window.scrollTo(0,0);
@@ -2197,27 +2236,57 @@ function renderCustomersTable(){
   const q = (document.getElementById('cust_search').value||'').toLowerCase();
   const rows = DB.customers.filter(c=>{
     if(!q) return true;
-    return [c.name,c.gstin,c.phone].filter(Boolean).some(v=>v.toLowerCase().includes(q));
+    return [c.name,c.gstin,c.phone,c.partyRef,stateName(c.state)].filter(Boolean).some(v=>v.toLowerCase().includes(q));
   });
   document.getElementById('cust_tableWrap').innerHTML = `
-    <table><thead><tr><th>Name</th><th>Phone</th><th>GSTIN</th><th>Address</th><th></th></tr></thead><tbody>
-    ${rows.length? rows.map(c=>`<tr><td>${c.name}</td><td class="mono">${c.phone||'—'}</td><td class="mono">${c.gstin||'—'}</td><td>${c.address||'—'}</td>
-      <td style="white-space:nowrap;"><button class="btn ghost sm" onclick="openCustomerModal('${c.id}')">Edit</button> <button class="btn danger sm" onclick="deleteCustomer('${c.id}')">Del</button></td></tr>`).join('') : '<tr><td colspan="5" class="empty">No customers yet.</td></tr>'}
+    <table><thead><tr><th>Name</th><th>Phone</th><th>GSTIN</th><th>State</th><th>Party Ref</th><th>Address</th><th></th></tr></thead><tbody>
+    ${rows.length? rows.map(c=>`<tr><td>${c.name}</td><td class="mono">${c.phone||'—'}</td><td class="mono">${c.gstin||'—'}</td><td>${c.state?c.state+' - '+stateName(c.state):'—'}</td><td>${safeText(c.partyRef||'—')}</td><td>${c.address||'—'}</td>
+      <td style="white-space:nowrap;"><button class="btn ghost sm" onclick="openCustomerModal('${c.id}')">Edit</button> <button class="btn danger sm" onclick="deleteCustomer('${c.id}')">Del</button></td></tr>`).join('') : '<tr><td colspan="7" class="empty">No customers yet.</td></tr>'}
     </tbody></table>`;
 }
+const GST_STATES=[['01','Jammu & Kashmir'],['02','Himachal Pradesh'],['03','Punjab'],['04','Chandigarh'],['05','Uttarakhand'],['06','Haryana'],['07','Delhi'],['08','Rajasthan'],['09','Uttar Pradesh'],['10','Bihar'],['11','Sikkim'],['12','Arunachal Pradesh'],['13','Nagaland'],['14','Manipur'],['15','Mizoram'],['16','Tripura'],['17','Meghalaya'],['18','Assam'],['19','West Bengal'],['20','Jharkhand'],['21','Odisha'],['22','Chhattisgarh'],['23','Madhya Pradesh'],['24','Gujarat'],['26','Dadra & Nagar Haveli and Daman & Diu'],['27','Maharashtra'],['29','Karnataka'],['30','Goa'],['31','Lakshadweep'],['32','Kerala'],['33','Tamil Nadu'],['34','Puducherry'],['35','Andaman & Nicobar Islands'],['36','Telangana'],['37','Andhra Pradesh'],['38','Ladakh'],['97','Other Territory'],['99','Centre Jurisdiction']];
+function stateName(code){const x=GST_STATES.find(v=>v[0]===String(code));return x?x[1]:'';}
+/* GSTIN lookup (same RapidAPI service/credentials as the VB6 app) */
+const GST_API_URL='https://gst-return-status.p.rapidapi.com/free/gstin/',GST_API_HOST='gst-return-status.p.rapidapi.com',GST_API_KEY='19704f36d8msh1d0f8800cf7fa5dp119483jsn8fa780763e85';
+function gstDeep(o,keys,want){const q=[o];const ks=keys.map(k=>k.toLowerCase());while(q.length){const c=q.shift();if(c&&typeof c==='object'){for(const k of Object.keys(c)){const v=c[k];if(ks.includes(k.toLowerCase())&&(want==='obj'?(v&&typeof v==='object'):typeof v==='string'&&v.trim()))return v;if(v&&typeof v==='object')q.push(v);}}}return '';}
+function gstExtract(j,g){
+  const legal=gstDeep(j,['lgnm','legalname','legal_name','legalnameofbusiness']),trade=gstDeep(j,['tradenam','tradename','trade_name','tradenameofbusiness']);
+  let addr=gstDeep(j,['adr','address','principalplaceofbusiness','principal_place_of_business']);
+  if(!addr){const ao=gstDeep(j,['addr','pradr'],'obj'),a=ao&&ao.addr&&typeof ao.addr==='object'?ao.addr:ao;
+    if(a){const pick=k=>{const f=Object.keys(a).find(x=>x.toLowerCase()===k);return f&&typeof a[f]==='string'?a[f].trim():'';};
+      addr=[pick('bno'),pick('flno'),pick('bnm'),pick('st'),pick('loc'),pick('city'),pick('dst'),pick('pncd')].filter(Boolean).join(', ');}}
+  return{name:trade||legal||'',address:addr||'',state:g.slice(0,2)};
+}
+async function fillGstinDetails(){
+  const g=(document.getElementById('c_gstin').value||'').trim().toUpperCase(),btn=document.getElementById('c_gstfill');
+  if(!/^\d{2}[A-Z0-9]{13}$/.test(g)){showToast('Enter a valid 15-character GSTIN');return;}
+  document.getElementById('c_gstin').value=g;const st=document.getElementById('c_state');if(st&&stateName(g.slice(0,2)))st.value=g.slice(0,2);
+  btn.disabled=true;btn.textContent='Fetching…';const ctl=new AbortController(),t=setTimeout(()=>ctl.abort(),15000);
+  try{const r=await fetch(GST_API_URL+encodeURIComponent(g),{headers:{'x-rapidapi-host':GST_API_HOST,'x-rapidapi-key':GST_API_KEY,'Accept':'application/json'},signal:ctl.signal});
+    if(r.status===401||r.status===403)throw new Error('API key was rejected');if(r.status===429)throw new Error('API limit reached, try later');if(!r.ok)throw new Error('Service returned '+r.status);
+    const j=await r.json(),d=gstExtract(j,g);console.log('GSTIN response',j);
+    if(!d.name&&!d.address){showToast('No details found for this GSTIN');return;}
+    if(d.name)document.getElementById('c_name').value=d.name;if(d.address)document.getElementById('c_address').value=d.address;
+    showToast('GSTIN details filled');
+  }catch(e){showToast(e.name==='AbortError'?'GST service timed out':(e.message==='Failed to fetch'?'Could not reach the GST service (offline or blocked)':e.message));}
+  finally{clearTimeout(t);btn.disabled=false;btn.textContent='Fill GSTIN Details';}
+}
 function openCustomerModal(id){
-  const c = id? DB.customers.find(x=>x.id===id) : {name:'',phone:'',gstin:'',address:''};
+  const c = id? DB.customers.find(x=>x.id===id) : {name:'',phone:'',gstin:'',address:'',state:'',partyRef:''};
   openModal(id?'Edit Customer':'Add Customer', `
     <div class="field"><label>Customer / Business Name</label><input id="c_name" value="${c.name}"></div>
     <div class="row"><div class="field"><label>Phone</label><input id="c_phone" value="${c.phone||''}"></div>
-    <div class="field"><label>GSTIN</label><input id="c_gstin" value="${c.gstin||''}" placeholder="15-digit GSTIN (optional)"></div></div>
+    <div class="field"><label>GSTIN</label><div style="display:flex;gap:6px"><input id="c_gstin" value="${c.gstin||''}" placeholder="15-digit GSTIN (optional)" style="text-transform:uppercase" oninput="(function(i){var v=i.value.trim().toUpperCase(),st=document.getElementById('c_state');if(st&&!st.value&&v.length>=2&&stateName(v.slice(0,2)))st.value=v.slice(0,2);})(this)"><button type="button" class="btn ghost sm" id="c_gstfill" style="white-space:nowrap" onclick="fillGstinDetails()">Fill GSTIN Details</button></div></div></div>
     <div class="field"><label>Address</label><input id="c_address" value="${c.address||''}"></div>
+    <div class="row"><div class="field"><label>State</label><select id="c_state"><option value="">Select state…</option>${GST_STATES.map(([k,n])=>`<option value="${k}" ${c.state===k?'selected':''}>${k} - ${n}</option>`).join('')}</select></div>
+    <div class="field"><label>Party Reference</label><input id="c_partyref" value="${safeText(c.partyRef||'')}" placeholder="Reference / short code / referred by"></div></div>
+
   `, `<button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn amber" onclick="saveCustomer('${id||''}')">Save Customer</button>`);
 }
 function saveCustomer(id){
   const name=document.getElementById('c_name').value.trim();
   if(!name){ showToast('Customer name is required'); return; }
-  const data={name, phone:document.getElementById('c_phone').value.trim(), gstin:document.getElementById('c_gstin').value.trim(), address:document.getElementById('c_address').value.trim()};
+  const data={name, phone:document.getElementById('c_phone').value.trim(), gstin:document.getElementById('c_gstin').value.trim(), address:document.getElementById('c_address').value.trim(), state:document.getElementById('c_state').value, partyRef:document.getElementById('c_partyref').value.trim()};
   if(id){ Object.assign(DB.customers.find(x=>x.id===id), data); showToast('Customer updated'); }
   else { DB.customers.push({id:cid(), ...data}); showToast('Customer added'); }
   saveDB(); closeModal(); renderCustomers();
@@ -3076,6 +3145,8 @@ function printSaleInvoice(id){
       <button class="btn ghost sm" onclick="document.getElementById('invoiceWrap').remove()">Close</button>
       <button class="btn ghost sm" onclick="openInvoiceNewTab()">↗ Open in New Tab</button>
       <button class="btn amber sm" onclick="tryPrint()">🖨 Print Invoice</button>
+      <button class="btn ghost sm" onclick="downloadInvoicePdf()">📄 PDF</button>
+      <button class="btn ghost sm wa-btn" onclick="sendInvoiceWhatsApp()">💬 WhatsApp PDF</button>
     </div>
     <div id="invoiceSheet" class="size-${currentPageSize.toLowerCase()}">
       <div class="inv-head">
@@ -3325,6 +3396,8 @@ function printVoucher(id){
       <button class="btn ghost sm" onclick="document.getElementById('invoiceWrap').remove()">Close</button>
       <button class="btn ghost sm" onclick="openInvoiceNewTab()">↗ Open in New Tab</button>
       <button class="btn amber sm" onclick="tryPrint('voucher')">🖨 Print Voucher</button>
+      <button class="btn ghost sm" onclick="downloadInvoicePdf()">📄 PDF</button>
+      <button class="btn ghost sm wa-btn" onclick="sendInvoiceWhatsApp()">💬 WhatsApp PDF</button>
     </div>
     <div id="invoiceSheet" class="size-${currentPageSize.toLowerCase()}">
       <div class="inv-head">
@@ -3527,6 +3600,8 @@ function printServiceInvoice(id){
       <button class="btn ghost sm" onclick="document.getElementById('invoiceWrap').remove()">Close</button>
       <button class="btn ghost sm" onclick="openInvoiceNewTab()">↗ Open in New Tab</button>
       <button class="btn amber sm" onclick="tryPrint()">🖨 Print Invoice</button>
+      <button class="btn ghost sm" onclick="downloadInvoicePdf()">📄 PDF</button>
+      <button class="btn ghost sm wa-btn" onclick="sendInvoiceWhatsApp()">💬 WhatsApp PDF</button>
     </div>
     <div id="invoiceSheet" class="size-${currentPageSize.toLowerCase()}">
       <div class="inv-head">
@@ -3671,6 +3746,8 @@ function printQuotation(id){
       <button class="btn ghost sm" onclick="document.getElementById('invoiceWrap').remove()">Close</button>
       <button class="btn ghost sm" onclick="openInvoiceNewTab()">↗ Open in New Tab</button>
       <button class="btn amber sm" onclick="tryPrint()">🖨 Print</button>
+      <button class="btn ghost sm" onclick="downloadInvoicePdf()">📄 PDF</button>
+      <button class="btn ghost sm wa-btn" onclick="sendInvoiceWhatsApp()">💬 WhatsApp PDF</button>
     </div>
     <div id="invoiceSheet" class="size-${currentPageSize.toLowerCase()}">
       <div class="inv-head">
@@ -3934,9 +4011,17 @@ function themeStorageKey(){const u=currentUserId||sessionStorage.getItem('circui
 function getCurrentTheme(){return document.documentElement.getAttribute('data-theme')||localStorage.getItem(themeStorageKey())||DB.settings?.uiTheme||'classic'}
 function darkModeStorageKey(){const u=currentUserId||sessionStorage.getItem('circuitdesk_user_id')||'admin';return 'shop_manager_dark_mode_v1_'+String(u)}
 function isDarkMode(){return document.documentElement.getAttribute('data-dark-mode')==='1'}
-function setDarkMode(enabled){const on=!!enabled;document.documentElement.setAttribute('data-dark-mode',on?'1':'0');localStorage.setItem(darkModeStorageKey(),on?'1':'0');const cb=document.getElementById('darkModeSwitch');if(cb)cb.checked=on;}
+function setDarkMode(enabled){setDarkPref(enabled?'on':'off');}
 function setAppTheme(theme){if(!THEME_OPTIONS.some(t=>t.id===theme))theme='classic';document.documentElement.setAttribute('data-theme',theme);localStorage.setItem(themeStorageKey(),theme);document.querySelectorAll('[data-theme-choice]').forEach(b=>b.classList.toggle('active',b.dataset.themeChoice===theme));}
-function initAppTheme(){initUIScale();setAppTheme(localStorage.getItem(themeStorageKey())||DB.settings?.uiTheme||'classic');setDarkMode(localStorage.getItem(darkModeStorageKey())==='1'||['midnight','graphite'].includes(getCurrentTheme()));}
+function darkPrefKey(){return darkModeStorageKey()+'_pref'}
+function getDarkPref(){const p=localStorage.getItem(darkPrefKey());if(p)return p;const o=localStorage.getItem(darkModeStorageKey());return o==='1'?'on':o==='0'?'off':'auto'}
+function applyDarkPref(){const p=getDarkPref(),dev=!!(window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches),th=['midnight','graphite'].includes(typeof getCurrentTheme==='function'?getCurrentTheme():''),on=p==='on'||(p==='auto'&&(dev||th))||(p!=='off'&&th);
+  document.documentElement.setAttribute('data-dark-mode',on?'1':'0');document.documentElement.style.colorScheme=on?'dark':'light';
+  const m=document.querySelector('meta[name="theme-color"]');if(m)m.setAttribute('content',on?'#14171b':'#22262C');
+  document.querySelectorAll('[data-dark-choice]').forEach(b=>b.classList.toggle('active',b.dataset.darkChoice===p));}
+function setDarkPref(p){localStorage.setItem(darkPrefKey(),p);applyDarkPref();}
+try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{if(getDarkPref()==='auto')applyDarkPref();});}catch(e){}
+function initAppTheme(){initUIScale();setAppTheme(localStorage.getItem(themeStorageKey())||DB.settings?.uiTheme||'classic');applyDarkPref();}
 function uiScaleKey(){const u=currentUserId||sessionStorage.getItem('circuitdesk_user_id')||'admin';return 'shop_manager_ui_scale_v1_'+String(u)}
 function getUIScale(){const v=parseFloat(localStorage.getItem(uiScaleKey()));return v>=.8&&v<=1.3?v:1}
 function setUIScale(v){v=parseFloat(v)||1;localStorage.setItem(uiScaleKey(),String(v));document.documentElement.style.setProperty('--ui-scale',v);document.querySelectorAll('[data-scale-choice]').forEach(b=>b.classList.toggle('active',parseFloat(b.dataset.scaleChoice)===v));}
@@ -3974,7 +4059,7 @@ function renderMyApprovals(){
   document.getElementById('view').innerHTML=`<div class="panel"><div class="panel-head"><h3>My Approval Requests</h3><span style="font-size:12px;color:var(--text-soft)">In process: ${pend}</span></div><div class="panel-body table-scroll" style="padding:0"><table><thead><tr><th>Requested</th><th>Section</th><th>Record</th><th>Request</th><th>Status</th><th>Reviewed</th></tr></thead><tbody>${rows.length?rows.map(r=>{const rec=r.entity==='warranty'?(DB.warrantyJobs||[]).find(x=>x.id===r.recordId):registerRecords(r.entity).find(x=>x.id===r.recordId);const pv=r.entity==='paymentvoucher'?r.changes?.paymentVoucher:null;const what=r.action==='delete'?'Delete record':r.action==='create'?(pv?'New payment voucher · ₹'+fmt(pv.totalAmount):'New record'):'Edit record';return `<tr><td>${safeText(new Date(r.requestedAt).toLocaleString())}</td><td>${safeText(labels[r.entity]||r.entity)}</td><td>${safeText(registerRef(r.entity,rec))}</td><td>${safeText(what)}</td><td>${badge(r.status)}</td><td>${r.reviewedAt?safeText(new Date(r.reviewedAt).toLocaleString()):'—'}</td></tr>`}).join(''):'<tr><td colspan="6" class="empty">You have not sent any approval requests.</td></tr>'}</tbody></table></div></div>`;
 }
 function toggleAdminVisibility(view,visible){DB.settings.adminHiddenViews=(DB.settings.adminHiddenViews||[]).filter(v=>v!==view);if(!visible)DB.settings.adminHiddenViews.push(view);saveDB();applyRoleRestrictions();}
-const ADMIN_TOGGLE_VIEWS=['renewaltrack','salary','dashboard','purchase','sale','voucher','service','quotation','approvals','purchaseregister','paymentvoucher','salesregister','voucherregister','serviceregister','warranty','inventory','employees','customers','todos'];
+const ADMIN_TOGGLE_VIEWS=['duesregister','renewaltrack','salary','dashboard','purchase','sale','voucher','service','quotation','approvals','purchaseregister','paymentvoucher','salesregister','voucherregister','serviceregister','warranty','inventory','employees','customers','todos'];
 let salaryMonth=todayStr().slice(0,7),salaryEmp='',editingSalaryId=null;
 const SALARY_MODES=['Cash','UPI','Bank Transfer','Cheque','Other'];
 function renderSalary(){if(!Array.isArray(DB.salaryEntries))DB.salaryEntries=[];
@@ -4026,7 +4111,7 @@ function renderRenewals(){
     if((c.notRenewFY||[]).includes(renFY)){skip.push(c);return;}
     const tot=e?(+e.total||0):0,pd=e?(+e.paidAmount||0):0;
     (e&&tot>0&&tot-pd<=0.004?paid:pend).push({c,e});});
-  const acts=(c,e,kind)=>`<td style="white-space:nowrap">${kind==='skip'?`<button class="btn ghost sm" onclick="restoreRenClient('${c.id}')">Restore</button>`:`<button class="btn amber sm" onclick="renPay='${c.id}';renEditClient=null;renderRenewals();window.scrollTo(0,0)">${e?'Update':'Payment'}</button>${e&&(+e.paidAmount||0)>0?` <button class="btn ghost sm" onclick="printRenewalVoucher('${e.id}')">Voucher</button>`:''}${kind==='pend'?` <button class="btn ghost sm" onclick="markNotRenewing('${c.id}')">Not renewing</button>`:''}`} <button class="btn ghost sm" onclick="renEditClient='${c.id}';renPay=null;renderRenewals();window.scrollTo(0,0)">Edit</button> <button class="btn danger sm" onclick="deleteRenClient('${c.id}')">Del</button></td>`;
+  const acts=(c,e,kind)=>`<td style="white-space:nowrap">${kind==='skip'?`<button class="btn ghost sm" onclick="restoreRenClient('${c.id}')">Restore</button>`:`<button class="btn amber sm" onclick="renPay='${c.id}';renEditClient=null;renderRenewals();window.scrollTo(0,0)">${e?'Update':'Payment'}</button>${e&&(+e.paidAmount||0)>0?` <button class="btn ghost sm" onclick="printRenewalVoucher('${e.id}')">Voucher</button> <button class="btn ghost sm" onclick="printRenewalVoucher('${e.id}',true)">PDF</button>`:''}${kind==='pend'?` <button class="btn ghost sm" onclick="markNotRenewing('${c.id}')">Not renewing</button>`:''}`} <button class="btn ghost sm" onclick="renEditClient='${c.id}';renPay=null;renderRenewals();window.scrollTo(0,0)">Edit</button> <button class="btn danger sm" onclick="deleteRenClient('${c.id}')">Del</button></td>`;
   const nameCell=c=>`<td><b>${safeText(c.name)}</b>${(c.aliases||[]).length?`<br><span style="font-size:11px;color:var(--text-soft)">${safeText(c.aliases.join(', '))}</span>`:''}${c.contact?`<br><span style="font-size:11px;color:var(--text-soft)">${safeText(c.contact)}</span>`:''}</td>`;
   const row=(r,kind)=>{const c=r.c,e=r.e,b=e?e.amount:(+c.amount||0),cal=e?{total:+e.total||0,g:+e.gstAmount||0}:renCalc(c.amount,false),pd=e?(+e.paidAmount||0):0,due=Math.max(0,cal.total-pd);
     return `<tr><td>${safeText(c.name).length?'':''}${nameCell(c).slice(4)}<td>${safeText(c.plan||'—')}<br><span style="font-size:11px;color:var(--text-soft)">${safeText((e&&e.period)||c.period||'')}</span></td><td class="num mono">₹${fmt(b)}</td><td>${e?(e.gst?'GST '+(+e.gstPercent||18)+'%':'No GST'):'—'}</td><td class="num mono">₹${fmt(cal.total)}</td><td class="num mono">₹${fmt(pd)}</td><td class="num mono" style="font-weight:700;color:${due>0?'var(--red)':'inherit'}">₹${fmt(due)}</td><td>${safeText(e&&e.mode||'—')}${e&&e.paidDate?'<br><span style="font-size:11px;color:var(--text-soft)">'+safeText(e.paidDate)+'</span>':''}</td>${acts(c,e,kind)}</tr>`;};
@@ -4076,21 +4161,46 @@ function saveRenPayment(){renInit();const c=DB.renewalClients.find(x=>x.id===ren
 function markNotRenewing(id){const c=DB.renewalClients.find(x=>x.id===id);if(!c)return;c.notRenewFY=[...(c.notRenewFY||[]).filter(f=>f!==renFY),renFY];saveDB();renderRenewals();}
 function restoreRenClient(id){const c=DB.renewalClients.find(x=>x.id===id);if(!c)return;c.notRenewFY=(c.notRenewFY||[]).filter(f=>f!==renFY);saveDB();renderRenewals();}
 function deleteRenClient(id){const c=DB.renewalClients.find(x=>x.id===id);if(!c||!confirm('Delete "'+c.name+'" and all of their renewal records?'))return;DB.renewalClients=DB.renewalClients.filter(x=>x.id!==id);DB.renewalEntries=DB.renewalEntries.filter(e=>e.clientId!==id);saveDB();renderRenewals();}
-function printRenewalVoucher(id){
+function printRenewalVoucher(id,asPdf=false){
   const e=DB.renewalEntries.find(x=>x.id===id),c=e&&DB.renewalClients.find(x=>x.id===e.clientId);if(!c)return;
   const st=DB.settings||{},shop=safeText(st.shopName||'Shop'),dt=e.paidDate?e.paidDate.split('-').reverse().join('-'):'……………………';
   const rows=[`<tr><td>1</td><td>${safeText((c.plan||'Software')+' Renewal '+fyShort(e.fy))}${e.period?' ('+safeText(e.period)+')':''}</td><td class="n">1</td><td class="n">${renNum(e.amount)}</td><td class="n">${renNum(e.amount)}</td></tr>`];
   if(e.gst)rows.push(`<tr><td></td><td>GST @ ${renNum(e.gstPercent)}%</td><td class="n"></td><td class="n"></td><td class="n">${renNum(e.gstAmount)}</td></tr>`);
-  const w=window.open('','_blank');if(!w){showToast('Allow pop-ups to print');return;}
-  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Renewal Voucher</title><style>@page{size:148mm 210mm;margin:8mm}*{box-sizing:border-box}html,body{margin:0;padding:0}body{font-family:Calibri,Arial,sans-serif;font-size:13px;color:#000;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  const html=`<!doctype html><html><head><meta charset="utf-8"><title>Renewal Voucher</title><style>@page{size:148mm 210mm;margin:8mm}*{box-sizing:border-box}html,body{margin:0;padding:0}body{font-family:Calibri,Arial,sans-serif;font-size:13px;color:#000;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .box{border:1.5px solid #000;height:193mm;display:flex;flex-direction:column}.c{text-align:center}.ti{font-size:20px;font-weight:700;padding-top:4px}.sub{font-size:13px;padding:3px 0}
 .to{display:flex;justify-content:space-between;padding:6px 8px;border-top:1px solid #bbb}table{width:100%;border-collapse:collapse}th{background:#d9d9d9;border-top:1px solid #000;border-bottom:1px solid #000;padding:5px 6px;text-align:left;font-weight:600}td{padding:5px 6px;vertical-align:top}.n{text-align:right;white-space:nowrap}th.n{text-align:right}
 .fill{flex:1}.tot{display:flex;justify-content:flex-end;gap:36px;background:#d9d9d9;border-top:1px solid #000;border-bottom:1px solid #000;padding:6px 8px;font-weight:700}.for{text-align:right;padding:6px 10px 2px}.note{font-size:10.5px;padding:2px 8px 6px}</style></head><body><div class="box">
 <div class="c ti">${shop}</div><div class="c sub">${safeText(st.phone||'')}</div><div class="c sub" style="padding-top:0">${safeText(st.address||'')}</div>
 <div class="to"><span>To&nbsp;&nbsp;<b>${safeText(c.name)}</b></span><span>Date:&nbsp;${dt}</span></div>
 <table><thead><tr><th style="width:9%">Sr</th><th>Description</th><th class="n" style="width:11%">Qty</th><th class="n" style="width:15%">Rate</th><th class="n" style="width:17%">Amount</th></tr></thead><tbody>${rows.join('')}</tbody></table>
-<div class="fill"></div><div class="tot"><span>TOTAL</span><span>${renNum(e.total)}</span></div><div class="for">For ${shop}</div><div class="note">* This Does not represent actual invoice</div></div></body></html>`);
-  w.document.close();w.focus();setTimeout(()=>w.print(),300);
+<div class="fill"></div><div class="tot"><span>TOTAL</span><span>${renNum(e.total)}</span></div><div class="for">For ${shop}</div><div class="note">* This Does not represent actual invoice</div></div></body></html>`;
+  if(asPdf){pdfFromHtml(html,{name:[safeFile(c.name),safeFile(fyShort(e.fy).replace('/','-'))].filter(Boolean).join('_')||'Renewal',w:148,h:210,m:8});return;}
+  const w=window.open('','_blank');if(!w){showToast('Allow pop-ups to print');return;}
+  w.document.write(html);w.document.close();w.focus();setTimeout(()=>w.print(),300);
+}
+let duesFrom='',duesTo='',duesSearch='',duesType='',duesOrder='asc';
+function duesRows(){
+  const out=[],add=(type,key,arr,tot)=>(arr||[]).forEach(x=>{const total=+tot(x)||0,paid=+x.paidAmount||0,ded=+x.deduction||0,due=Math.round((total-paid-ded)*100)/100;if(due>0.004)out.push({type,key,id:x.id,date:x.date||'',ref:registerRef(key,x),party:x.customer||x.name||'',phone:x.phone||x.customerPhone||'',total,paid:paid+ded,due});});
+  add('Sale','sale',DB.sales,x=>x.grandTotal);add('Non-GST','voucher',DB.vouchers,x=>x.grandTotal);add('Service','service',DB.services,x=>x.amount);
+  return out;
+}
+function duesRemind(type,id){const r=duesRows().find(x=>x.id===id&&x.type===type);if(!r)return;let ph=normalizePhone(r.phone);if(!ph){const n=prompt('Customer mobile number for '+r.party);if(!n)return;ph=normalizePhone(n);}window.open('https://wa.me/'+ph+'?text='+encodeURIComponent(buildReminderMessage(r.ref,r.date,r.total,r.due)),'_blank');}
+function duesOpen(type,id){({Sale:printSaleInvoice,'Non-GST':printVoucher,Service:printServiceInvoice})[type](id);}
+function renderDuesRegister(){
+  const q=duesSearch.trim().toLowerCase(),today=todayStr();
+  let rows=duesRows().filter(r=>(!duesFrom||r.date>=duesFrom)&&(!duesTo||r.date<=duesTo)&&(!duesType||r.type===duesType)&&(!q||[r.party,r.ref,r.phone,r.type].join(' ').toLowerCase().includes(q)));
+  rows.sort((a,b)=>(duesOrder==='asc'?1:-1)*(String(a.date).localeCompare(String(b.date))||String(a.ref).localeCompare(String(b.ref))));
+  const tot=rows.reduce((t,r)=>({total:t.total+r.total,paid:t.paid+r.paid,due:t.due+r.due}),{total:0,paid:0,due:0});
+  const days=[...new Set(rows.map(r=>r.date))],age=d=>d?Math.max(0,Math.floor((new Date(today)-new Date(d))/864e5)):'';
+  const body=days.map(d=>{const dr=rows.filter(r=>r.date===d),dd=dr.reduce((n,r)=>n+r.due,0);
+    return `<tr class="dues-day"><td colspan="8"><b>${safeText(d||'No date')}</b> · ${dr.length} bill${dr.length>1?'s':''} · Due ₹${fmt(dd)}</td></tr>`+dr.map(r=>`<tr><td>${safeText(r.type)}</td><td class="mono">${safeText(r.ref)}</td><td>${safeText(r.party)}${r.phone?'<br><span style="font-size:11px;color:var(--text-soft)">'+safeText(r.phone)+'</span>':''}</td><td class="num mono">₹${fmt(r.total)}</td><td class="num mono">₹${fmt(r.paid)}</td><td class="num mono" style="font-weight:700;color:var(--red)">₹${fmt(r.due)}</td><td class="num">${age(r.date)}d</td><td style="white-space:nowrap"><button class="btn ghost sm" onclick="duesOpen('${r.type}','${r.id}')">View</button> <button class="btn ghost sm" onclick="duesRemind('${r.type}','${r.id}')">💬 Remind</button></td></tr>`).join('');}).join('');
+  document.getElementById('view').innerHTML=`<div class="row db-filter" style="margin-bottom:10px">
+    <div class="field"><label>From</label><input type="date" value="${duesFrom}" onchange="duesFrom=this.value;renderDuesRegister()"></div>
+    <div class="field"><label>To</label><input type="date" value="${duesTo}" onchange="duesTo=this.value;renderDuesRegister()"></div>
+    <div class="field"><label>Type</label><select onchange="duesType=this.value;renderDuesRegister()"><option value="">All</option>${['Sale','Non-GST','Service'].map(t=>`<option ${duesType===t?'selected':''}>${t}</option>`).join('')}</select></div>
+    <div class="field"><label>Order</label><select onchange="duesOrder=this.value;renderDuesRegister()"><option value="asc" ${duesOrder==='asc'?'selected':''}>Oldest first</option><option value="desc" ${duesOrder==='desc'?'selected':''}>Newest first</option></select></div>
+    <div class="field" style="flex:1 1 180px"><label>Search</label><input value="${safeText(duesSearch)}" placeholder="Party, number, phone…" oninput="duesSearch=this.value;clearTimeout(window._dsT);window._dsT=setTimeout(renderDuesRegister,300)"></div></div>
+  <div class="panel"><div class="panel-head"><h3>Pending Dues Register (${rows.length})</h3><span class="badge warn">Total due ₹${fmt(tot.due)}</span></div><div class="panel-body table-scroll" style="padding:0"><table><thead><tr><th>Type</th><th>Number</th><th>Party</th><th class="num">Total</th><th class="num">Paid</th><th class="num">Due</th><th class="num">Age</th><th></th></tr></thead><tbody>${body||'<tr><td colspan="8" class="empty">No pending dues.</td></tr>'}${rows.length?`<tr><td colspan="3"><b>Total</b></td><td class="num mono"><b>₹${fmt(tot.total)}</b></td><td class="num mono"><b>₹${fmt(tot.paid)}</b></td><td class="num mono"><b>₹${fmt(tot.due)}</b></td><td colspan="2"></td></tr>`:''}</tbody></table></div></div>`;
 }
 function renderUISettings(){
   const sc=getUIScale();
@@ -4100,7 +4210,8 @@ function renderUISettings(){
       <div class="theme-grid">${THEME_OPTIONS.map(t=>`<button type="button" class="theme-option ${getCurrentTheme()===t.id?'active':''}" data-theme-choice="${t.id}" onclick="setAppTheme('${t.id}')"><span class="theme-swatch">${t.swatches.map(c=>`<i style="background:${c}"></i>`).join('')}</span><span class="theme-name">${t.name}</span><span class="theme-mode">${t.mode}</span></button>`).join('')}</div>
     </div></div>
     <div class="panel ui-set"><div class="panel-head"><h3>Dark Mode</h3></div><div class="panel-body">
-      <div class="dark-mode-row"><div class="dark-mode-copy"><strong>Dark Mode</strong><span>Dark background with high-contrast text. Saved separately for each user (Admin and Staff).</span></div><label class="dark-switch" title="Toggle Dark Mode"><input id="darkModeSwitch" type="checkbox" ${isDarkMode()?'checked':''} onchange="setDarkMode(this.checked)"><span class="dark-switch-track"></span></label></div>
+      <p class="ui-note">Auto follows your phone or computer's light / dark setting. Saved separately for each user (Admin and Staff).</p>
+      <div class="scale-row">${[['auto','Auto (device)'],['off','Light'],['on','Dark']].map(([v,l])=>`<button type="button" class="btn ghost sm scale-opt ${getDarkPref()===v?'active':''}" data-dark-choice="${v}" onclick="setDarkPref('${v}')">${l}</button>`).join('')}</div>
     </div></div>
     <div class="panel ui-set"><div class="panel-head"><h3>UI Font Size</h3></div><div class="panel-body">
       <p class="ui-note">Changes the text and control size across the working area.</p>
@@ -4124,14 +4235,14 @@ function renderSettings(){
       <div class="panel-head"><h3>Admin Visible Sections</h3></div>
       <div class="panel-body">
         <p style="font-size:12.5px;color:#8a8578;margin-top:0;">Tick the sections shown in the Admin side menu. Untick to hide them from your own view (Shop Settings and UI Settings always stay visible).</p>
-        ${[['renewaltrack','Software Renewals'],['dashboard','Dashboard'],['purchase','Purchase'],['sale','Sale (Invoice)'],['voucher','Sales Voucher (Non-GST)'],['service','Service Sale'],['quotation','Quotation / Challan'],['approvals','Pending Approvals'],['purchaseregister','Purchase Register'],['paymentvoucher','Purchase Payment Voucher'],['salesregister','Sales Register'],['voucherregister','Non-GST Sale Register'],['serviceregister','Service Register'],['warranty','Warranty / Out Repair'],['inventory','Inventory'],['employees','Employees'],['salary','Salary Register'],['customers','Customers'],['todos','To-Do List']].map(([k,l])=>`<label style="display:flex;align-items:center;gap:8px;padding:5px 0;font-weight:500;"><input type="checkbox" style="width:auto;" ${(DB.settings.adminHiddenViews||[]).includes(k)?'':'checked'} onchange="toggleAdminVisibility('${k}', this.checked)"> ${l}</label>`).join('')}
+        ${[['duesregister','Pending Dues Register'],['renewaltrack','Software Renewals'],['dashboard','Dashboard'],['purchase','Purchase'],['sale','Sale (Invoice)'],['voucher','Sales Voucher (Non-GST)'],['service','Service Sale'],['quotation','Quotation / Challan'],['approvals','Pending Approvals'],['purchaseregister','Purchase Register'],['paymentvoucher','Purchase Payment Voucher'],['salesregister','Sales Register'],['voucherregister','Non-GST Sale Register'],['serviceregister','Service Register'],['warranty','Warranty / Out Repair'],['inventory','Inventory'],['employees','Employees'],['salary','Salary Register'],['customers','Customers'],['todos','To-Do List']].map(([k,l])=>`<label style="display:flex;align-items:center;gap:8px;padding:5px 0;font-weight:500;"><input type="checkbox" style="width:auto;" ${(DB.settings.adminHiddenViews||[]).includes(k)?'':'checked'} onchange="toggleAdminVisibility('${k}', this.checked)"> ${l}</label>`).join('')}
       </div>
     </div>
     <div class="panel" style="max-width:680px;margin-bottom:16px;">
       <div class="panel-head"><h3>Staff Access Control</h3></div>
       <div class="panel-body">
         <p style="font-size:12.5px;color:#8a8578;margin-top:0;">Tick the sections the Staff login can see. Untick to hide from staff (Admin always sees everything).</p>
-        ${[['renewaltrack','Software Renewals'],['sale','Sale (Invoice)'],['voucher','Sales Voucher (Non-GST)'],['service','Service Sale'],['quotation','Quotation / Challan'],['customers','Customers'],['todos','To-Do List'],['purchaseregister','Purchase Register'],['paymentvoucher','Purchase Payment Voucher'],['salesregister','Sales Register'],['voucherregister','Non-GST Sale Register'],['serviceregister','Service Register'],['warranty','Warranty / Out Repair']].map(([k,l])=>`<label style="display:flex;align-items:center;gap:8px;padding:5px 0;font-weight:500;"><input type="checkbox" style="width:auto;" ${(DB.settings.userHiddenExtra||[]).includes(k)?'':'checked'} onchange="toggleUserVisibility('${k}', this.checked)"> ${l}</label>`).join('')}
+        ${[['duesregister','Pending Dues Register'],['renewaltrack','Software Renewals'],['sale','Sale (Invoice)'],['voucher','Sales Voucher (Non-GST)'],['service','Service Sale'],['quotation','Quotation / Challan'],['customers','Customers'],['todos','To-Do List'],['purchaseregister','Purchase Register'],['paymentvoucher','Purchase Payment Voucher'],['salesregister','Sales Register'],['voucherregister','Non-GST Sale Register'],['serviceregister','Service Register'],['warranty','Warranty / Out Repair']].map(([k,l])=>`<label style="display:flex;align-items:center;gap:8px;padding:5px 0;font-weight:500;"><input type="checkbox" style="width:auto;" ${(DB.settings.userHiddenExtra||[]).includes(k)?'':'checked'} onchange="toggleUserVisibility('${k}', this.checked)"> ${l}</label>`).join('')}
       </div>
     </div>
     <div class="panel" style="max-width:900px;margin-bottom:16px;">
@@ -4473,7 +4584,7 @@ function renderWarranty(){const j=editingWarrantyId?DB.warrantyJobs.find(x=>x.id
 '<div class="panel" style="margin-bottom:16px"><div class="panel-head"><h3>'+(j?'Edit':'New')+' Warranty / Outside Repair Item</h3></div><div class="panel-body"><div class="row">'+
 '<div class="field"><label>Type</label><select id="wr_type"><option '+(!j||!j.type||j.type==='Repair'?'selected':'')+'>Repair</option><option '+(j?.type==='Warranty'?'selected':'')+'>Warranty</option><option '+(j?.type==='Out Repair'?'selected':'')+'>Out Repair</option></select></div>'+[['customer','Customer'],['phone','Phone'],['product','Item / Product'],['serial','Serial / IMEI'],['provider','Provider'],['sentDate','Date Sent'],['receivedDate','Expected / Received Date'],['totalAmount','Provider Charge (₹)'],['paidAmount','Paid to Provider (₹)'],['notes','Notes']].map(([k,l])=>'<div class="field"><label>'+l+'</label><input id="wr_'+k+'" '+(['sentDate','receivedDate'].includes(k)?'type="date" ':'')+(['totalAmount','paidAmount'].includes(k)?'type="number" min="0" step="0.01" ':'')+'value="'+safeText(j?.[k]??(['sentDate'].includes(k)?todayStr():['totalAmount','paidAmount'].includes(k)?0:''))+'"></div>').join('')+
 '<div class="field"><label>Status</label><select id="wr_status"><option '+(j?.status!=='Received'?'selected':'')+'>Pending</option><option '+(j?.status==='Received'?'selected':'')+'>Received</option></select></div></div><button class="btn amber" onclick="saveWarrantyJob('+(j?'false':'true')+')">'+(j?'Save Changes':'Save & Print Slip')+'</button> <button class="btn ghost" onclick="editingWarrantyId=null;renderWarranty()">Cancel</button></div></div>'+renderWarrantyTable();}
-function warrantyRow(x,hide){return `<tr${hide?' class="sm-hide"':''}><td>${safeText(x.ref)}</td><td>${safeText(x.type)} / ${safeText(x.product)}<br>${safeText(x.serial||'')}</td><td>${safeText(x.customer)}<br>${safeText(x.phone||'')}</td><td>${safeText(x.provider||'—')}</td><td>${safeText(x.sentDate||'')}</td><td>${safeText(x.status||'Pending')}</td><td>₹${fmt(x.totalAmount)}</td><td><input type="number" min="0" max="${+x.totalAmount||0}" step="0.01" value="${+x.paidAmount||0}" style="width:90px" onchange="updateWarrantyPaid('${x.id}',this.value)"></td><td>₹${fmt(Math.max(0,(+x.totalAmount||0)-(+x.paidAmount||0)))}</td><td>${x.status==='Received'?`<button class="btn ghost sm" onclick="printWarrantyReceipt('${x.id}')">Received Voucher</button>`:''} <button class="btn ghost sm" onclick="printWarrantyReceipt('${x.id}',true)">Manual Print</button> <button class="btn ghost sm" onclick="editingWarrantyId='${x.id}';renderWarranty()">Edit</button> <button class="btn danger sm" onclick="deleteWarrantyJob('${x.id}')">Del</button></td></tr>`;}
+function warrantyRow(x,hide){return `<tr${hide?' class="sm-hide"':''}><td>${safeText(x.ref)}</td><td>${safeText(x.type)} / ${safeText(x.product)}<br>${safeText(x.serial||'')}</td><td>${safeText(x.customer)}<br>${safeText(x.phone||'')}</td><td>${safeText(x.provider||'—')}</td><td>${safeText(x.sentDate||'')}</td><td>${safeText(x.status||'Pending')}</td><td>₹${fmt(x.totalAmount)}</td><td><input type="number" min="0" max="${+x.totalAmount||0}" step="0.01" value="${+x.paidAmount||0}" style="width:90px" onchange="updateWarrantyPaid('${x.id}',this.value)"></td><td>₹${fmt(Math.max(0,(+x.totalAmount||0)-(+x.paidAmount||0)))}</td><td>${x.status==='Received'?`<button class="btn ghost sm" onclick="printWarrantyReceipt('${x.id}')">Received Voucher</button>`:''} <button class="btn ghost sm" onclick="printWarrantyReceipt('${x.id}',true)">Manual Print</button> <button class="btn ghost sm" onclick="printWarrantyReceipt('${x.id}',false,true)">PDF</button> <button class="btn ghost sm" onclick="editingWarrantyId='${x.id}';renderWarranty()">Edit</button> <button class="btn danger sm" onclick="deleteWarrantyJob('${x.id}')">Del</button></td></tr>`;}
 function warrantyHead(){return '<thead><tr><th>Ref</th><th>Type / Item</th><th>Customer</th><th>Provider</th><th>Sent</th><th>Status</th><th>Charge</th><th>Paid</th><th>Due</th><th></th></tr></thead>';}
 function toggleWarrantyMore(btn,n){const t=btn.parentNode.previousElementSibling.querySelector('table');t.classList.toggle('sm-open');btn.textContent=t.classList.contains('sm-open')?'View less':'View more ('+n+' more)';}
 function renderWarrantyTable(){
@@ -4509,14 +4620,14 @@ function updateWarrantyPaid(id,v){const x=DB.warrantyJobs.find(j=>j.id===id),n=N
 
 function deleteWarrantyJob(id){if(currentUserRole!=='admin'){requestRegisterApproval('warranty',id,'delete',null);return;}requirePassword('delete this warranty / repair record',()=>askConfirm('Delete this repair record?',()=>{DB.warrantyJobs=DB.warrantyJobs.filter(x=>x.id!==id);saveDB();renderWarranty();}));}
 
-function printWarrantyReceipt(id,manual=false){const x=DB.warrantyJobs.find(j=>j.id===id);if(!x)return;const w=window.open('','_blank');if(!w){showToast('Allow pop-ups to print');return;}const html='<!doctype html><html><head><meta charset="utf-8"><title>Received Voucher '+safeText(x.ref)+'</title><style>@page{size:A5 landscape;margin:5mm}*{box-sizing:border-box}body{margin:0;font:10pt Arial,sans-serif;color:#20242b}.printbar{width:200mm;margin:0 auto 3mm;display:flex;justify-content:flex-end}.printbar button{padding:2mm 4mm;background:#20242b;color:white;border:0;border-radius:2mm;font-weight:bold}.slip{width:200mm;min-height:138mm;padding:5mm;border:1px solid #c9c4b6;border-radius:3mm}.head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:1px solid #bbb;padding-bottom:2mm}.shop{font-size:15pt;font-weight:700}.sub{font-size:8pt;color:#555;margin-top:1mm}.copy{font-size:8pt;font-weight:bold;border:1px solid #555;padding:1.5mm 2mm}.title{font-size:12pt;font-weight:bold;margin:2mm 0 1mm}.meta{display:flex;justify-content:space-between;font-size:8pt;margin-bottom:2mm}.grid{display:grid;grid-template-columns:1fr 1fr;border:1px solid #bbb}.cell{padding:1mm 2mm;border-bottom:1px solid #ddd;min-height:7mm}.cell:nth-child(odd){border-right:1px solid #ddd}.label{display:block;color:#666;font-size:7.5pt;text-transform:uppercase;margin-bottom:1mm}.value{font-weight:600}.note{margin-top:1.5mm;min-height:4mm;font-size:7.5pt;overflow-wrap:anywhere}.sign{display:flex;justify-content:space-between;margin-top:3mm;font-size:7.5pt}.muted{color:#555}@media print{.printbar{display:none!important}body{print-color-adjust:exact;-webkit-print-color-adjust:exact}.slip{border:1px solid #888}}@media screen{body{background:#eee;padding:8mm}.slip{margin:auto;background:white;box-shadow:0 2mm 8mm #bbb}}</style></head><body><div class="printbar"><button onclick="window.print()">Print Customer Slip</button></div><main class="slip"><header class="head"><div><div class="shop">'+safeText(DB.settings.shopName||'Computer Shop')+'</div><div class="sub">'+safeText(DB.settings.address||'')+'<br>'+safeText(DB.settings.phone||'')+'</div></div><div class="copy">CUSTOMER COPY</div></header><div class="title">'+(x.status==='Received'?'Item Received Voucher':'Warranty / Out Repair Slip')+'</div><div class="meta"><span><b>Voucher:</b> '+safeText(x.ref)+'</span></div><section class="grid"><div class="cell"><span class="label">Customer</span><span class="value">'+safeText(x.customer)+'</span></div><div class="cell"><span class="label">Contact</span><span class="value">'+safeText(x.phone||'—')+'</span></div><div class="cell"><span class="label">Service type</span><span class="value">'+safeText(x.type)+'</span></div><div class="cell"><span class="label">Item / Product</span><span class="value">'+safeText(x.product)+'</span></div><div class="cell"><span class="label">Serial / IMEI</span><span class="value">'+safeText(x.serial||'—')+'</span></div></section><div class="note"><span class="label">Notes</span>'+safeText(x.notes||'—')+'</div><div class="sign"><span>Customer signature: ____________________</span><span>Received by: ____________________</span></div></main>'+(manual?'':'<script>window.onload=function(){setTimeout(function(){window.print()},300)};<\/script>')+'</body></html>';w.document.open();w.document.write(html);w.document.close();}
+function printWarrantyReceipt(id,manual=false,asPdf=false){const x=DB.warrantyJobs.find(j=>j.id===id);if(!x)return;const w=asPdf?null:window.open('','_blank');if(!asPdf&&!w){showToast('Allow pop-ups to print');return;}const html='<!doctype html><html><head><meta charset="utf-8"><title>Received Voucher '+safeText(x.ref)+'</title><style>@page{size:A5 landscape;margin:5mm}*{box-sizing:border-box}body{margin:0;font:10pt Arial,sans-serif;color:#20242b}.printbar{width:200mm;margin:0 auto 3mm;display:flex;justify-content:flex-end}.printbar button{padding:2mm 4mm;background:#20242b;color:white;border:0;border-radius:2mm;font-weight:bold}.slip{width:200mm;min-height:138mm;padding:5mm;border:1px solid #c9c4b6;border-radius:3mm}.head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:1px solid #bbb;padding-bottom:2mm}.shop{font-size:15pt;font-weight:700}.sub{font-size:8pt;color:#555;margin-top:1mm}.copy{font-size:8pt;font-weight:bold;border:1px solid #555;padding:1.5mm 2mm}.title{font-size:12pt;font-weight:bold;margin:2mm 0 1mm}.meta{display:flex;justify-content:space-between;font-size:8pt;margin-bottom:2mm}.grid{display:grid;grid-template-columns:1fr 1fr;border:1px solid #bbb}.cell{padding:1mm 2mm;border-bottom:1px solid #ddd;min-height:7mm}.cell:nth-child(odd){border-right:1px solid #ddd}.label{display:block;color:#666;font-size:7.5pt;text-transform:uppercase;margin-bottom:1mm}.value{font-weight:600}.note{margin-top:1.5mm;min-height:4mm;font-size:7.5pt;overflow-wrap:anywhere}.sign{display:flex;justify-content:space-between;margin-top:3mm;font-size:7.5pt}.muted{color:#555}@media print{.printbar{display:none!important}body{print-color-adjust:exact;-webkit-print-color-adjust:exact}.slip{border:1px solid #888}}@media screen{body{background:#eee;padding:8mm}.slip{margin:auto;background:white;box-shadow:0 2mm 8mm #bbb}}</style></head><body><div class="printbar"><button onclick="window.print()">Print Customer Slip</button></div><main class="slip"><header class="head"><div><div class="shop">'+safeText(DB.settings.shopName||'Computer Shop')+'</div><div class="sub">'+safeText(DB.settings.address||'')+'<br>'+safeText(DB.settings.phone||'')+'</div></div><div class="copy">CUSTOMER COPY</div></header><div class="title">'+(x.status==='Received'?'Item Received Voucher':'Warranty / Out Repair Slip')+'</div><div class="meta"><span><b>Voucher:</b> '+safeText(x.ref)+'</span></div><section class="grid"><div class="cell"><span class="label">Customer</span><span class="value">'+safeText(x.customer)+'</span></div><div class="cell"><span class="label">Contact</span><span class="value">'+safeText(x.phone||'—')+'</span></div><div class="cell"><span class="label">Service type</span><span class="value">'+safeText(x.type)+'</span></div><div class="cell"><span class="label">Item / Product</span><span class="value">'+safeText(x.product)+'</span></div><div class="cell"><span class="label">Serial / IMEI</span><span class="value">'+safeText(x.serial||'—')+'</span></div></section><div class="note"><span class="label">Notes</span>'+safeText(x.notes||'—')+'</div><div class="sign"><span>Customer signature: ____________________</span><span>Received by: ____________________</span></div></main>'+(manual?'':'<script>window.onload=function(){setTimeout(function(){window.print()},300)};<\/script>')+'</body></html>';if(asPdf){pdfFromHtml(html,{name:[safeFile(x.customer),safeFile(x.ref)].filter(Boolean).join('_')||'Receipt',w:210,h:148,m:5});return;}w.document.open();w.document.write(html);w.document.close();}
 function togglePaidBox(id, btn){
   const el = document.getElementById(id); if(!el) return;
   const open = el.style.display==='none';
   el.style.display = open ? 'block' : 'none';
   btn.textContent = btn.textContent.replace(open?'▸':'▾', open?'▾':'▸');
 }
-const STAFF_CONFIGURABLE_VIEWS=['renewaltrack','sale','voucher','service','quotation','customers','todos','purchaseregister','paymentvoucher','salesregister','voucherregister','serviceregister','warranty'];
+const STAFF_CONFIGURABLE_VIEWS=['duesregister','renewaltrack','sale','voucher','service','quotation','customers','todos','purchaseregister','paymentvoucher','salesregister','voucherregister','serviceregister','warranty'];
 function canStaffAccess(view){if(view==='uisettings'||view==='myapprovals')return true;if(currentUserRole==='admin')return true;if(ADMIN_ONLY_VIEWS.includes(view)||!STAFF_CONFIGURABLE_VIEWS.includes(view))return false;const account=(DB.users||[]).find(u=>u.id===currentUserId);const allowed=account&&Array.isArray(account.allowedViews)?account.allowedViews:(STAFF_CONFIGURABLE_VIEWS.filter(v=>!(DB.settings.userHiddenExtra||[]).includes(v)));return allowed.includes(view);}
 function userFallbackView(){return STAFF_CONFIGURABLE_VIEWS.find(v=>canStaffAccess(v))||'todos';}
 function toggleUserVisibility(view, visible){
@@ -4672,6 +4783,8 @@ function printPaymentVoucher(id){
       <button class="btn ghost sm" onclick="document.getElementById('invoiceWrap').remove()">Close</button>
       <button class="btn ghost sm" onclick="openInvoiceNewTab()">↗ Open in New Tab</button>
       <button class="btn amber sm" onclick="tryPrint()">🖨 Print</button>
+      <button class="btn ghost sm" onclick="downloadInvoicePdf()">📄 PDF</button>
+      <button class="btn ghost sm wa-btn" onclick="sendInvoiceWhatsApp()">💬 WhatsApp PDF</button>
     </div>
     <div id="invoiceSheet" class="size-${currentPageSize.toLowerCase()}">
       <div class="inv-head">
@@ -4921,7 +5034,7 @@ if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostnam
 </script>
 <script>
 /* v1.0.50 app version + update checker: reads APP_VERSION from the published index.html (and version.json if present) */
-const APP_VERSION='1.0.51';
+const APP_VERSION='1.0.54';
 let _latestVer=null,_lastCheck=0,_updShown=false;
 function _verCmp(a,b){const x=String(a).split('.').map(Number),y=String(b).split('.').map(Number);for(let i=0;i<Math.max(x.length,y.length);i++){const d=(x[i]||0)-(y[i]||0);if(d)return d>0?1:-1;}return 0;}
 function showUpdateBanner(v){if(_updShown)return;_updShown=true;const b=document.createElement('div');b.id='updBanner';b.className='no-print';
@@ -4955,9 +5068,56 @@ async function runUpdateCheck(){const st=document.getElementById('updStatus'),ap
   }
   /* auto-collapse the side panel after choosing a section */
   document.querySelectorAll('.navbtn').forEach(function(b){b.addEventListener('click',function(){
-    try{if(isMobileLayout()){closeMobileSidebar();}else{var sb=document.getElementById('sidebar');if(sb&&sb.classList.contains('peek')){sbEndPeek();}else if(sb&&!sb.classList.contains('collapsed'))toggleSidebar();}}catch(e){}
+    try{if(isMobileLayout()){closeMobileSidebar();}}catch(e){}
   });});
 })();
+</script>
+<script>
+/* v1.0.52 WhatsApp PDF sender (mobile) + device dark mode at startup */
+try{applyDarkPref();}catch(e){}
+function closeWaSheet(){const o=document.getElementById('waSheet');if(o)o.remove();}
+function waNumber(raw){let d=String(raw||'').replace(/\D/g,'');if(d.length===11&&d[0]==='0')d=d.slice(1);if(d.length===10)d='91'+d;return d;}
+function waGuessPhone(){const m=document.querySelector('#invoiceSheet .inv-meta'),t=m?m.innerText:'',r=t.match(/(?:\+?91[\s-]?)?[6-9]\d{9}/);return r?r[0]:'';}
+function waDocInfo(){const sh=document.getElementById('invoiceSheet'),q=x=>((sh.querySelector(x)||{}).innerText||'').trim(),pm=sh.querySelector('.inv-meta'),pl=pm&&pm.children[0]?pm.children[0].innerText.split('\n').map(x=>x.trim()).filter(Boolean):[];return{party:(pl[1]||pl[0]||'').replace(/^(Bill To|To|Supplier|Paid To|Party)\s*:?\s*/i,''),ref:q('.inv-head .tag .co-sub'),title:q('.inv-head .tag .t1')||'Invoice',total:q('.trow.grand').replace(/\s+/g,' '),shop:q('.inv-head .co')};}
+async function waMakePdf(){
+  const sh=document.getElementById('invoiceSheet');if(!window.html2pdf)await _loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js');
+  const size=String(typeof currentPageSize!=='undefined'?currentPageSize:'A4'),PW={A4:210,A5:148,A6:105}[size]||210,PH={A4:297,A5:210,A6:148}[size]||297,W=Math.round((PW-8)*3.7795),root=document.documentElement,pd=root.getAttribute('data-dark-mode'),pt=root.getAttribute('data-theme');
+  root.setAttribute('data-dark-mode','0');root.setAttribute('data-theme','classic');
+  const host=document.createElement('div');host.style.cssText='position:fixed;left:-10000px;top:0;width:'+W+'px;background:#fff;';host.innerHTML='<style>#invoiceSheet{max-width:none!important;width:100%!important;margin:0!important;box-shadow:none!important;overflow:visible!important;min-height:'+(PH-11)+'mm!important}</style>';
+  sh.id='invoiceSheet_orig';const clone=sh.cloneNode(true);clone.id='invoiceSheet';host.appendChild(clone);document.body.appendChild(host);
+  try{return await html2pdf().set({margin:4,image:{type:'jpeg',quality:.95},html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff',scrollY:0},jsPDF:{unit:'mm',format:size.toLowerCase(),orientation:'portrait'}}).from(clone).outputPdf('blob');}
+  finally{sh.id='invoiceSheet';host.remove();root.setAttribute('data-dark-mode',pd||'0');if(pt)root.setAttribute('data-theme',pt);}
+}
+function safeFile(x){return String(x||'').replace(/[\\/:*?"<>|\r\n]+/g,' ').replace(/\s+/g,' ').trim();}
+function pdfName(info){return [safeFile(info.party),safeFile(info.ref||info.title)].filter(Boolean).join('_')||'document';}
+function saveBlob(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1500);}
+async function downloadInvoicePdf(){if(!document.getElementById('invoiceSheet')){showToast('Open a document first');return;}showToast('Creating PDF…');
+  try{const info=waDocInfo(),blob=await waMakePdf();saveBlob(blob,pdfName(info)+'.pdf');showToast('PDF saved: '+pdfName(info)+'.pdf');}catch(e){console.error(e);showToast('Could not create the PDF (check your internet)');}}
+async function pdfFromHtml(html,o){showToast('Creating PDF…');let fr=null;
+  try{if(!window.html2pdf)await _loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js');
+    fr=document.createElement('iframe');fr.style.cssText='position:fixed;left:-10000px;top:0;border:0;width:'+Math.round(o.w*3.7795)+'px;height:'+Math.round(o.h*3.7795)+'px';document.body.appendChild(fr);
+    const d=fr.contentDocument;d.open();d.write(html.replace(/<script[\s\S]*?<\/script>/gi,'').replace('</head>','<style>html{background:#fff}body{margin:0!important;padding:'+o.m+'mm!important;height:'+o.h+'mm;overflow:hidden}</style></head>'));d.close();
+    await new Promise(r=>setTimeout(r,400));
+    const blob=await html2pdf().set({margin:0,image:{type:'jpeg',quality:.95},html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff',scrollY:0},jsPDF:{unit:'mm',format:'a5',orientation:o.w>o.h?'landscape':'portrait'}}).from(d.body).outputPdf('blob');
+    saveBlob(blob,o.name+'.pdf');showToast('PDF saved: '+o.name+'.pdf');
+  }catch(e){console.error(e);showToast('Could not create the PDF (check your internet)');}finally{if(fr)fr.remove();}}
+async function sendInvoiceWhatsApp(){
+  if(!document.getElementById('invoiceSheet')){showToast('Open an invoice first');return;}
+  closeWaSheet();const info=waDocInfo();
+  const ov=document.createElement('div');ov.id='waSheet';ov.className='no-print';
+  ov.innerHTML='<div class="wa-box"><div class="wa-head"><strong>Send on WhatsApp</strong><button type="button" class="btn ghost sm" onclick="closeWaSheet()">✕</button></div><label>Customer mobile number</label><input id="wa_num" type="tel" inputmode="numeric" placeholder="10-digit mobile number" value="'+safeText(waGuessPhone())+'"><div id="wa_msg" class="wa-msg">Preparing PDF…</div><div class="wa-btns"><button type="button" class="btn amber" id="wa_share" disabled>📎 Share PDF to WhatsApp</button><button type="button" class="btn ghost" id="wa_chat">💬 Open chat with this number</button></div></div>';
+  document.body.appendChild(ov);
+  const msg=info.title+(info.ref?' '+info.ref:'')+(info.shop?' from '+info.shop:'')+(info.total?'. '+info.total:'')+'.',num=()=>waNumber(document.getElementById('wa_num').value),ok=()=>{if(num().length<11){showToast('Enter a valid mobile number');return false;}return true;};
+  document.getElementById('wa_chat').onclick=()=>{if(ok())window.open('https://wa.me/'+num()+'?text='+encodeURIComponent(msg+' PDF will follow.'),'_blank');};
+  let file=null;
+  try{const blob=await waMakePdf();file=new File([blob],pdfName(info)+'.pdf',{type:'application/pdf'});}catch(e){console.error(e);const m=document.getElementById('wa_msg');if(m)m.textContent='Could not create the PDF (check internet). You can still open the chat.';return;}
+  const m=document.getElementById('wa_msg'),b=document.getElementById('wa_share');if(!m||!b)return;
+  m.textContent='PDF ready ('+Math.round(file.size/1024)+' KB). In WhatsApp, pick the customer\'s chat.';b.disabled=false;
+  b.onclick=async()=>{if(!ok())return;
+    try{if(navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.clipboard.writeText(num().slice(-10));}catch(e){}await navigator.share({files:[file],title:file.name,text:msg});}
+    else{const a=document.createElement('a');a.href=URL.createObjectURL(file);a.download=file.name;document.body.appendChild(a);a.click();a.remove();window.open('https://wa.me/'+num()+'?text='+encodeURIComponent(msg+' (PDF downloaded — attach it from your files)'),'_blank');}}
+    catch(e){if(e&&e.name!=='AbortError')showToast('Could not share the PDF');}};
+}
 </script>
 </body>
 </html>

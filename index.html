@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Shop Manager — v1.0.56</title>
+<title>Shop Manager — v1.0.58</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -1020,7 +1020,7 @@ details[open]>.recv-sum h3::before{content:"▾ ";}
         <button class="collapse-toggle no-print" id="sidebarToggle" onclick="toggleSidebar()" title="Collapse sidebar">◂</button>
       </div>
       <div class="sub">Computer Sales &amp; Service</div>
-      <div class="app-ver" id="appVersion" title="App version">v1.0.56</div>
+      <div class="app-ver" id="appVersion" title="App version">v1.0.58</div>
     </div>
     <nav id="nav">
       <div class="navlabel adminonly">Overview</div>
@@ -1166,6 +1166,13 @@ function loadDB(){
   return data;
 }
 function cloneDB(v){return JSON.parse(JSON.stringify(v||{}))}
+/* hosted connection settings: a Netlify function (environment variables) or config.json next to index.html — so no device needs manual setup */
+(function(){
+  if(!/^https?:$/.test(location.protocol))return;
+  const base=location.href.split('#')[0].split('?')[0].replace(/[^/]*$/,'');
+  const tryUrl=u=>{try{const x=new XMLHttpRequest();x.open('GET',u+'?t='+Date.now(),false);x.send();if(x.status!==200)return null;const j=JSON.parse(x.responseText),url=String(j.supabaseUrl||j.url||'').trim(),key=String(j.supabaseKey||j.supabaseAnonKey||j.key||'').trim();return url&&key?{url,key}:null;}catch(e){return null;}};
+  window.__hostedSupabase=tryUrl(location.origin+'/.netlify/functions/config')||tryUrl(base+'config.json');
+})();
 function getSavedSuperbaseCredentials(){
   try{const raw=localStorage.getItem(SUPERBASE_CREDENTIALS_KEY);if(raw){const c=JSON.parse(raw);return {url:String(c.url||'').trim(),key:String(c.key||'').trim()}}}catch(e){}
   const c=window.__sessionSuperbaseCredentials||{};
@@ -1176,7 +1183,7 @@ function saveSuperbaseCredentials(url,key){
   try{localStorage.setItem(SUPERBASE_CREDENTIALS_KEY,JSON.stringify(c));window.__sessionSuperbaseCredentials={url:c.url,key:c.key};return true}
   catch(e){window.__sessionSuperbaseCredentials={url:c.url,key:c.key};console.warn('Persistent Superbase credentials unavailable; using session-only credentials.',e);return true}
 }
-function getSuperbaseConfig(){const saved=getSavedSuperbaseCredentials(),s=DB?.settings||{};return {url:saved.url||String(s.supabaseUrl||s.superbaseUrl||'').trim(),key:saved.key||String(s.supabaseAnonKey||s.superbaseKey||'').trim()}}
+function getSuperbaseConfig(){const h=window.__hostedSupabase;if(h&&h.url&&h.key)return{url:h.url,key:h.key};const saved=getSavedSuperbaseCredentials(),s=DB?.settings||{};return {url:saved.url||String(s.supabaseUrl||s.superbaseUrl||'').trim(),key:saved.key||String(s.supabaseAnonKey||s.superbaseKey||'').trim()}}
 function cloudConfigured(){const c=getSuperbaseConfig();return !!(c.url&&c.key&&window.supabase?.createClient)}
 function setTopbarSyncStatus(text,ok=true){const el=document.getElementById('databaseTopStatus');if(!el)return;el.innerHTML=`<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${ok?'#2c9a61':'#d19028'}"></span><span>${safeText(text)}</span>`}
 function updateTopbarClock(){}
@@ -4312,7 +4319,7 @@ function renderSettings(){
     <div class="panel" style="max-width:900px;margin-top:16px;">
       <div class="panel-head"><h3>Cloud Database — Superbase</h3></div>
       <div class="panel-body">
-        <p style="font-size:13px;color:#5b5748;margin-top:0;">Superbase is the live business database. The app connects automatically at startup when credentials are saved. If Superbase is unavailable, only the Admin recovery mode is enabled; normal staff login remains blocked until the cloud database is available.</p>
+        ${window.__hostedSupabase?'<p style="font-size:13px;margin-top:0;padding:8px 10px;border-radius:8px;background:var(--paper-dim);"><b>✔ Managed by your hosting.</b> The connection comes from the website itself, so every device connects automatically with no setup. Change it in Netlify (Environment variables), not here.</p>':''}<p style="font-size:13px;color:#5b5748;margin-top:0;">Superbase is the live business database. The app connects automatically at startup when credentials are saved. If Superbase is unavailable, only the Admin recovery mode is enabled; normal staff login remains blocked until the cloud database is available.</p>
         <div class="row">
           <div class="field"><label>Superbase Project URL</label><input id="st_sb_url" value="${safeText(st.supabaseUrl||'')}" placeholder="https://your-project.supabase.co"></div>
           <div class="field"><label>Superbase Anon / Publishable Key</label><input id="st_sb_key" value="${safeText(st.supabaseAnonKey||'')}" placeholder="sb_publishable_… or eyJ…" autocomplete="off"></div>
@@ -5032,7 +5039,7 @@ if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostnam
 </script>
 <script>
 /* v1.0.50 app version + update checker: reads APP_VERSION from the published index.html (and version.json if present) */
-const APP_VERSION='1.0.56';
+const APP_VERSION='1.0.58';
 let _latestVer=null,_lastCheck=0,_updShown=false;
 function _verCmp(a,b){const x=String(a).split('.').map(Number),y=String(b).split('.').map(Number);for(let i=0;i<Math.max(x.length,y.length);i++){const d=(x[i]||0)-(y[i]||0);if(d)return d>0?1:-1;}return 0;}
 function showUpdateBanner(v){if(_updShown)return;_updShown=true;const b=document.createElement('div');b.id='updBanner';b.className='no-print';
@@ -5088,11 +5095,21 @@ function pdfName(info){return [safeFile(info.party),safeFile(info.ref||info.titl
 function saveBlob(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1500);}
 async function downloadInvoicePdf(){if(!document.getElementById('invoiceSheet')){showToast('Open a document first');return;}showToast('Creating PDF…');
   try{const info=invDocInfo(),blob=await invMakePdf();saveBlob(blob,pdfName(info)+'.pdf');showToast('PDF saved: '+pdfName(info)+'.pdf');}catch(e){console.error(e);showToast('Could not create the PDF (check your internet)');}}
-function shareReadySheet(file){const o=document.createElement('div');o.id='shareSheet';o.className='no-print';o.innerHTML='<div class="share-box"><strong>PDF ready</strong><div class="share-msg">'+safeText(file.name)+' ('+Math.round(file.size/1024)+' KB)</div><div class="share-btns"><button type="button" class="btn amber" id="shr_go">📤 Share PDF</button><button type="button" class="btn ghost" id="shr_x">Close</button></div></div>';document.body.appendChild(o);
-  document.getElementById('shr_x').onclick=()=>o.remove();document.getElementById('shr_go').onclick=async()=>{try{await navigator.share({files:[file],title:file.name});o.remove();}catch(e){if(e&&e.name!=='AbortError')showToast('Could not share the PDF');}};}
+async function tryShare(file){
+  const base=(file.name.replace(/\.pdf$/i,'').replace(/[^\x20-\x7E]/g,'').replace(/\s+/g,'_').replace(/^[_\W]+|[_\W]+$/g,'')||'document')+'.pdf',
+    ascii=new File([file],base,{type:'application/pdf'}),tries=[{files:[file],title:file.name},{files:[file]},{files:[ascii]}];let last=null;
+  for(const d of tries){try{if(navigator.canShare&&!navigator.canShare(d))continue;await navigator.share(d);return{ok:true};}catch(e){if(e&&e.name==='AbortError')return{ok:true,aborted:true};last=e;}}
+  return{ok:false,err:last};}
+function shareErrText(e){return e?(e.name==='NotAllowedError'?'Android needs a fresh tap to open the share sheet. Tap Share PDF again. ':'')+'('+(e.name||'Error')+(e.message?': '+e.message:'')+')':'';}
+function shareReadySheet(file,err){const old=document.getElementById('shareSheet');if(old)old.remove();const o=document.createElement('div');o.id='shareSheet';o.className='no-print';
+  o.innerHTML='<div class="share-box"><strong>PDF ready</strong><div class="share-msg"><b>'+safeText(file.name)+'</b> ('+Math.round(file.size/1024)+' KB)</div><div class="share-msg" id="shr_err" style="color:var(--red)">'+safeText(shareErrText(err))+'</div><div class="share-btns"><button type="button" class="btn amber" id="shr_go">📤 Share PDF</button><button type="button" class="btn ghost" id="shr_save">⬇ Save PDF to phone</button><button type="button" class="btn ghost" id="shr_open">📄 Open PDF</button><button type="button" class="btn ghost" id="shr_x">Close</button></div></div>';document.body.appendChild(o);
+  document.getElementById('shr_x').onclick=()=>o.remove();
+  document.getElementById('shr_save').onclick=()=>{saveBlob(file,file.name);showToast('PDF saved');};
+  document.getElementById('shr_open').onclick=()=>{const u=URL.createObjectURL(file);window.open(u,'_blank');setTimeout(()=>URL.revokeObjectURL(u),60000);};
+  document.getElementById('shr_go').onclick=async()=>{const r=await tryShare(file);if(r.ok){o.remove();}else{const m=document.getElementById('shr_err');if(m)m.textContent=shareErrText(r.err);}};}
 async function shareFile(file){
   if(!(navigator.canShare&&navigator.canShare({files:[file]}))){saveBlob(file,file.name);showToast('Sharing is not supported here, so the PDF was saved instead');return;}
-  try{await navigator.share({files:[file],title:file.name});}catch(e){if(e&&e.name==='NotAllowedError')shareReadySheet(file);else if(e&&e.name!=='AbortError')showToast('Could not share the PDF');}}
+  const r=await tryShare(file);if(!r.ok)shareReadySheet(file,r.err);}
 async function sharePdfBlob(blob,name){return shareFile(new File([blob],name,{type:'application/pdf'}));}
 /* the invoice PDF is built in the background as soon as an invoice opens (phones), so Share PDF opens the system share sheet instantly */
 let _shareCache={sig:'',p:null,file:null};

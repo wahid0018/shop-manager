@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Shop Manager — v1.0.55</title>
+<title>Shop Manager — v1.0.56</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -1020,7 +1020,7 @@ details[open]>.recv-sum h3::before{content:"▾ ";}
         <button class="collapse-toggle no-print" id="sidebarToggle" onclick="toggleSidebar()" title="Collapse sidebar">◂</button>
       </div>
       <div class="sub">Computer Sales &amp; Service</div>
-      <div class="app-ver" id="appVersion" title="App version">v1.0.55</div>
+      <div class="app-ver" id="appVersion" title="App version">v1.0.56</div>
     </div>
     <nav id="nav">
       <div class="navlabel adminonly">Overview</div>
@@ -5032,7 +5032,7 @@ if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostnam
 </script>
 <script>
 /* v1.0.50 app version + update checker: reads APP_VERSION from the published index.html (and version.json if present) */
-const APP_VERSION='1.0.55';
+const APP_VERSION='1.0.56';
 let _latestVer=null,_lastCheck=0,_updShown=false;
 function _verCmp(a,b){const x=String(a).split('.').map(Number),y=String(b).split('.').map(Number);for(let i=0;i<Math.max(x.length,y.length);i++){const d=(x[i]||0)-(y[i]||0);if(d)return d>0?1:-1;}return 0;}
 function showUpdateBanner(v){if(_updShown)return;_updShown=true;const b=document.createElement('div');b.id='updBanner';b.className='no-print';
@@ -5090,11 +5090,25 @@ async function downloadInvoicePdf(){if(!document.getElementById('invoiceSheet'))
   try{const info=invDocInfo(),blob=await invMakePdf();saveBlob(blob,pdfName(info)+'.pdf');showToast('PDF saved: '+pdfName(info)+'.pdf');}catch(e){console.error(e);showToast('Could not create the PDF (check your internet)');}}
 function shareReadySheet(file){const o=document.createElement('div');o.id='shareSheet';o.className='no-print';o.innerHTML='<div class="share-box"><strong>PDF ready</strong><div class="share-msg">'+safeText(file.name)+' ('+Math.round(file.size/1024)+' KB)</div><div class="share-btns"><button type="button" class="btn amber" id="shr_go">📤 Share PDF</button><button type="button" class="btn ghost" id="shr_x">Close</button></div></div>';document.body.appendChild(o);
   document.getElementById('shr_x').onclick=()=>o.remove();document.getElementById('shr_go').onclick=async()=>{try{await navigator.share({files:[file],title:file.name});o.remove();}catch(e){if(e&&e.name!=='AbortError')showToast('Could not share the PDF');}};}
-async function sharePdfBlob(blob,name){const file=new File([blob],name,{type:'application/pdf'});
-  if(!(navigator.canShare&&navigator.canShare({files:[file]}))){saveBlob(blob,name);showToast('Sharing is not supported here, so the PDF was saved instead');return;}
-  try{await navigator.share({files:[file],title:name});}catch(e){if(e&&e.name==='NotAllowedError')shareReadySheet(file);else if(e&&e.name!=='AbortError')showToast('Could not share the PDF');}}
-async function shareInvoicePdf(){if(!document.getElementById('invoiceSheet')){showToast('Open a document first');return;}showToast('Preparing PDF…');
-  try{const info=invDocInfo(),blob=await invMakePdf();await sharePdfBlob(blob,pdfName(info)+'.pdf');}catch(e){console.error(e);showToast('Could not create the PDF (check your internet)');}}
+async function shareFile(file){
+  if(!(navigator.canShare&&navigator.canShare({files:[file]}))){saveBlob(file,file.name);showToast('Sharing is not supported here, so the PDF was saved instead');return;}
+  try{await navigator.share({files:[file],title:file.name});}catch(e){if(e&&e.name==='NotAllowedError')shareReadySheet(file);else if(e&&e.name!=='AbortError')showToast('Could not share the PDF');}}
+async function sharePdfBlob(blob,name){return shareFile(new File([blob],name,{type:'application/pdf'}));}
+/* the invoice PDF is built in the background as soon as an invoice opens (phones), so Share PDF opens the system share sheet instantly */
+let _shareCache={sig:'',p:null,file:null};
+function _invSig(){const sh=document.getElementById('invoiceSheet');if(!sh)return '';const h=sh.innerHTML;let x=5381;for(let i=0;i<h.length;i++)x=((x<<5)+x+h.charCodeAt(i))|0;return h.length+':'+x+':'+(typeof currentPageSize!=='undefined'?currentPageSize:'');}
+function prepareSharePdf(){const sig=_invSig();if(!sig)return null;if(_shareCache.sig===sig&&_shareCache.p)return _shareCache.p;
+  const info=invDocInfo(),p=invMakePdf().then(blob=>new File([blob],pdfName(info)+'.pdf',{type:'application/pdf'}));
+  _shareCache={sig,p,file:null};p.then(f=>{if(_shareCache.sig===sig)_shareCache.file=f;}).catch(()=>{if(_shareCache.sig===sig)_shareCache={sig:'',p:null,file:null};});return p;}
+async function shareInvoicePdf(){if(!document.getElementById('invoiceSheet')){showToast('Open a document first');return;}
+  let file=_shareCache.sig===_invSig()?_shareCache.file:null;
+  if(!file){showToast('Preparing PDF…');try{file=await prepareSharePdf();}catch(e){console.error(e);showToast('Could not create the PDF (check your internet)');return;}}
+  await shareFile(file);}
+(function(){let t=0;
+  if((window.matchMedia&&matchMedia('(pointer:coarse)').matches)||(typeof isMobileLayout==='function'&&isMobileLayout())){
+    new MutationObserver(function(){clearTimeout(t);t=setTimeout(function(){if(document.getElementById('invoiceSheet')){try{prepareSharePdf();}catch(e){}}},700);}).observe(document.body,{childList:true,subtree:true});
+    setTimeout(function(){if(!window.html2pdf)_loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js').catch(function(){});},4000);
+  }})();
 async function pdfFromHtml(html,o){showToast(o.share?'Preparing PDF…':'Creating PDF…');let fr=null;
   try{if(!window.html2pdf)await _loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js');
     fr=document.createElement('iframe');fr.style.cssText='position:fixed;left:-10000px;top:0;border:0;width:'+Math.round(o.w*3.7795)+'px;height:'+Math.round(o.h*3.7795)+'px';document.body.appendChild(fr);

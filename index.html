@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Shop Manager — v1.0.54</title>
+<title>Shop Manager — v1.0.55</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -934,17 +934,7 @@ details[open]>.recv-sum h3::before{content:"▾ ";}
 }
 
 /* v1.0.52 — WhatsApp sheet + mobile polish */
-.wa-btn{display:none;}
-@media (max-width:700px),(hover:none) and (pointer:coarse){.wa-btn{display:inline-flex;}}
 @media screen{
-  #waSheet{position:fixed;inset:0;z-index:100003;background:rgba(10,12,16,.55);display:flex;align-items:flex-end;justify-content:center;animation:v28fade .12s ease-out;}
-  .wa-box{width:min(480px,100%);background:var(--paper);color:var(--ink);border-radius:16px 16px 0 0;padding:14px 16px calc(16px + env(safe-area-inset-bottom,0px));box-shadow:var(--sh2);animation:v28pop .14s var(--ease);}
-  .wa-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
-  .wa-box label{display:block;font-size:11px;margin-bottom:3px;color:var(--text-soft);}
-  .wa-box input{width:100%;font-size:16px;}
-  .wa-msg{font-size:12.5px;color:var(--text-soft);margin:10px 0;min-height:18px;}
-  .wa-btns{display:grid;gap:8px;}
-  .wa-btns .btn{width:100%;padding:11px;}
 }
 @media screen and (max-width:700px){
   html{-webkit-tap-highlight-color:transparent;}
@@ -967,6 +957,14 @@ details[open]>.recv-sum h3::before{content:"▾ ";}
 /* v1.0.54 — dues register */
 #sidebar .navbtn[data-view="duesregister"] .ic{color:#D9A08A;}
 .dues-day td{background:var(--paper-dim);font-size:12px;padding:6px 10px!important;}
+
+@media screen{
+  #shareSheet{position:fixed;inset:0;z-index:100003;background:rgba(10,12,16,.55);display:flex;align-items:flex-end;justify-content:center;animation:v28fade .12s ease-out;}
+  .share-box{width:min(440px,100%);background:var(--paper);color:var(--ink);border-radius:16px 16px 0 0;padding:14px 16px calc(16px + env(safe-area-inset-bottom,0px));box-shadow:var(--sh2);animation:v28pop .14s var(--ease);}
+  .share-msg{font-size:12.5px;color:var(--text-soft);margin:6px 0 12px;word-break:break-word;}
+  .share-btns{display:grid;gap:8px;} .share-btns .btn{width:100%;padding:11px;}
+}
+@media print{#shareSheet{display:none!important;}}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1022,7 +1020,7 @@ details[open]>.recv-sum h3::before{content:"▾ ";}
         <button class="collapse-toggle no-print" id="sidebarToggle" onclick="toggleSidebar()" title="Collapse sidebar">◂</button>
       </div>
       <div class="sub">Computer Sales &amp; Service</div>
-      <div class="app-ver" id="appVersion" title="App version">v1.0.54</div>
+      <div class="app-ver" id="appVersion" title="App version">v1.0.55</div>
     </div>
     <nav id="nav">
       <div class="navlabel adminonly">Overview</div>
@@ -1575,7 +1573,7 @@ function printBlankForm(kind){
       <button class="btn ghost sm" onclick="openInvoiceNewTab()">↗ Open in New Tab</button>
       <button class="btn amber sm" onclick="tryPrint()">🖨 Print Blank Form</button>
       <button class="btn ghost sm" onclick="downloadInvoicePdf()">📄 PDF</button>
-      <button class="btn ghost sm wa-btn" onclick="sendInvoiceWhatsApp()">💬 WhatsApp PDF</button>
+      <button class="btn ghost sm" onclick="shareInvoicePdf()">📤 Share PDF</button>
     </div>
     <div id="invoiceSheet" class="size-${currentPageSize.toLowerCase()}">
       <div class="inv-head">
@@ -3146,7 +3144,7 @@ function printSaleInvoice(id){
       <button class="btn ghost sm" onclick="openInvoiceNewTab()">↗ Open in New Tab</button>
       <button class="btn amber sm" onclick="tryPrint()">🖨 Print Invoice</button>
       <button class="btn ghost sm" onclick="downloadInvoicePdf()">📄 PDF</button>
-      <button class="btn ghost sm wa-btn" onclick="sendInvoiceWhatsApp()">💬 WhatsApp PDF</button>
+      <button class="btn ghost sm" onclick="shareInvoicePdf()">📤 Share PDF</button>
     </div>
     <div id="invoiceSheet" class="size-${currentPageSize.toLowerCase()}">
       <div class="inv-head">
@@ -3397,7 +3395,7 @@ function printVoucher(id){
       <button class="btn ghost sm" onclick="openInvoiceNewTab()">↗ Open in New Tab</button>
       <button class="btn amber sm" onclick="tryPrint('voucher')">🖨 Print Voucher</button>
       <button class="btn ghost sm" onclick="downloadInvoicePdf()">📄 PDF</button>
-      <button class="btn ghost sm wa-btn" onclick="sendInvoiceWhatsApp()">💬 WhatsApp PDF</button>
+      <button class="btn ghost sm" onclick="shareInvoicePdf()">📤 Share PDF</button>
     </div>
     <div id="invoiceSheet" class="size-${currentPageSize.toLowerCase()}">
       <div class="inv-head">
@@ -3601,7 +3599,7 @@ function printServiceInvoice(id){
       <button class="btn ghost sm" onclick="openInvoiceNewTab()">↗ Open in New Tab</button>
       <button class="btn amber sm" onclick="tryPrint()">🖨 Print Invoice</button>
       <button class="btn ghost sm" onclick="downloadInvoicePdf()">📄 PDF</button>
-      <button class="btn ghost sm wa-btn" onclick="sendInvoiceWhatsApp()">💬 WhatsApp PDF</button>
+      <button class="btn ghost sm" onclick="shareInvoicePdf()">📤 Share PDF</button>
     </div>
     <div id="invoiceSheet" class="size-${currentPageSize.toLowerCase()}">
       <div class="inv-head">
@@ -3747,7 +3745,7 @@ function printQuotation(id){
       <button class="btn ghost sm" onclick="openInvoiceNewTab()">↗ Open in New Tab</button>
       <button class="btn amber sm" onclick="tryPrint()">🖨 Print</button>
       <button class="btn ghost sm" onclick="downloadInvoicePdf()">📄 PDF</button>
-      <button class="btn ghost sm wa-btn" onclick="sendInvoiceWhatsApp()">💬 WhatsApp PDF</button>
+      <button class="btn ghost sm" onclick="shareInvoicePdf()">📤 Share PDF</button>
     </div>
     <div id="invoiceSheet" class="size-${currentPageSize.toLowerCase()}">
       <div class="inv-head">
@@ -4111,7 +4109,7 @@ function renderRenewals(){
     if((c.notRenewFY||[]).includes(renFY)){skip.push(c);return;}
     const tot=e?(+e.total||0):0,pd=e?(+e.paidAmount||0):0;
     (e&&tot>0&&tot-pd<=0.004?paid:pend).push({c,e});});
-  const acts=(c,e,kind)=>`<td style="white-space:nowrap">${kind==='skip'?`<button class="btn ghost sm" onclick="restoreRenClient('${c.id}')">Restore</button>`:`<button class="btn amber sm" onclick="renPay='${c.id}';renEditClient=null;renderRenewals();window.scrollTo(0,0)">${e?'Update':'Payment'}</button>${e&&(+e.paidAmount||0)>0?` <button class="btn ghost sm" onclick="printRenewalVoucher('${e.id}')">Voucher</button> <button class="btn ghost sm" onclick="printRenewalVoucher('${e.id}',true)">PDF</button>`:''}${kind==='pend'?` <button class="btn ghost sm" onclick="markNotRenewing('${c.id}')">Not renewing</button>`:''}`} <button class="btn ghost sm" onclick="renEditClient='${c.id}';renPay=null;renderRenewals();window.scrollTo(0,0)">Edit</button> <button class="btn danger sm" onclick="deleteRenClient('${c.id}')">Del</button></td>`;
+  const acts=(c,e,kind)=>`<td style="white-space:nowrap">${kind==='skip'?`<button class="btn ghost sm" onclick="restoreRenClient('${c.id}')">Restore</button>`:`<button class="btn amber sm" onclick="renPay='${c.id}';renEditClient=null;renderRenewals();window.scrollTo(0,0)">${e?'Update':'Payment'}</button>${e&&(+e.paidAmount||0)>0?` <button class="btn ghost sm" onclick="printRenewalVoucher('${e.id}')">Voucher</button> <button class="btn ghost sm" onclick="printRenewalVoucher('${e.id}',true)">PDF</button> <button class="btn ghost sm" onclick="printRenewalVoucher('${e.id}','share')">Share</button>`:''}${kind==='pend'?` <button class="btn ghost sm" onclick="markNotRenewing('${c.id}')">Not renewing</button>`:''}`} <button class="btn ghost sm" onclick="renEditClient='${c.id}';renPay=null;renderRenewals();window.scrollTo(0,0)">Edit</button> <button class="btn danger sm" onclick="deleteRenClient('${c.id}')">Del</button></td>`;
   const nameCell=c=>`<td><b>${safeText(c.name)}</b>${(c.aliases||[]).length?`<br><span style="font-size:11px;color:var(--text-soft)">${safeText(c.aliases.join(', '))}</span>`:''}${c.contact?`<br><span style="font-size:11px;color:var(--text-soft)">${safeText(c.contact)}</span>`:''}</td>`;
   const row=(r,kind)=>{const c=r.c,e=r.e,b=e?e.amount:(+c.amount||0),cal=e?{total:+e.total||0,g:+e.gstAmount||0}:renCalc(c.amount,false),pd=e?(+e.paidAmount||0):0,due=Math.max(0,cal.total-pd);
     return `<tr><td>${safeText(c.name).length?'':''}${nameCell(c).slice(4)}<td>${safeText(c.plan||'—')}<br><span style="font-size:11px;color:var(--text-soft)">${safeText((e&&e.period)||c.period||'')}</span></td><td class="num mono">₹${fmt(b)}</td><td>${e?(e.gst?'GST '+(+e.gstPercent||18)+'%':'No GST'):'—'}</td><td class="num mono">₹${fmt(cal.total)}</td><td class="num mono">₹${fmt(pd)}</td><td class="num mono" style="font-weight:700;color:${due>0?'var(--red)':'inherit'}">₹${fmt(due)}</td><td>${safeText(e&&e.mode||'—')}${e&&e.paidDate?'<br><span style="font-size:11px;color:var(--text-soft)">'+safeText(e.paidDate)+'</span>':''}</td>${acts(c,e,kind)}</tr>`;};
@@ -4174,7 +4172,7 @@ function printRenewalVoucher(id,asPdf=false){
 <div class="to"><span>To&nbsp;&nbsp;<b>${safeText(c.name)}</b></span><span>Date:&nbsp;${dt}</span></div>
 <table><thead><tr><th style="width:9%">Sr</th><th>Description</th><th class="n" style="width:11%">Qty</th><th class="n" style="width:15%">Rate</th><th class="n" style="width:17%">Amount</th></tr></thead><tbody>${rows.join('')}</tbody></table>
 <div class="fill"></div><div class="tot"><span>TOTAL</span><span>${renNum(e.total)}</span></div><div class="for">For ${shop}</div><div class="note">* This Does not represent actual invoice</div></div></body></html>`;
-  if(asPdf){pdfFromHtml(html,{name:[safeFile(c.name),safeFile(fyShort(e.fy).replace('/','-'))].filter(Boolean).join('_')||'Renewal',w:148,h:210,m:8});return;}
+  if(asPdf){pdfFromHtml(html,{name:[safeFile(c.name),safeFile(fyShort(e.fy).replace('/','-'))].filter(Boolean).join('_')||'Renewal',w:148,h:210,m:8,share:asPdf==='share'});return;}
   const w=window.open('','_blank');if(!w){showToast('Allow pop-ups to print');return;}
   w.document.write(html);w.document.close();w.focus();setTimeout(()=>w.print(),300);
 }
@@ -4584,7 +4582,7 @@ function renderWarranty(){const j=editingWarrantyId?DB.warrantyJobs.find(x=>x.id
 '<div class="panel" style="margin-bottom:16px"><div class="panel-head"><h3>'+(j?'Edit':'New')+' Warranty / Outside Repair Item</h3></div><div class="panel-body"><div class="row">'+
 '<div class="field"><label>Type</label><select id="wr_type"><option '+(!j||!j.type||j.type==='Repair'?'selected':'')+'>Repair</option><option '+(j?.type==='Warranty'?'selected':'')+'>Warranty</option><option '+(j?.type==='Out Repair'?'selected':'')+'>Out Repair</option></select></div>'+[['customer','Customer'],['phone','Phone'],['product','Item / Product'],['serial','Serial / IMEI'],['provider','Provider'],['sentDate','Date Sent'],['receivedDate','Expected / Received Date'],['totalAmount','Provider Charge (₹)'],['paidAmount','Paid to Provider (₹)'],['notes','Notes']].map(([k,l])=>'<div class="field"><label>'+l+'</label><input id="wr_'+k+'" '+(['sentDate','receivedDate'].includes(k)?'type="date" ':'')+(['totalAmount','paidAmount'].includes(k)?'type="number" min="0" step="0.01" ':'')+'value="'+safeText(j?.[k]??(['sentDate'].includes(k)?todayStr():['totalAmount','paidAmount'].includes(k)?0:''))+'"></div>').join('')+
 '<div class="field"><label>Status</label><select id="wr_status"><option '+(j?.status!=='Received'?'selected':'')+'>Pending</option><option '+(j?.status==='Received'?'selected':'')+'>Received</option></select></div></div><button class="btn amber" onclick="saveWarrantyJob('+(j?'false':'true')+')">'+(j?'Save Changes':'Save & Print Slip')+'</button> <button class="btn ghost" onclick="editingWarrantyId=null;renderWarranty()">Cancel</button></div></div>'+renderWarrantyTable();}
-function warrantyRow(x,hide){return `<tr${hide?' class="sm-hide"':''}><td>${safeText(x.ref)}</td><td>${safeText(x.type)} / ${safeText(x.product)}<br>${safeText(x.serial||'')}</td><td>${safeText(x.customer)}<br>${safeText(x.phone||'')}</td><td>${safeText(x.provider||'—')}</td><td>${safeText(x.sentDate||'')}</td><td>${safeText(x.status||'Pending')}</td><td>₹${fmt(x.totalAmount)}</td><td><input type="number" min="0" max="${+x.totalAmount||0}" step="0.01" value="${+x.paidAmount||0}" style="width:90px" onchange="updateWarrantyPaid('${x.id}',this.value)"></td><td>₹${fmt(Math.max(0,(+x.totalAmount||0)-(+x.paidAmount||0)))}</td><td>${x.status==='Received'?`<button class="btn ghost sm" onclick="printWarrantyReceipt('${x.id}')">Received Voucher</button>`:''} <button class="btn ghost sm" onclick="printWarrantyReceipt('${x.id}',true)">Manual Print</button> <button class="btn ghost sm" onclick="printWarrantyReceipt('${x.id}',false,true)">PDF</button> <button class="btn ghost sm" onclick="editingWarrantyId='${x.id}';renderWarranty()">Edit</button> <button class="btn danger sm" onclick="deleteWarrantyJob('${x.id}')">Del</button></td></tr>`;}
+function warrantyRow(x,hide){return `<tr${hide?' class="sm-hide"':''}><td>${safeText(x.ref)}</td><td>${safeText(x.type)} / ${safeText(x.product)}<br>${safeText(x.serial||'')}</td><td>${safeText(x.customer)}<br>${safeText(x.phone||'')}</td><td>${safeText(x.provider||'—')}</td><td>${safeText(x.sentDate||'')}</td><td>${safeText(x.status||'Pending')}</td><td>₹${fmt(x.totalAmount)}</td><td><input type="number" min="0" max="${+x.totalAmount||0}" step="0.01" value="${+x.paidAmount||0}" style="width:90px" onchange="updateWarrantyPaid('${x.id}',this.value)"></td><td>₹${fmt(Math.max(0,(+x.totalAmount||0)-(+x.paidAmount||0)))}</td><td>${x.status==='Received'?`<button class="btn ghost sm" onclick="printWarrantyReceipt('${x.id}')">Received Voucher</button>`:''} <button class="btn ghost sm" onclick="printWarrantyReceipt('${x.id}',true)">Manual Print</button> <button class="btn ghost sm" onclick="printWarrantyReceipt('${x.id}',false,true)">PDF</button> <button class="btn ghost sm" onclick="printWarrantyReceipt('${x.id}',false,'share')">Share</button> <button class="btn ghost sm" onclick="editingWarrantyId='${x.id}';renderWarranty()">Edit</button> <button class="btn danger sm" onclick="deleteWarrantyJob('${x.id}')">Del</button></td></tr>`;}
 function warrantyHead(){return '<thead><tr><th>Ref</th><th>Type / Item</th><th>Customer</th><th>Provider</th><th>Sent</th><th>Status</th><th>Charge</th><th>Paid</th><th>Due</th><th></th></tr></thead>';}
 function toggleWarrantyMore(btn,n){const t=btn.parentNode.previousElementSibling.querySelector('table');t.classList.toggle('sm-open');btn.textContent=t.classList.contains('sm-open')?'View less':'View more ('+n+' more)';}
 function renderWarrantyTable(){
@@ -4620,7 +4618,7 @@ function updateWarrantyPaid(id,v){const x=DB.warrantyJobs.find(j=>j.id===id),n=N
 
 function deleteWarrantyJob(id){if(currentUserRole!=='admin'){requestRegisterApproval('warranty',id,'delete',null);return;}requirePassword('delete this warranty / repair record',()=>askConfirm('Delete this repair record?',()=>{DB.warrantyJobs=DB.warrantyJobs.filter(x=>x.id!==id);saveDB();renderWarranty();}));}
 
-function printWarrantyReceipt(id,manual=false,asPdf=false){const x=DB.warrantyJobs.find(j=>j.id===id);if(!x)return;const w=asPdf?null:window.open('','_blank');if(!asPdf&&!w){showToast('Allow pop-ups to print');return;}const html='<!doctype html><html><head><meta charset="utf-8"><title>Received Voucher '+safeText(x.ref)+'</title><style>@page{size:A5 landscape;margin:5mm}*{box-sizing:border-box}body{margin:0;font:10pt Arial,sans-serif;color:#20242b}.printbar{width:200mm;margin:0 auto 3mm;display:flex;justify-content:flex-end}.printbar button{padding:2mm 4mm;background:#20242b;color:white;border:0;border-radius:2mm;font-weight:bold}.slip{width:200mm;min-height:138mm;padding:5mm;border:1px solid #c9c4b6;border-radius:3mm}.head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:1px solid #bbb;padding-bottom:2mm}.shop{font-size:15pt;font-weight:700}.sub{font-size:8pt;color:#555;margin-top:1mm}.copy{font-size:8pt;font-weight:bold;border:1px solid #555;padding:1.5mm 2mm}.title{font-size:12pt;font-weight:bold;margin:2mm 0 1mm}.meta{display:flex;justify-content:space-between;font-size:8pt;margin-bottom:2mm}.grid{display:grid;grid-template-columns:1fr 1fr;border:1px solid #bbb}.cell{padding:1mm 2mm;border-bottom:1px solid #ddd;min-height:7mm}.cell:nth-child(odd){border-right:1px solid #ddd}.label{display:block;color:#666;font-size:7.5pt;text-transform:uppercase;margin-bottom:1mm}.value{font-weight:600}.note{margin-top:1.5mm;min-height:4mm;font-size:7.5pt;overflow-wrap:anywhere}.sign{display:flex;justify-content:space-between;margin-top:3mm;font-size:7.5pt}.muted{color:#555}@media print{.printbar{display:none!important}body{print-color-adjust:exact;-webkit-print-color-adjust:exact}.slip{border:1px solid #888}}@media screen{body{background:#eee;padding:8mm}.slip{margin:auto;background:white;box-shadow:0 2mm 8mm #bbb}}</style></head><body><div class="printbar"><button onclick="window.print()">Print Customer Slip</button></div><main class="slip"><header class="head"><div><div class="shop">'+safeText(DB.settings.shopName||'Computer Shop')+'</div><div class="sub">'+safeText(DB.settings.address||'')+'<br>'+safeText(DB.settings.phone||'')+'</div></div><div class="copy">CUSTOMER COPY</div></header><div class="title">'+(x.status==='Received'?'Item Received Voucher':'Warranty / Out Repair Slip')+'</div><div class="meta"><span><b>Voucher:</b> '+safeText(x.ref)+'</span></div><section class="grid"><div class="cell"><span class="label">Customer</span><span class="value">'+safeText(x.customer)+'</span></div><div class="cell"><span class="label">Contact</span><span class="value">'+safeText(x.phone||'—')+'</span></div><div class="cell"><span class="label">Service type</span><span class="value">'+safeText(x.type)+'</span></div><div class="cell"><span class="label">Item / Product</span><span class="value">'+safeText(x.product)+'</span></div><div class="cell"><span class="label">Serial / IMEI</span><span class="value">'+safeText(x.serial||'—')+'</span></div></section><div class="note"><span class="label">Notes</span>'+safeText(x.notes||'—')+'</div><div class="sign"><span>Customer signature: ____________________</span><span>Received by: ____________________</span></div></main>'+(manual?'':'<script>window.onload=function(){setTimeout(function(){window.print()},300)};<\/script>')+'</body></html>';if(asPdf){pdfFromHtml(html,{name:[safeFile(x.customer),safeFile(x.ref)].filter(Boolean).join('_')||'Receipt',w:210,h:148,m:5});return;}w.document.open();w.document.write(html);w.document.close();}
+function printWarrantyReceipt(id,manual=false,asPdf=false){const x=DB.warrantyJobs.find(j=>j.id===id);if(!x)return;const w=asPdf?null:window.open('','_blank');if(!asPdf&&!w){showToast('Allow pop-ups to print');return;}const html='<!doctype html><html><head><meta charset="utf-8"><title>Received Voucher '+safeText(x.ref)+'</title><style>@page{size:A5 landscape;margin:5mm}*{box-sizing:border-box}body{margin:0;font:10pt Arial,sans-serif;color:#20242b}.printbar{width:200mm;margin:0 auto 3mm;display:flex;justify-content:flex-end}.printbar button{padding:2mm 4mm;background:#20242b;color:white;border:0;border-radius:2mm;font-weight:bold}.slip{width:200mm;min-height:138mm;padding:5mm;border:1px solid #c9c4b6;border-radius:3mm}.head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:1px solid #bbb;padding-bottom:2mm}.shop{font-size:15pt;font-weight:700}.sub{font-size:8pt;color:#555;margin-top:1mm}.copy{font-size:8pt;font-weight:bold;border:1px solid #555;padding:1.5mm 2mm}.title{font-size:12pt;font-weight:bold;margin:2mm 0 1mm}.meta{display:flex;justify-content:space-between;font-size:8pt;margin-bottom:2mm}.grid{display:grid;grid-template-columns:1fr 1fr;border:1px solid #bbb}.cell{padding:1mm 2mm;border-bottom:1px solid #ddd;min-height:7mm}.cell:nth-child(odd){border-right:1px solid #ddd}.label{display:block;color:#666;font-size:7.5pt;text-transform:uppercase;margin-bottom:1mm}.value{font-weight:600}.note{margin-top:1.5mm;min-height:4mm;font-size:7.5pt;overflow-wrap:anywhere}.sign{display:flex;justify-content:space-between;margin-top:3mm;font-size:7.5pt}.muted{color:#555}@media print{.printbar{display:none!important}body{print-color-adjust:exact;-webkit-print-color-adjust:exact}.slip{border:1px solid #888}}@media screen{body{background:#eee;padding:8mm}.slip{margin:auto;background:white;box-shadow:0 2mm 8mm #bbb}}</style></head><body><div class="printbar"><button onclick="window.print()">Print Customer Slip</button></div><main class="slip"><header class="head"><div><div class="shop">'+safeText(DB.settings.shopName||'Computer Shop')+'</div><div class="sub">'+safeText(DB.settings.address||'')+'<br>'+safeText(DB.settings.phone||'')+'</div></div><div class="copy">CUSTOMER COPY</div></header><div class="title">'+(x.status==='Received'?'Item Received Voucher':'Warranty / Out Repair Slip')+'</div><div class="meta"><span><b>Voucher:</b> '+safeText(x.ref)+'</span></div><section class="grid"><div class="cell"><span class="label">Customer</span><span class="value">'+safeText(x.customer)+'</span></div><div class="cell"><span class="label">Contact</span><span class="value">'+safeText(x.phone||'—')+'</span></div><div class="cell"><span class="label">Service type</span><span class="value">'+safeText(x.type)+'</span></div><div class="cell"><span class="label">Item / Product</span><span class="value">'+safeText(x.product)+'</span></div><div class="cell"><span class="label">Serial / IMEI</span><span class="value">'+safeText(x.serial||'—')+'</span></div></section><div class="note"><span class="label">Notes</span>'+safeText(x.notes||'—')+'</div><div class="sign"><span>Customer signature: ____________________</span><span>Received by: ____________________</span></div></main>'+(manual?'':'<script>window.onload=function(){setTimeout(function(){window.print()},300)};<\/script>')+'</body></html>';if(asPdf){pdfFromHtml(html,{name:[safeFile(x.customer),safeFile(x.ref)].filter(Boolean).join('_')||'Receipt',w:210,h:148,m:5,share:asPdf==='share'});return;}w.document.open();w.document.write(html);w.document.close();}
 function togglePaidBox(id, btn){
   const el = document.getElementById(id); if(!el) return;
   const open = el.style.display==='none';
@@ -4784,7 +4782,7 @@ function printPaymentVoucher(id){
       <button class="btn ghost sm" onclick="openInvoiceNewTab()">↗ Open in New Tab</button>
       <button class="btn amber sm" onclick="tryPrint()">🖨 Print</button>
       <button class="btn ghost sm" onclick="downloadInvoicePdf()">📄 PDF</button>
-      <button class="btn ghost sm wa-btn" onclick="sendInvoiceWhatsApp()">💬 WhatsApp PDF</button>
+      <button class="btn ghost sm" onclick="shareInvoicePdf()">📤 Share PDF</button>
     </div>
     <div id="invoiceSheet" class="size-${currentPageSize.toLowerCase()}">
       <div class="inv-head">
@@ -5034,7 +5032,7 @@ if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostnam
 </script>
 <script>
 /* v1.0.50 app version + update checker: reads APP_VERSION from the published index.html (and version.json if present) */
-const APP_VERSION='1.0.54';
+const APP_VERSION='1.0.55';
 let _latestVer=null,_lastCheck=0,_updShown=false;
 function _verCmp(a,b){const x=String(a).split('.').map(Number),y=String(b).split('.').map(Number);for(let i=0;i<Math.max(x.length,y.length);i++){const d=(x[i]||0)-(y[i]||0);if(d)return d>0?1:-1;}return 0;}
 function showUpdateBanner(v){if(_updShown)return;_updShown=true;const b=document.createElement('div');b.id='updBanner';b.className='no-print';
@@ -5073,13 +5071,10 @@ async function runUpdateCheck(){const st=document.getElementById('updStatus'),ap
 })();
 </script>
 <script>
-/* v1.0.52 WhatsApp PDF sender (mobile) + device dark mode at startup */
+/* PDF export / share + device dark mode at startup */
 try{applyDarkPref();}catch(e){}
-function closeWaSheet(){const o=document.getElementById('waSheet');if(o)o.remove();}
-function waNumber(raw){let d=String(raw||'').replace(/\D/g,'');if(d.length===11&&d[0]==='0')d=d.slice(1);if(d.length===10)d='91'+d;return d;}
-function waGuessPhone(){const m=document.querySelector('#invoiceSheet .inv-meta'),t=m?m.innerText:'',r=t.match(/(?:\+?91[\s-]?)?[6-9]\d{9}/);return r?r[0]:'';}
-function waDocInfo(){const sh=document.getElementById('invoiceSheet'),q=x=>((sh.querySelector(x)||{}).innerText||'').trim(),pm=sh.querySelector('.inv-meta'),pl=pm&&pm.children[0]?pm.children[0].innerText.split('\n').map(x=>x.trim()).filter(Boolean):[];return{party:(pl[1]||pl[0]||'').replace(/^(Bill To|To|Supplier|Paid To|Party)\s*:?\s*/i,''),ref:q('.inv-head .tag .co-sub'),title:q('.inv-head .tag .t1')||'Invoice',total:q('.trow.grand').replace(/\s+/g,' '),shop:q('.inv-head .co')};}
-async function waMakePdf(){
+function invDocInfo(){const sh=document.getElementById('invoiceSheet'),q=x=>((sh.querySelector(x)||{}).innerText||'').trim(),pm=sh.querySelector('.inv-meta'),pl=pm&&pm.children[0]?pm.children[0].innerText.split('\n').map(x=>x.trim()).filter(Boolean):[];return{party:(pl[1]||pl[0]||'').replace(/^(Bill To|To|Supplier|Paid To|Party)\s*:?\s*/i,''),ref:q('.inv-head .tag .co-sub'),title:q('.inv-head .tag .t1')||'Invoice',total:q('.trow.grand').replace(/\s+/g,' '),shop:q('.inv-head .co')};}
+async function invMakePdf(){
   const sh=document.getElementById('invoiceSheet');if(!window.html2pdf)await _loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js');
   const size=String(typeof currentPageSize!=='undefined'?currentPageSize:'A4'),PW={A4:210,A5:148,A6:105}[size]||210,PH={A4:297,A5:210,A6:148}[size]||297,W=Math.round((PW-8)*3.7795),root=document.documentElement,pd=root.getAttribute('data-dark-mode'),pt=root.getAttribute('data-theme');
   root.setAttribute('data-dark-mode','0');root.setAttribute('data-theme','classic');
@@ -5092,32 +5087,22 @@ function safeFile(x){return String(x||'').replace(/[\\/:*?"<>|\r\n]+/g,' ').repl
 function pdfName(info){return [safeFile(info.party),safeFile(info.ref||info.title)].filter(Boolean).join('_')||'document';}
 function saveBlob(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1500);}
 async function downloadInvoicePdf(){if(!document.getElementById('invoiceSheet')){showToast('Open a document first');return;}showToast('Creating PDF…');
-  try{const info=waDocInfo(),blob=await waMakePdf();saveBlob(blob,pdfName(info)+'.pdf');showToast('PDF saved: '+pdfName(info)+'.pdf');}catch(e){console.error(e);showToast('Could not create the PDF (check your internet)');}}
-async function pdfFromHtml(html,o){showToast('Creating PDF…');let fr=null;
+  try{const info=invDocInfo(),blob=await invMakePdf();saveBlob(blob,pdfName(info)+'.pdf');showToast('PDF saved: '+pdfName(info)+'.pdf');}catch(e){console.error(e);showToast('Could not create the PDF (check your internet)');}}
+function shareReadySheet(file){const o=document.createElement('div');o.id='shareSheet';o.className='no-print';o.innerHTML='<div class="share-box"><strong>PDF ready</strong><div class="share-msg">'+safeText(file.name)+' ('+Math.round(file.size/1024)+' KB)</div><div class="share-btns"><button type="button" class="btn amber" id="shr_go">📤 Share PDF</button><button type="button" class="btn ghost" id="shr_x">Close</button></div></div>';document.body.appendChild(o);
+  document.getElementById('shr_x').onclick=()=>o.remove();document.getElementById('shr_go').onclick=async()=>{try{await navigator.share({files:[file],title:file.name});o.remove();}catch(e){if(e&&e.name!=='AbortError')showToast('Could not share the PDF');}};}
+async function sharePdfBlob(blob,name){const file=new File([blob],name,{type:'application/pdf'});
+  if(!(navigator.canShare&&navigator.canShare({files:[file]}))){saveBlob(blob,name);showToast('Sharing is not supported here, so the PDF was saved instead');return;}
+  try{await navigator.share({files:[file],title:name});}catch(e){if(e&&e.name==='NotAllowedError')shareReadySheet(file);else if(e&&e.name!=='AbortError')showToast('Could not share the PDF');}}
+async function shareInvoicePdf(){if(!document.getElementById('invoiceSheet')){showToast('Open a document first');return;}showToast('Preparing PDF…');
+  try{const info=invDocInfo(),blob=await invMakePdf();await sharePdfBlob(blob,pdfName(info)+'.pdf');}catch(e){console.error(e);showToast('Could not create the PDF (check your internet)');}}
+async function pdfFromHtml(html,o){showToast(o.share?'Preparing PDF…':'Creating PDF…');let fr=null;
   try{if(!window.html2pdf)await _loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js');
     fr=document.createElement('iframe');fr.style.cssText='position:fixed;left:-10000px;top:0;border:0;width:'+Math.round(o.w*3.7795)+'px;height:'+Math.round(o.h*3.7795)+'px';document.body.appendChild(fr);
     const d=fr.contentDocument;d.open();d.write(html.replace(/<script[\s\S]*?<\/script>/gi,'').replace('</head>','<style>html{background:#fff}body{margin:0!important;padding:'+o.m+'mm!important;height:'+o.h+'mm;overflow:hidden}</style></head>'));d.close();
     await new Promise(r=>setTimeout(r,400));
     const blob=await html2pdf().set({margin:0,image:{type:'jpeg',quality:.95},html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff',scrollY:0},jsPDF:{unit:'mm',format:'a5',orientation:o.w>o.h?'landscape':'portrait'}}).from(d.body).outputPdf('blob');
-    saveBlob(blob,o.name+'.pdf');showToast('PDF saved: '+o.name+'.pdf');
+    if(o.share){await sharePdfBlob(blob,o.name+'.pdf');}else{saveBlob(blob,o.name+'.pdf');showToast('PDF saved: '+o.name+'.pdf');}
   }catch(e){console.error(e);showToast('Could not create the PDF (check your internet)');}finally{if(fr)fr.remove();}}
-async function sendInvoiceWhatsApp(){
-  if(!document.getElementById('invoiceSheet')){showToast('Open an invoice first');return;}
-  closeWaSheet();const info=waDocInfo();
-  const ov=document.createElement('div');ov.id='waSheet';ov.className='no-print';
-  ov.innerHTML='<div class="wa-box"><div class="wa-head"><strong>Send on WhatsApp</strong><button type="button" class="btn ghost sm" onclick="closeWaSheet()">✕</button></div><label>Customer mobile number</label><input id="wa_num" type="tel" inputmode="numeric" placeholder="10-digit mobile number" value="'+safeText(waGuessPhone())+'"><div id="wa_msg" class="wa-msg">Preparing PDF…</div><div class="wa-btns"><button type="button" class="btn amber" id="wa_share" disabled>📎 Share PDF to WhatsApp</button><button type="button" class="btn ghost" id="wa_chat">💬 Open chat with this number</button></div></div>';
-  document.body.appendChild(ov);
-  const msg=info.title+(info.ref?' '+info.ref:'')+(info.shop?' from '+info.shop:'')+(info.total?'. '+info.total:'')+'.',num=()=>waNumber(document.getElementById('wa_num').value),ok=()=>{if(num().length<11){showToast('Enter a valid mobile number');return false;}return true;};
-  document.getElementById('wa_chat').onclick=()=>{if(ok())window.open('https://wa.me/'+num()+'?text='+encodeURIComponent(msg+' PDF will follow.'),'_blank');};
-  let file=null;
-  try{const blob=await waMakePdf();file=new File([blob],pdfName(info)+'.pdf',{type:'application/pdf'});}catch(e){console.error(e);const m=document.getElementById('wa_msg');if(m)m.textContent='Could not create the PDF (check internet). You can still open the chat.';return;}
-  const m=document.getElementById('wa_msg'),b=document.getElementById('wa_share');if(!m||!b)return;
-  m.textContent='PDF ready ('+Math.round(file.size/1024)+' KB). In WhatsApp, pick the customer\'s chat.';b.disabled=false;
-  b.onclick=async()=>{if(!ok())return;
-    try{if(navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.clipboard.writeText(num().slice(-10));}catch(e){}await navigator.share({files:[file],title:file.name,text:msg});}
-    else{const a=document.createElement('a');a.href=URL.createObjectURL(file);a.download=file.name;document.body.appendChild(a);a.click();a.remove();window.open('https://wa.me/'+num()+'?text='+encodeURIComponent(msg+' (PDF downloaded — attach it from your files)'),'_blank');}}
-    catch(e){if(e&&e.name!=='AbortError')showToast('Could not share the PDF');}};
-}
 </script>
 </body>
 </html>

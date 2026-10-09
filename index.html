@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Shop Manager — v1.0.58</title>
+<title>Shop Manager — v1.0.60</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -1020,7 +1020,7 @@ details[open]>.recv-sum h3::before{content:"▾ ";}
         <button class="collapse-toggle no-print" id="sidebarToggle" onclick="toggleSidebar()" title="Collapse sidebar">◂</button>
       </div>
       <div class="sub">Computer Sales &amp; Service</div>
-      <div class="app-ver" id="appVersion" title="App version">v1.0.58</div>
+      <div class="app-ver" id="appVersion" title="App version">v1.0.60</div>
     </div>
     <nav id="nav">
       <div class="navlabel adminonly">Overview</div>
@@ -1580,7 +1580,7 @@ function printBlankForm(kind){
       <button class="btn ghost sm" onclick="openInvoiceNewTab()">↗ Open in New Tab</button>
       <button class="btn amber sm" onclick="tryPrint()">🖨 Print Blank Form</button>
       <button class="btn ghost sm" onclick="downloadInvoicePdf()">📄 PDF</button>
-      <button class="btn ghost sm" onclick="shareInvoicePdf()">📤 Share PDF</button>
+      <button class="btn ghost sm js-share-btn" onclick="shareInvoicePdf()">📤 Share PDF</button>
     </div>
     <div id="invoiceSheet" class="size-${currentPageSize.toLowerCase()}">
       <div class="inv-head">
@@ -3151,7 +3151,7 @@ function printSaleInvoice(id){
       <button class="btn ghost sm" onclick="openInvoiceNewTab()">↗ Open in New Tab</button>
       <button class="btn amber sm" onclick="tryPrint()">🖨 Print Invoice</button>
       <button class="btn ghost sm" onclick="downloadInvoicePdf()">📄 PDF</button>
-      <button class="btn ghost sm" onclick="shareInvoicePdf()">📤 Share PDF</button>
+      <button class="btn ghost sm js-share-btn" onclick="shareInvoicePdf()">📤 Share PDF</button>
     </div>
     <div id="invoiceSheet" class="size-${currentPageSize.toLowerCase()}">
       <div class="inv-head">
@@ -3402,7 +3402,7 @@ function printVoucher(id){
       <button class="btn ghost sm" onclick="openInvoiceNewTab()">↗ Open in New Tab</button>
       <button class="btn amber sm" onclick="tryPrint('voucher')">🖨 Print Voucher</button>
       <button class="btn ghost sm" onclick="downloadInvoicePdf()">📄 PDF</button>
-      <button class="btn ghost sm" onclick="shareInvoicePdf()">📤 Share PDF</button>
+      <button class="btn ghost sm js-share-btn" onclick="shareInvoicePdf()">📤 Share PDF</button>
     </div>
     <div id="invoiceSheet" class="size-${currentPageSize.toLowerCase()}">
       <div class="inv-head">
@@ -3606,7 +3606,7 @@ function printServiceInvoice(id){
       <button class="btn ghost sm" onclick="openInvoiceNewTab()">↗ Open in New Tab</button>
       <button class="btn amber sm" onclick="tryPrint()">🖨 Print Invoice</button>
       <button class="btn ghost sm" onclick="downloadInvoicePdf()">📄 PDF</button>
-      <button class="btn ghost sm" onclick="shareInvoicePdf()">📤 Share PDF</button>
+      <button class="btn ghost sm js-share-btn" onclick="shareInvoicePdf()">📤 Share PDF</button>
     </div>
     <div id="invoiceSheet" class="size-${currentPageSize.toLowerCase()}">
       <div class="inv-head">
@@ -3752,7 +3752,7 @@ function printQuotation(id){
       <button class="btn ghost sm" onclick="openInvoiceNewTab()">↗ Open in New Tab</button>
       <button class="btn amber sm" onclick="tryPrint()">🖨 Print</button>
       <button class="btn ghost sm" onclick="downloadInvoicePdf()">📄 PDF</button>
-      <button class="btn ghost sm" onclick="shareInvoicePdf()">📤 Share PDF</button>
+      <button class="btn ghost sm js-share-btn" onclick="shareInvoicePdf()">📤 Share PDF</button>
     </div>
     <div id="invoiceSheet" class="size-${currentPageSize.toLowerCase()}">
       <div class="inv-head">
@@ -4789,7 +4789,7 @@ function printPaymentVoucher(id){
       <button class="btn ghost sm" onclick="openInvoiceNewTab()">↗ Open in New Tab</button>
       <button class="btn amber sm" onclick="tryPrint()">🖨 Print</button>
       <button class="btn ghost sm" onclick="downloadInvoicePdf()">📄 PDF</button>
-      <button class="btn ghost sm" onclick="shareInvoicePdf()">📤 Share PDF</button>
+      <button class="btn ghost sm js-share-btn" onclick="shareInvoicePdf()">📤 Share PDF</button>
     </div>
     <div id="invoiceSheet" class="size-${currentPageSize.toLowerCase()}">
       <div class="inv-head">
@@ -5039,7 +5039,7 @@ if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostnam
 </script>
 <script>
 /* v1.0.50 app version + update checker: reads APP_VERSION from the published index.html (and version.json if present) */
-const APP_VERSION='1.0.58';
+const APP_VERSION='1.0.60';
 let _latestVer=null,_lastCheck=0,_updShown=false;
 function _verCmp(a,b){const x=String(a).split('.').map(Number),y=String(b).split('.').map(Number);for(let i=0;i<Math.max(x.length,y.length);i++){const d=(x[i]||0)-(y[i]||0);if(d)return d>0?1:-1;}return 0;}
 function showUpdateBanner(v){if(_updShown)return;_updShown=true;const b=document.createElement('div');b.id='updBanner';b.className='no-print';
@@ -5100,9 +5100,10 @@ async function tryShare(file){
     ascii=new File([file],base,{type:'application/pdf'}),tries=[{files:[file],title:file.name},{files:[file]},{files:[ascii]}];let last=null;
   for(const d of tries){try{if(navigator.canShare&&!navigator.canShare(d))continue;await navigator.share(d);return{ok:true};}catch(e){if(e&&e.name==='AbortError')return{ok:true,aborted:true};last=e;}}
   return{ok:false,err:last};}
-function shareErrText(e){return e?(e.name==='NotAllowedError'?'Android needs a fresh tap to open the share sheet. Tap Share PDF again. ':'')+'('+(e.name||'Error')+(e.message?': '+e.message:'')+')':'';}
+function shareErrText(e){return e?(e.name==='NotAllowedError'?'Tap Share PDF to choose an app. ':'')+(e.name==='NotAllowedError'?'':'Could not open the share sheet. ')+'('+(e.name||'Error')+')':'';}
+function _unusedShareErr(e){return e?(e.name==='NotAllowedError'?'Android needs a fresh tap to open the share sheet. Tap Share PDF again. ':'')+'('+(e.name||'Error')+(e.message?': '+e.message:'')+')':'';}
 function shareReadySheet(file,err){const old=document.getElementById('shareSheet');if(old)old.remove();const o=document.createElement('div');o.id='shareSheet';o.className='no-print';
-  o.innerHTML='<div class="share-box"><strong>PDF ready</strong><div class="share-msg"><b>'+safeText(file.name)+'</b> ('+Math.round(file.size/1024)+' KB)</div><div class="share-msg" id="shr_err" style="color:var(--red)">'+safeText(shareErrText(err))+'</div><div class="share-btns"><button type="button" class="btn amber" id="shr_go">📤 Share PDF</button><button type="button" class="btn ghost" id="shr_save">⬇ Save PDF to phone</button><button type="button" class="btn ghost" id="shr_open">📄 Open PDF</button><button type="button" class="btn ghost" id="shr_x">Close</button></div></div>';document.body.appendChild(o);
+  o.innerHTML='<div class="share-box"><strong>PDF ready</strong><div class="share-msg"><b>'+safeText(file.name)+'</b> ('+Math.round(file.size/1024)+' KB)</div><div class="share-msg" id="shr_err" style="color:var(--text-soft)">'+safeText(err?shareErrText(err):'Tap Share PDF to choose an app.')+'</div><div class="share-btns"><button type="button" class="btn amber" id="shr_go">📤 Share PDF</button><button type="button" class="btn ghost" id="shr_save">⬇ Save PDF to phone</button><button type="button" class="btn ghost" id="shr_open">📄 Open PDF</button><button type="button" class="btn ghost" id="shr_x">Close</button></div></div>';document.body.appendChild(o);
   document.getElementById('shr_x').onclick=()=>o.remove();
   document.getElementById('shr_save').onclick=()=>{saveBlob(file,file.name);showToast('PDF saved');};
   document.getElementById('shr_open').onclick=()=>{const u=URL.createObjectURL(file);window.open(u,'_blank');setTimeout(()=>URL.revokeObjectURL(u),60000);};
@@ -5114,25 +5115,36 @@ async function sharePdfBlob(blob,name){return shareFile(new File([blob],name,{ty
 /* the invoice PDF is built in the background as soon as an invoice opens (phones), so Share PDF opens the system share sheet instantly */
 let _shareCache={sig:'',p:null,file:null};
 function _invSig(){const sh=document.getElementById('invoiceSheet');if(!sh)return '';const h=sh.innerHTML;let x=5381;for(let i=0;i<h.length;i++)x=((x<<5)+x+h.charCodeAt(i))|0;return h.length+':'+x+':'+(typeof currentPageSize!=='undefined'?currentPageSize:'');}
+function setShareBtn(state){const txt=state==='busy'?'⏳ Preparing PDF…':'📤 Share PDF';document.querySelectorAll('.js-share-btn').forEach(b=>{const dis=state==='busy';if(b.disabled!==dis)b.disabled=dis;if(b.textContent!==txt)b.textContent=txt;});}
 function prepareSharePdf(){const sig=_invSig();if(!sig)return null;if(_shareCache.sig===sig&&_shareCache.p)return _shareCache.p;
-  const info=invDocInfo(),p=invMakePdf().then(blob=>new File([blob],pdfName(info)+'.pdf',{type:'application/pdf'}));
-  _shareCache={sig,p,file:null};p.then(f=>{if(_shareCache.sig===sig)_shareCache.file=f;}).catch(()=>{if(_shareCache.sig===sig)_shareCache={sig:'',p:null,file:null};});return p;}
+  setShareBtn('busy');const info=invDocInfo(),p=invMakePdf().then(blob=>new File([blob],pdfName(info)+'.pdf',{type:'application/pdf'}));
+  _shareCache={sig,p,file:null,failed:false};
+  p.then(f=>{if(_shareCache.sig===sig){_shareCache.file=f;setShareBtn('idle');}}).catch(()=>{if(_shareCache.sig===sig){_shareCache={sig,p:null,file:null,failed:true};setShareBtn('idle');}});return p;}
 async function shareInvoicePdf(){if(!document.getElementById('invoiceSheet')){showToast('Open a document first');return;}
-  let file=_shareCache.sig===_invSig()?_shareCache.file:null;
-  if(!file){showToast('Preparing PDF…');try{file=await prepareSharePdf();}catch(e){console.error(e);showToast('Could not create the PDF (check your internet)');return;}}
+  const file=_shareCache.sig===_invSig()?_shareCache.file:null;
+  if(!file){/* not ready: finish building, then ask for a fresh tap (the share sheet must open straight after a tap) */
+    setShareBtn('busy');_shareCache={sig:'',p:null,file:null,failed:false};
+    try{await prepareSharePdf();showToast('PDF ready — tap Share PDF');}catch(e){console.error(e);setShareBtn('idle');showToast('Could not create the PDF (check your internet)');}return;}
   await shareFile(file);}
-(function(){let t=0;
+/* keeps the Share button in step with what is on screen: disabled while the PDF for the current page size is being built */
+(function(){let last='';
+  setInterval(function(){
+    if(!document.querySelector('.js-share-btn')){last='';return;}
+    const sig=_invSig();if(!sig){return;}
+    if(sig!==_shareCache.sig){setShareBtn('busy');if(sig===last){try{prepareSharePdf();}catch(e){}}}   /* build once the invoice has stopped changing */
+    else if(_shareCache.file||_shareCache.failed){setShareBtn('idle');}
+    last=sig;
+  },150);
   if((window.matchMedia&&matchMedia('(pointer:coarse)').matches)||(typeof isMobileLayout==='function'&&isMobileLayout())){
-    new MutationObserver(function(){clearTimeout(t);t=setTimeout(function(){if(document.getElementById('invoiceSheet')){try{prepareSharePdf();}catch(e){}}},700);}).observe(document.body,{childList:true,subtree:true});
     setTimeout(function(){if(!window.html2pdf)_loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js').catch(function(){});},4000);
   }})();
-async function pdfFromHtml(html,o){showToast(o.share?'Preparing PDF…':'Creating PDF…');let fr=null;
+async function pdfFromHtml(html,o){showToast(o.share?'Preparing PDF…':'Creating PDF…');let fr=null;const t0=Date.now();
   try{if(!window.html2pdf)await _loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js');
     fr=document.createElement('iframe');fr.style.cssText='position:fixed;left:-10000px;top:0;border:0;width:'+Math.round(o.w*3.7795)+'px;height:'+Math.round(o.h*3.7795)+'px';document.body.appendChild(fr);
     const d=fr.contentDocument;d.open();d.write(html.replace(/<script[\s\S]*?<\/script>/gi,'').replace('</head>','<style>html{background:#fff}body{margin:0!important;padding:'+o.m+'mm!important;height:'+o.h+'mm;overflow:hidden}</style></head>'));d.close();
     await new Promise(r=>setTimeout(r,400));
     const blob=await html2pdf().set({margin:0,image:{type:'jpeg',quality:.95},html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff',scrollY:0},jsPDF:{unit:'mm',format:'a5',orientation:o.w>o.h?'landscape':'portrait'}}).from(d.body).outputPdf('blob');
-    if(o.share){await sharePdfBlob(blob,o.name+'.pdf');}else{saveBlob(blob,o.name+'.pdf');showToast('PDF saved: '+o.name+'.pdf');}
+    if(o.share){const f=new File([blob],o.name+'.pdf',{type:'application/pdf'});if(Date.now()-t0<1500)await shareFile(f);else shareReadySheet(f,null);}else{saveBlob(blob,o.name+'.pdf');showToast('PDF saved: '+o.name+'.pdf');}
   }catch(e){console.error(e);showToast('Could not create the PDF (check your internet)');}finally{if(fr)fr.remove();}}
 </script>
 </body>

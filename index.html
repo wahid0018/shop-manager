@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Shop Manager — v1.0.61</title>
+<title>Shop Manager — v1.0.62</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -1016,6 +1016,17 @@ html[data-dark-mode="1"] .wr-table td.wr-cust a{color:#f0b95b!important;}
 html[data-dark-mode="1"] .wr-act .btn.danger{background:#2a1517!important;color:#ff9b9b!important;border:1px solid #6b2a2e!important;}
 html[data-dark-mode="1"] .wr-act .btn.ghost{background:#1a212b!important;color:var(--ink)!important;border:1px solid var(--line)!important;}
 }
+html[data-dark-mode="1"][data-theme="classic"]{--ink:#f3f6fa;--panel:#171b21;--paper:#0d1117;--paper-dim:#151a21;--line:#343b45;--line-light:#3b4552;--text-soft:#b8c1cc;}
+/* v1.0.62 — invoices/vouchers always light (preview + print), never dark */
+html[data-dark-mode="1"] #invoiceSheet{--ink:#181B20;--panel:#20242B;--paper:#F6F4EF;--paper-dim:#EAE7DF;--line:#33383F;--line-light:#DCD8CE;--text-soft:#8a8578;color-scheme:light;}
+html[data-dark-mode="1"] #invoiceSheet{background:#fff!important;color:#181B20!important;border-color:#DCD8CE!important;}
+html[data-dark-mode="1"] #invoiceSheet *{color:inherit;}
+html[data-dark-mode="1"] #invoiceSheet .inv-head .co,html[data-dark-mode="1"] #invoiceSheet .inv-table td,html[data-dark-mode="1"] #invoiceSheet .inv-meta{color:#181B20!important;}
+html[data-dark-mode="1"] #invoiceSheet .inv-head .co-sub,html[data-dark-mode="1"] #invoiceSheet .inv-table th{color:#8a8578!important;}
+html[data-dark-mode="1"] #invoiceSheet .inv-head .tag .t1{color:#8a5f16!important;}
+html[data-dark-mode="1"] #invoiceSheet .inv-table th{background:#EAE7DF!important;}
+html[data-dark-mode="1"] #invoiceSheet .inv-table td,html[data-dark-mode="1"] #invoiceSheet .inv-table tr:hover td{background:transparent!important;}
+@media print{html[data-dark-mode="1"],html[data-dark-mode="1"] body{background:#fff!important;color:#181B20!important;color-scheme:light;}}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1071,7 +1082,7 @@ html[data-dark-mode="1"] .wr-act .btn.ghost{background:#1a212b!important;color:v
         <button class="collapse-toggle no-print" id="sidebarToggle" onclick="toggleSidebar()" title="Collapse sidebar">◂</button>
       </div>
       <div class="sub">Computer Sales &amp; Service</div>
-      <div class="app-ver" id="appVersion" title="App version">v1.0.61</div>
+      <div class="app-ver" id="appVersion" title="App version">v1.0.62</div>
     </div>
     <nav id="nav">
       <div class="navlabel adminonly">Overview</div>
@@ -5092,7 +5103,7 @@ if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostnam
 </script>
 <script>
 /* v1.0.50 app version + update checker: reads APP_VERSION from the published index.html (and version.json if present) */
-const APP_VERSION='1.0.61';
+const APP_VERSION='1.0.62';
 let _latestVer=null,_lastCheck=0,_updShown=false;
 function _verCmp(a,b){const x=String(a).split('.').map(Number),y=String(b).split('.').map(Number);for(let i=0;i<Math.max(x.length,y.length);i++){const d=(x[i]||0)-(y[i]||0);if(d)return d>0?1:-1;}return 0;}
 function showUpdateBanner(v){if(_updShown)return;_updShown=true;const b=document.createElement('div');b.id='updBanner';b.className='no-print';
@@ -5199,6 +5210,9 @@ async function pdfFromHtml(html,o){showToast(o.share?'Preparing PDF…':'Creatin
     const blob=await html2pdf().set({margin:0,image:{type:'jpeg',quality:.95},html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff',scrollY:0},jsPDF:{unit:'mm',format:'a5',orientation:o.w>o.h?'landscape':'portrait'}}).from(d.body).outputPdf('blob');
     if(o.share){const f=new File([blob],o.name+'.pdf',{type:'application/pdf'});if(Date.now()-t0<1500)await shareFile(f);else shareReadySheet(f,null);}else{saveBlob(blob,o.name+'.pdf');showToast('PDF saved: '+o.name+'.pdf');}
   }catch(e){console.error(e);showToast('Could not create the PDF (check your internet)');}finally{if(fr)fr.remove();}}
+
+/* v1.0.62 — force light while printing */
+(function(){var prev=null;window.addEventListener('beforeprint',function(){var r=document.documentElement;prev=r.getAttribute('data-dark-mode');r.setAttribute('data-dark-mode','0');r.style.colorScheme='light';});window.addEventListener('afterprint',function(){if(prev===null)return;var r=document.documentElement;r.setAttribute('data-dark-mode',prev);r.style.colorScheme=prev==='1'?'dark':'light';prev=null;});})();
 </script>
 </body>
 </html>

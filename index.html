@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Shop Manager — v1.0.62</title>
+<title>Shop Manager — v1.0.63</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -1027,6 +1027,62 @@ html[data-dark-mode="1"] #invoiceSheet .inv-head .tag .t1{color:#8a5f16!importan
 html[data-dark-mode="1"] #invoiceSheet .inv-table th{background:#EAE7DF!important;}
 html[data-dark-mode="1"] #invoiceSheet .inv-table td,html[data-dark-mode="1"] #invoiceSheet .inv-table tr:hover td{background:transparent!important;}
 @media print{html[data-dark-mode="1"],html[data-dark-mode="1"] body{background:#fff!important;color:#181B20!important;color-scheme:light;}}
+
+/* v1.0.63 — inventory view modes + phone cards + 2x2 summary */
+.seg{display:inline-flex;border:1px solid var(--line-light);border-radius:8px;overflow:hidden;background:var(--paper-dim);}
+.seg button{background:transparent;border:0;padding:6px 10px;font-size:12px;font-weight:600;color:var(--ink);min-height:0;}
+.seg button.active{background:var(--amber);color:#221701;}
+.inv-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;padding:12px;}
+.inv-card{border:1px solid var(--line-light);border-radius:12px;padding:12px;background:var(--paper);display:flex;flex-direction:column;gap:8px;min-width:0;}
+.ic-top{display:flex;gap:10px;align-items:flex-start;}.ic-title{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;overflow-wrap:anywhere;}
+.ic-sub{font-size:11.5px;color:var(--text-soft);}
+.ic-info{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;}
+.ic-info div{background:var(--paper-dim);border-radius:8px;padding:5px 7px;min-width:0;}
+.ic-info span{display:block;font-size:9.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--text-soft);font-weight:600;}
+.ic-info b{font-size:13px;}
+.ic-act{display:flex;gap:6px;flex-wrap:wrap;}.ic-act .btn{flex:1 1 auto;}
+.inv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;padding:12px;}
+.inv-tile{border:1px solid var(--line-light);border-radius:12px;padding:10px;background:var(--paper);text-align:center;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;min-width:0;}
+.inv-tile:hover{border-color:var(--amber);}
+.it-name{font-weight:600;font-size:13px;overflow-wrap:anywhere;line-height:1.25;}.it-sub{font-size:11px;color:var(--text-soft);}.it-price{font-weight:700;}
+.it-stock{display:flex;gap:6px;align-items:center;font-size:12px;}
+@media screen and (max-width:700px){
+  .grid.g4:has(>.stat),.grid.g3:has(>.stat){grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important;}
+  .grid:has(>.stat) .card.stat{padding:9px 10px!important;border-radius:10px;}
+  .grid:has(>.stat) .stat .accent-bar{margin-bottom:5px;width:20px;}
+  .grid:has(>.stat) .stat .label{font-size:10px;}
+  .grid:has(>.stat) .stat .value{font-size:16px!important;margin-top:2px;overflow-wrap:anywhere;}
+  .grid:has(>.stat) .stat .foot{font-size:10px;margin-top:1px;}
+  .inv-cards{grid-template-columns:1fr;padding:8px;}
+  .ic-info{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .inv-grid{grid-template-columns:repeat(2,minmax(0,1fr));padding:8px;gap:8px;}
+  .panel-head .seg{order:3;}
+  /* generic register cards */
+  table.ct,table.ct tbody{display:block;width:100%;min-width:0!important;}
+  table.ct thead{display:none;}
+  table.ct tbody tr:not(.ct-skip){display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 10px;margin:8px;padding:10px 12px;border:1px solid var(--line-light);border-radius:12px;background:var(--paper);box-shadow:var(--sh1);position:relative;}
+  table.ct tbody tr:not(.ct-skip):not(.sm-hide){display:grid;}
+  table.ct:not(.sm-open) tr.sm-hide{display:none;}
+  table.ct td{display:block;border:0!important;padding:0!important;min-width:0;overflow-wrap:anywhere;font-size:13px!important;text-align:left!important;}
+  table.ct td[data-label]::before{content:attr(data-label);display:block;font-size:9.5px;font-weight:600;letter-spacing:.4px;text-transform:uppercase;color:var(--text-soft);margin-bottom:1px;}
+  table.ct td.ct-wide,table.ct td.ct-act{grid-column:1/-1;}
+  table.ct td.ct-ref{font-weight:700;}
+  table.ct td.ct-chk{position:absolute;top:8px;right:10px;}
+  table.ct td.ct-chk input{width:20px;height:20px;min-height:0;}
+  table.ct td.ct-empty{display:none;}
+  table.ct td.ct-act{display:flex!important;flex-wrap:wrap;gap:6px;margin-top:4px;}
+  table.ct td.ct-act .btn{flex:1 1 auto;min-height:38px;}
+  table.ct td input:not([type=checkbox]){width:100%;padding:4px 6px;font-size:14px;min-height:34px;}
+  table.ct td.empty{grid-column:1/-1;text-align:center!important;padding:16px!important;}
+  .table-scroll:has(table.ct){overflow-x:hidden;}
+}
+html[data-dark-mode="1"] .inv-card,html[data-dark-mode="1"] .inv-tile{background:#10151c;border-color:var(--line);}
+html[data-dark-mode="1"] .ic-act .btn.danger,html[data-dark-mode="1"] table.ct td.ct-act .btn.danger{background:#2a1517!important;color:#ff9b9b!important;border:1px solid #6b2a2e!important;}
+html[data-dark-mode="1"] .ic-act .btn.ghost,html[data-dark-mode="1"] table.ct td.ct-act .btn.ghost{background:#1a212b!important;color:var(--ink)!important;border:1px solid var(--line)!important;}
+html[data-dark-mode="1"] table.ct td input:not([type=checkbox]){background:#0d1117!important;color:var(--ink)!important;}
+html[data-dark-mode="1"] .ic-info div{background:#1a212b;}
+html[data-dark-mode="1"] .seg{background:#1a212b;border-color:var(--line);}
+@media screen and (max-width:700px){html[data-dark-mode="1"] table.ct tbody tr:not(.ct-skip){background:#10151c!important;border-color:var(--line)!important;}}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1082,7 +1138,7 @@ html[data-dark-mode="1"] #invoiceSheet .inv-table td,html[data-dark-mode="1"] #i
         <button class="collapse-toggle no-print" id="sidebarToggle" onclick="toggleSidebar()" title="Collapse sidebar">◂</button>
       </div>
       <div class="sub">Computer Sales &amp; Service</div>
-      <div class="app-ver" id="appVersion" title="App version">v1.0.62</div>
+      <div class="app-ver" id="appVersion" title="App version">v1.0.63</div>
     </div>
     <nav id="nav">
       <div class="navlabel adminonly">Overview</div>
@@ -1862,13 +1918,20 @@ function runDashboard(){
 }
 
 /* ================= INVENTORY ================= */
+let invViewMode=(function(){try{return localStorage.getItem('shop_inv_view')||''}catch(e){return ''}})();
+function invMode(){return invViewMode||((window.matchMedia&&matchMedia('(max-width:700px)').matches)?'cards':'table');}
+function setInvView(m){invViewMode=m;try{localStorage.setItem('shop_inv_view',m)}catch(e){}document.querySelectorAll('[data-inv-mode]').forEach(b=>b.classList.toggle('active',b.dataset.invMode===m));renderInventoryTable();}
+function invSummaryHtml(){const ps=DB.products,units=ps.reduce((n,p)=>n+(+p.stock||0),0),low=ps.filter(p=>p.stock>0&&p.stock<=p.reorderLevel).length,out=ps.filter(p=>p.stock<=0).length,val=ps.reduce((n,p)=>n+Math.max(0,+p.stock||0)*(+p.purchasePrice||0),0);
+  return '<div class="grid g4 inv-sum" style="margin-bottom:12px"><div class="card stat"><div class="label">Products</div><div class="value mono">'+ps.length+'</div><div class="foot">'+units+' units</div></div><div class="card stat"><div class="label">Stock Value</div><div class="value mono">₹'+fmt(val)+'</div><div class="foot">at purchase price</div></div><div class="card stat"><div class="label">Low Stock</div><div class="value mono">'+low+'</div><div class="foot">at / below reorder</div></div><div class="card stat"><div class="label">Out / Negative</div><div class="value mono">'+out+'</div><div class="foot">needs attention</div></div></div>';}
 function renderInventory(){
-  document.getElementById('view').innerHTML = `
+  const m=invMode();
+  document.getElementById('view').innerHTML = invSummaryHtml()+`
     <div class="panel">
       <div class="panel-head">
         <h3>Products (${DB.products.length})</h3>
         <div class="row" style="gap:8px;margin:0;">
           <div class="field" style="margin:0;min-width:240px;"><input id="inv_search" placeholder="Search by name, brand, SKU, category…" oninput="renderInventoryTable()"></div>
+          <div class="seg" role="group" aria-label="View mode"><button type="button" data-inv-mode="cards" class="${m==='cards'?'active':''}" onclick="setInvView('cards')" title="Cards">▤ Cards</button><button type="button" data-inv-mode="table" class="${m==='table'?'active':''}" onclick="setInvView('table')" title="Details table">☰ Details</button><button type="button" data-inv-mode="grid" class="${m==='grid'?'active':''}" onclick="setInvView('grid')" title="Grid">▦ Grid</button></div>
           <button class="btn ghost sm" onclick="exportInventoryToExcel()">⬇ Export to Excel</button>
           <button class="btn amber sm" onclick="openProductModal()">+ Add Product</button>
         </div>
@@ -1904,8 +1967,14 @@ function renderInventoryTable(){
     if(!q) return true;
     return [p.name,p.brand,p.sku,p.category,p.hsn].filter(Boolean).some(v=>v.toLowerCase().includes(q));
   });
-  document.getElementById('inv_tableWrap').innerHTML = `
-    <table><thead><tr><th></th><th>SKU</th><th>Brand</th><th>HSN</th><th>Name</th><th>Category</th><th class="num">GST %</th><th class="num">Purchase ₹</th><th class="num">Sale ₹</th><th class="num">Stock</th><th>Status</th><th></th></tr></thead>
+  const mode=invMode(),W=document.getElementById('inv_tableWrap');
+  const img=(p,sz)=>p.image?`<img src="${p.image}" style="width:${sz}px;height:${sz}px;object-fit:cover;border-radius:8px;display:block;cursor:pointer;" onclick="openImageLightbox('${p.image}','${(p.name||'').replace(/'/g,"\\'")}')">`:`<div style="width:${sz}px;height:${sz}px;border-radius:8px;background:#F0EDE5;"></div>`;
+  const gst=p=>p.gstPercent!=null?p.gstPercent:(DB.settings.gstPercent||18);
+  if(mode==='cards'){W.classList.remove('table-scroll');W.innerHTML=rows.length?'<div class="inv-cards">'+rows.map(p=>`<div class="inv-card"><div class="ic-top">${img(p,52)}<div class="ic-title"><b>${safeText(p.name)}</b><span class="ic-sub">${safeText(p.brand||'—')} · ${safeText(p.category||'—')}</span><span class="ic-sub mono">${safeText(p.sku)}${p.hsn?' · HSN '+safeText(p.hsn):''}</span></div>${stockBadge(p)}</div><div class="ic-info"><div><span>Sale ₹</span><b class="mono">${fmt(p.salePrice)}</b></div><div><span>Purchase ₹</span><b class="mono">${fmt(p.purchasePrice)}</b></div><div><span>Stock</span><b class="mono">${p.stock}</b></div><div><span>GST</span><b class="mono">${gst(p)}%</b></div></div><div class="ic-act"><button class="btn ghost sm" onclick="openProductModal('${p.id}')">Edit</button><button class="btn ghost sm" onclick="openBarcodeManager('${p.id}')">Barcodes (${(p.barcodeUnits||[]).length})</button><button class="btn danger sm" onclick="deleteProduct('${p.id}')">Del</button></div></div>`).join('')+'</div>':'<div class="empty" style="padding:20px">No matching products.</div>';return;}
+  if(mode==='grid'){W.classList.remove('table-scroll');W.innerHTML=rows.length?'<div class="inv-grid">'+rows.map(p=>`<div class="inv-tile" onclick="openProductModal('${p.id}')"><div class="it-img">${img(p,64)}</div><div class="it-name">${safeText(p.name)}</div><div class="it-sub">${safeText(p.brand||p.category||'')}</div><div class="it-price mono">₹${fmt(p.salePrice)}</div><div class="it-stock">${stockBadge(p)} <span class="mono">${p.stock}</span></div></div>`).join('')+'</div>':'<div class="empty" style="padding:20px">No matching products.</div>';return;}
+  W.classList.add('table-scroll');
+  W.innerHTML = `
+    <table class="no-ct"><thead><tr><th></th><th>SKU</th><th>Brand</th><th>HSN</th><th>Name</th><th>Category</th><th class="num">GST %</th><th class="num">Purchase ₹</th><th class="num">Sale ₹</th><th class="num">Stock</th><th>Status</th><th></th></tr></thead>
     <tbody>
     ${rows.length ? rows.map(p=>`
       <tr>
@@ -5103,7 +5172,7 @@ if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostnam
 </script>
 <script>
 /* v1.0.50 app version + update checker: reads APP_VERSION from the published index.html (and version.json if present) */
-const APP_VERSION='1.0.62';
+const APP_VERSION='1.0.63';
 let _latestVer=null,_lastCheck=0,_updShown=false;
 function _verCmp(a,b){const x=String(a).split('.').map(Number),y=String(b).split('.').map(Number);for(let i=0;i<Math.max(x.length,y.length);i++){const d=(x[i]||0)-(y[i]||0);if(d)return d>0?1:-1;}return 0;}
 function showUpdateBanner(v){if(_updShown)return;_updShown=true;const b=document.createElement('div');b.id='updBanner';b.className='no-print';
@@ -5213,6 +5282,29 @@ async function pdfFromHtml(html,o){showToast(o.share?'Preparing PDF…':'Creatin
 
 /* v1.0.62 — force light while printing */
 (function(){var prev=null;window.addEventListener('beforeprint',function(){var r=document.documentElement;prev=r.getAttribute('data-dark-mode');r.setAttribute('data-dark-mode','0');r.style.colorScheme='light';});window.addEventListener('afterprint',function(){if(prev===null)return;var r=document.documentElement;r.setAttribute('data-dark-mode',prev);r.style.colorScheme=prev==='1'?'dark':'light';prev=null;});})();
+
+/* v1.0.63 — phone card layout for registers (labels taken from the table header) */
+const CARD_VIEWS=['purchaseregister','salesregister','voucherregister','serviceregister','duesregister','customers','employees','paymentvoucher','salary','renewaltrack','approvals','myapprovals'];
+function cardifyTables(){
+  const root=document.getElementById('view');if(!root||!window.matchMedia||!matchMedia('(max-width:700px)').matches)return;
+  if(typeof currentPageKey==='undefined'||!CARD_VIEWS.includes(currentPageKey))return;
+  root.querySelectorAll('table').forEach(t=>{
+    if(t.dataset.ct||t.classList.contains('wr-table')||t.classList.contains('no-ct')||t.classList.contains('inv-table'))return;
+    const hr=t.tHead&&t.tHead.rows[0];if(!hr)return;const labels=[...hr.cells].map(c=>(c.textContent||'').trim());
+    t.dataset.ct='1';t.classList.add('ct');
+    [...t.tBodies].forEach(tb=>[...tb.rows].forEach(r=>{
+      if(r.cells.length!==labels.length){r.classList.add('ct-skip');return;}
+      [...r.cells].forEach((c,i)=>{const L=labels[i];if(L)c.setAttribute('data-label',L);
+        const hasChk=c.querySelector('input[type=checkbox]'),hasBtn=c.querySelector('button,a.btn');
+        if(hasChk&&!L)c.classList.add('ct-chk');
+        else if(!L&&hasBtn)c.classList.add('ct-act');
+        else if(!L&&!c.textContent.trim()&&!c.querySelector('input,button'))c.classList.add('ct-empty');
+        else if(/customer|supplier|party|name|item|desc|client|provider|particular|product/i.test(L))c.classList.add('ct-wide');
+        if(i===1||(i===0&&!hasChk&&!hasBtn))c.classList.add('ct-ref');});}));
+  });
+}
+try{new MutationObserver(function(){clearTimeout(window._ctT);window._ctT=setTimeout(cardifyTables,30);}).observe(document.getElementById('view'),{childList:true,subtree:true});}catch(e){}
+window.addEventListener('resize',function(){clearTimeout(window._ctT);window._ctT=setTimeout(cardifyTables,150);});
 </script>
 </body>
 </html>

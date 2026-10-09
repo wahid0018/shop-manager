@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Shop Manager — v1.0.60</title>
+<title>Shop Manager — v1.0.61</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -965,6 +965,57 @@ details[open]>.recv-sum h3::before{content:"▾ ";}
   .share-btns{display:grid;gap:8px;} .share-btns .btn{width:100%;padding:11px;}
 }
 @media print{#shareSheet{display:none!important;}}
+
+/* v1.0.61 — Warranty / Out Repair register: phone card layout */
+.wr-sub{font-size:11.5px;color:var(--text-soft);}
+a.wr-sub{text-decoration:none;}
+@media screen and (max-width:700px){
+  .wr-head h3{flex:1 1 100%;}
+  .wr-head .badge{font-size:11px;}
+  .table-scroll .wr-table,.table-wrap .wr-table,.wr-table{min-width:0!important;width:100%;display:block;}
+  .wr-table tbody{display:block;width:100%;}
+  .table-scroll:has(.wr-table){overflow-x:hidden;}
+  .wr-table thead{display:none;}
+  .wr-table tr.wr-row:not(.sm-hide),.wr-table.sm-open tr.wr-row.sm-hide{display:grid;}
+  .wr-table tr.wr-row{grid-template-columns:repeat(6,minmax(0,1fr));gap:6px 8px;margin:10px;padding:12px;border:1px solid var(--line-light);border-left-width:4px;border-radius:12px;background:var(--paper);box-shadow:var(--sh1);}
+  .wr-table tr.wr-pend{border-left-color:var(--amber);}
+  .wr-table tr.wr-recvd{border-left-color:var(--teal);}
+  .wr-table td{display:block;border:0!important;padding:0!important;font-size:13px!important;min-width:0;overflow-wrap:anywhere;}
+  .wr-table td.empty{padding:16px!important;text-align:center;}
+  .wr-ref{grid-row:1;grid-column:1/5;font-family:monospace;font-weight:700;font-size:13px!important;}
+  .wr-status{grid-row:1;grid-column:5/7;justify-self:end;}
+  .wr-item{grid-row:2;grid-column:1/7;font-size:14px!important;line-height:1.35;}
+  .wr-cust{grid-row:3;grid-column:1/7;}
+  .wr-cust a{font-size:12.5px;color:var(--amber-dim);}
+  .wr-prov{grid-row:4;grid-column:1/4;}
+  .wr-sent{grid-row:4;grid-column:4/7;}
+  .wr-charge{grid-row:5;grid-column:1/3;}
+  .wr-paid{grid-row:5;grid-column:3/5;}
+  .wr-due{grid-row:5;grid-column:5/7;font-weight:700;}
+  .wr-prov,.wr-sent,.wr-charge,.wr-paid,.wr-due{background:var(--paper-dim);border-radius:8px;padding:6px 8px!important;}
+  .wr-prov::before,.wr-sent::before,.wr-charge::before,.wr-paid::before,.wr-due::before{content:attr(data-label);display:block;font-size:9.5px;font-weight:600;letter-spacing:.4px;text-transform:uppercase;color:var(--text-soft);margin-bottom:1px;}
+  .wr-owing .wr-due{color:var(--red);}
+  .wr-paid input{width:100%!important;padding:4px 6px;font-size:14px!important;text-align:right;}
+  .wr-table td.wr-act{grid-row:6;grid-column:1/7;display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-top:4px;}
+  .wr-act .btn{min-height:40px;padding:6px 4px;font-size:12.5px;width:100%;}
+  .wr-act .wr-recv{grid-column:1/-1;}
+  .wr-formbox .row>.field.wr-half{flex:1 1 calc(50% - 8px)!important;}
+  .wr-formbox .panel-body>.btn{width:100%;margin-top:8px;}
+  .wr-formbox .panel-body{padding:12px;}
+}
+/* v1.0.61 dark */
+@media screen and (max-width:700px){
+html[data-dark-mode="1"] .wr-table tr.wr-row{background:#10151c!important;border-color:var(--line)!important;}
+html[data-dark-mode="1"] .wr-table tr.wr-pend{border-left-color:var(--amber)!important;}
+html[data-dark-mode="1"] .wr-table tr.wr-recvd{border-left-color:var(--teal)!important;}
+html[data-dark-mode="1"] .wr-table td{color:var(--ink)!important;}
+html[data-dark-mode="1"] .wr-table td.wr-prov,html[data-dark-mode="1"] .wr-table td.wr-sent,html[data-dark-mode="1"] .wr-table td.wr-charge,html[data-dark-mode="1"] .wr-table td.wr-paid,html[data-dark-mode="1"] .wr-table td.wr-due{background:#1a212b!important;}
+html[data-dark-mode="1"] .wr-table .wr-sub,html[data-dark-mode="1"] .wr-table td::before{color:var(--text-soft)!important;}
+html[data-dark-mode="1"] .wr-table tr.wr-owing td.wr-due{color:#ff8a8a!important;}
+html[data-dark-mode="1"] .wr-table td.wr-cust a{color:#f0b95b!important;}
+html[data-dark-mode="1"] .wr-act .btn.danger{background:#2a1517!important;color:#ff9b9b!important;border:1px solid #6b2a2e!important;}
+html[data-dark-mode="1"] .wr-act .btn.ghost{background:#1a212b!important;color:var(--ink)!important;border:1px solid var(--line)!important;}
+}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1020,7 +1071,7 @@ details[open]>.recv-sum h3::before{content:"▾ ";}
         <button class="collapse-toggle no-print" id="sidebarToggle" onclick="toggleSidebar()" title="Collapse sidebar">◂</button>
       </div>
       <div class="sub">Computer Sales &amp; Service</div>
-      <div class="app-ver" id="appVersion" title="App version">v1.0.60</div>
+      <div class="app-ver" id="appVersion" title="App version">v1.0.61</div>
     </div>
     <nav id="nav">
       <div class="navlabel adminonly">Overview</div>
@@ -4586,19 +4637,21 @@ let editingWarrantyId=null;
 let warrantySearchTerm="";
 function safeText(v){return (v??'').toString().replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function renderWarranty(){const j=editingWarrantyId?DB.warrantyJobs.find(x=>x.id===editingWarrantyId):null;document.getElementById('view').innerHTML=
-'<div class="panel" style="margin-bottom:16px"><div class="panel-head"><h3>'+(j?'Edit':'New')+' Warranty / Outside Repair Item</h3></div><div class="panel-body"><div class="row">'+
-'<div class="field"><label>Type</label><select id="wr_type"><option '+(!j||!j.type||j.type==='Repair'?'selected':'')+'>Repair</option><option '+(j?.type==='Warranty'?'selected':'')+'>Warranty</option><option '+(j?.type==='Out Repair'?'selected':'')+'>Out Repair</option></select></div>'+[['customer','Customer'],['phone','Phone'],['product','Item / Product'],['serial','Serial / IMEI'],['provider','Provider'],['sentDate','Date Sent'],['receivedDate','Expected / Received Date'],['totalAmount','Provider Charge (₹)'],['paidAmount','Paid to Provider (₹)'],['notes','Notes']].map(([k,l])=>'<div class="field"><label>'+l+'</label><input id="wr_'+k+'" '+(['sentDate','receivedDate'].includes(k)?'type="date" ':'')+(['totalAmount','paidAmount'].includes(k)?'type="number" min="0" step="0.01" ':'')+'value="'+safeText(j?.[k]??(['sentDate'].includes(k)?todayStr():['totalAmount','paidAmount'].includes(k)?0:''))+'"></div>').join('')+
-'<div class="field"><label>Status</label><select id="wr_status"><option '+(j?.status!=='Received'?'selected':'')+'>Pending</option><option '+(j?.status==='Received'?'selected':'')+'>Received</option></select></div></div><button class="btn amber" onclick="saveWarrantyJob('+(j?'false':'true')+')">'+(j?'Save Changes':'Save & Print Slip')+'</button> <button class="btn ghost" onclick="editingWarrantyId=null;renderWarranty()">Cancel</button></div></div>'+renderWarrantyTable();}
-function warrantyRow(x,hide){return `<tr${hide?' class="sm-hide"':''}><td>${safeText(x.ref)}</td><td>${safeText(x.type)} / ${safeText(x.product)}<br>${safeText(x.serial||'')}</td><td>${safeText(x.customer)}<br>${safeText(x.phone||'')}</td><td>${safeText(x.provider||'—')}</td><td>${safeText(x.sentDate||'')}</td><td>${safeText(x.status||'Pending')}</td><td>₹${fmt(x.totalAmount)}</td><td><input type="number" min="0" max="${+x.totalAmount||0}" step="0.01" value="${+x.paidAmount||0}" style="width:90px" onchange="updateWarrantyPaid('${x.id}',this.value)"></td><td>₹${fmt(Math.max(0,(+x.totalAmount||0)-(+x.paidAmount||0)))}</td><td>${x.status==='Received'?`<button class="btn ghost sm" onclick="printWarrantyReceipt('${x.id}')">Received Voucher</button>`:''} <button class="btn ghost sm" onclick="printWarrantyReceipt('${x.id}',true)">Manual Print</button> <button class="btn ghost sm" onclick="printWarrantyReceipt('${x.id}',false,true)">PDF</button> <button class="btn ghost sm" onclick="printWarrantyReceipt('${x.id}',false,'share')">Share</button> <button class="btn ghost sm" onclick="editingWarrantyId='${x.id}';renderWarranty()">Edit</button> <button class="btn danger sm" onclick="deleteWarrantyJob('${x.id}')">Del</button></td></tr>`;}
+'<details class="panel wr-formbox" style="margin-bottom:16px"'+((j||!isMobileLayout())?' open':'')+'><summary class="panel-head recv-sum"><h3>'+(j?'Edit':'New')+' Warranty / Outside Repair Item</h3></summary><div class="panel-body"><div class="row">'+
+'<div class="field wr-half"><label>Type</label><select id="wr_type"><option '+(!j||!j.type||j.type==='Repair'?'selected':'')+'>Repair</option><option '+(j?.type==='Warranty'?'selected':'')+'>Warranty</option><option '+(j?.type==='Out Repair'?'selected':'')+'>Out Repair</option></select></div>'+[['customer','Customer'],['phone','Phone'],['product','Item / Product'],['serial','Serial / IMEI'],['provider','Provider'],['sentDate','Date Sent'],['receivedDate','Expected / Received Date'],['totalAmount','Provider Charge (₹)'],['paidAmount','Paid to Provider (₹)'],['notes','Notes']].map(([k,l])=>'<div class="field'+(['sentDate','receivedDate','totalAmount','paidAmount'].includes(k)?' wr-half':'')+'"><label>'+l+'</label><input id="wr_'+k+'" '+(['sentDate','receivedDate'].includes(k)?'type="date" ':'')+(['totalAmount','paidAmount'].includes(k)?'type="number" min="0" step="0.01" ':'')+'value="'+safeText(j?.[k]??(['sentDate'].includes(k)?todayStr():['totalAmount','paidAmount'].includes(k)?0:''))+'"></div>').join('')+
+'<div class="field wr-half"><label>Status</label><select id="wr_status"><option '+(j?.status!=='Received'?'selected':'')+'>Pending</option><option '+(j?.status==='Received'?'selected':'')+'>Received</option></select></div></div><button class="btn amber" onclick="saveWarrantyJob('+(j?'false':'true')+')">'+(j?'Save Changes':'Save & Print Slip')+'</button> <button class="btn ghost" onclick="editingWarrantyId=null;renderWarranty()">Cancel</button></div></details>'+renderWarrantyTable();if(j)setTimeout(function(){window.scrollTo(0,0)},0);}
+function warrantyRow(x,hide){
+  const tot=+x.totalAmount||0,pd=+x.paidAmount||0,due=Math.max(0,tot-pd),rec=x.status==='Received',tel=String(x.phone||'').replace(/[^\d+]/g,'');
+  return `<tr class="wr-row ${rec?'wr-recvd':'wr-pend'}${due>0?' wr-owing':''}${hide?' sm-hide':''}"><td class="wr-ref">${safeText(x.ref)}</td><td class="wr-item"><b>${safeText(x.type)}</b> / ${safeText(x.product)}${x.serial?'<br><span class="wr-sub">'+safeText(x.serial)+'</span>':''}</td><td class="wr-cust">${safeText(x.customer)}${x.phone?'<br><a class="wr-sub" href="tel:'+tel+'">'+safeText(x.phone)+'</a>':''}</td><td class="wr-prov" data-label="Provider">${safeText(x.provider||'—')}</td><td class="wr-sent" data-label="Sent">${safeText(x.sentDate||'')}</td><td class="wr-status"><span class="badge ${rec?'ok':'warn'}">${safeText(x.status||'Pending')}</span></td><td class="wr-charge" data-label="Charge">₹${fmt(tot)}</td><td class="wr-paid" data-label="Paid"><input type="number" inputmode="decimal" min="0" max="${tot}" step="0.01" value="${pd}" style="width:90px" aria-label="Paid to provider" onchange="updateWarrantyPaid('${x.id}',this.value)"></td><td class="wr-due" data-label="Due">₹${fmt(due)}</td><td class="wr-act">${rec?`<button class="btn ghost sm wr-recv" onclick="printWarrantyReceipt('${x.id}')">Received Voucher</button>`:''} <button class="btn ghost sm" onclick="printWarrantyReceipt('${x.id}',true)">Manual Print</button> <button class="btn ghost sm" onclick="printWarrantyReceipt('${x.id}',false,true)">PDF</button> <button class="btn ghost sm" onclick="printWarrantyReceipt('${x.id}',false,'share')">Share</button> <button class="btn ghost sm" onclick="editingWarrantyId='${x.id}';renderWarranty()">Edit</button> <button class="btn danger sm" onclick="deleteWarrantyJob('${x.id}')">Del</button></td></tr>`;}
 function warrantyHead(){return '<thead><tr><th>Ref</th><th>Type / Item</th><th>Customer</th><th>Provider</th><th>Sent</th><th>Status</th><th>Charge</th><th>Paid</th><th>Due</th><th></th></tr></thead>';}
 function toggleWarrantyMore(btn,n){const t=btn.parentNode.previousElementSibling.querySelector('table');t.classList.toggle('sm-open');btn.textContent=t.classList.contains('sm-open')?'View less':'View more ('+n+' more)';}
 function renderWarrantyTable(){
   const q=warrantySearchTerm.trim().toLowerCase(),all=[...DB.warrantyJobs].reverse().filter(x=>!q||JSON.stringify(x).toLowerCase().includes(q));
-  const rows=all.filter(x=>x.status!=='Received'),recv=all.filter(x=>x.status==='Received'),pendTotal=DB.warrantyJobs.filter(x=>x.status!=='Received').length;
-  const main=`<div class="panel"><div class="panel-head"><h3>Warranty / Out Repair Register (${rows.length} / ${pendTotal})</h3><input aria-label="Search warranty and repair records" placeholder="Search any field…" value="${safeText(warrantySearchTerm)}" oninput="filterWarrantyRecords(this)" style="max-width:300px"><span class="badge warn">Pending ${pendTotal}</span></div><div class="panel-body table-scroll" style="padding:0"><table>${warrantyHead()}<tbody>${rows.length?rows.map(x=>warrantyRow(x)).join(''):'<tr><td colspan="10" class="empty">No matching records.</td></tr>'}</tbody></table></div></div>`;
+  const rows=all.filter(x=>x.status!=='Received'),recv=all.filter(x=>x.status==='Received'),pendTotal=DB.warrantyJobs.filter(x=>x.status!=='Received').length,dueSum=DB.warrantyJobs.filter(x=>x.status!=='Received').reduce((n,x)=>n+Math.max(0,(+x.totalAmount||0)-(+x.paidAmount||0)),0);
+  const main=`<div class="panel"><div class="panel-head wr-head"><h3>Warranty / Out Repair Register (${rows.length} / ${pendTotal})</h3><input aria-label="Search warranty and repair records" placeholder="Search any field…" value="${safeText(warrantySearchTerm)}" oninput="filterWarrantyRecords(this)" style="max-width:300px"><span class="badge warn">Pending ${pendTotal}</span><span class="badge ${dueSum>0?'bad':'ok'}">Due ₹${fmt(dueSum)}</span></div><div class="panel-body table-scroll" style="padding:0"><table class="wr-table">${warrantyHead()}<tbody>${rows.length?rows.map(x=>warrantyRow(x)).join(''):'<tr><td colspan="10" class="empty">No matching records.</td></tr>'}</tbody></table></div></div>`;
   if(currentUserRole!=='admin')return main; /* Received items are visible to Admin only */
   const extra=recv.length-5;
-  const box=`<details class="panel recv-box" style="margin-top:12px"><summary class="panel-head recv-sum"><h3>Received Items (${recv.length})</h3><span style="font-size:11.5px;color:var(--text-soft)">Admin only · click to expand</span></summary><div class="panel-body table-scroll" style="padding:0"><table>${warrantyHead()}<tbody>${recv.length?recv.map((x,i)=>warrantyRow(x,i>=5)).join(''):'<tr><td colspan="10" class="empty">No received items.</td></tr>'}</tbody></table></div>${extra>0?`<div class="sm-wrap"><button type="button" class="btn ghost sm" onclick="toggleWarrantyMore(this,${extra})">View more (${extra} more)</button></div>`:''}</details>`;
+  const box=`<details class="panel recv-box" style="margin-top:12px"><summary class="panel-head recv-sum"><h3>Received Items (${recv.length})</h3><span style="font-size:11.5px;color:var(--text-soft)">Admin only · click to expand</span></summary><div class="panel-body table-scroll" style="padding:0"><table class="wr-table">${warrantyHead()}<tbody>${recv.length?recv.map((x,i)=>warrantyRow(x,i>=5)).join(''):'<tr><td colspan="10" class="empty">No received items.</td></tr>'}</tbody></table></div>${extra>0?`<div class="sm-wrap"><button type="button" class="btn ghost sm" onclick="toggleWarrantyMore(this,${extra})">View more (${extra} more)</button></div>`:''}</details>`;
   return main+box;
 }
 function filterWarrantyRecords(input){const a=input.selectionStart,b=input.selectionEnd;warrantySearchTerm=input.value;const old=document.querySelector('[aria-label="Search warranty and repair records"]')?.closest('.panel'),tmp=document.createElement('div');tmp.innerHTML=renderWarrantyTable();if(old)old.replaceWith(tmp.firstElementChild);const next=document.querySelector('[aria-label="Search warranty and repair records"]');if(next){next.focus();next.setSelectionRange(a,b);}}
@@ -5039,7 +5092,7 @@ if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostnam
 </script>
 <script>
 /* v1.0.50 app version + update checker: reads APP_VERSION from the published index.html (and version.json if present) */
-const APP_VERSION='1.0.60';
+const APP_VERSION='1.0.61';
 let _latestVer=null,_lastCheck=0,_updShown=false;
 function _verCmp(a,b){const x=String(a).split('.').map(Number),y=String(b).split('.').map(Number);for(let i=0;i<Math.max(x.length,y.length);i++){const d=(x[i]||0)-(y[i]||0);if(d)return d>0?1:-1;}return 0;}
 function showUpdateBanner(v){if(_updShown)return;_updShown=true;const b=document.createElement('div');b.id='updBanner';b.className='no-print';
@@ -5085,7 +5138,7 @@ async function invMakePdf(){
   const sh=document.getElementById('invoiceSheet');if(!window.html2pdf)await _loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js');
   const size=String(typeof currentPageSize!=='undefined'?currentPageSize:'A4'),PW={A4:210,A5:148,A6:105}[size]||210,PH={A4:297,A5:210,A6:148}[size]||297,W=Math.round((PW-8)*3.7795),root=document.documentElement,pd=root.getAttribute('data-dark-mode'),pt=root.getAttribute('data-theme');
   root.setAttribute('data-dark-mode','0');root.setAttribute('data-theme','classic');
-  const host=document.createElement('div');host.style.cssText='position:fixed;left:-10000px;top:0;width:'+W+'px;background:#fff;';host.innerHTML='<style>#invoiceSheet{max-width:none!important;width:100%!important;margin:0!important;box-shadow:none!important;overflow:visible!important;min-height:'+(PH-11)+'mm!important}</style>';
+  const host=document.createElement('div');host.style.cssText='position:fixed;left:-10000px;top:0;width:'+W+'px;background:#fff;';host.innerHTML='<style>#invoiceSheet{max-width:none!important;width:100%!important;margin:0!important;box-shadow:none!important;overflow:visible!important;min-height:'+(PH-11)+'mm!important}#invoiceSheet table,#invoiceSheet .inv-table{min-width:0!important;width:100%!important;table-layout:auto!important}#invoiceSheet *{min-width:0}#invoiceSheet.size-a6{padding:14px!important}#invoiceSheet.size-a6 .inv-table th{font-size:7.5px!important;letter-spacing:0!important;padding:4px 2px!important}#invoiceSheet.size-a6 .inv-table td{font-size:9px!important;padding:4px 2px!important}</style>';
   sh.id='invoiceSheet_orig';const clone=sh.cloneNode(true);clone.id='invoiceSheet';host.appendChild(clone);document.body.appendChild(host);
   try{return await html2pdf().set({margin:4,image:{type:'jpeg',quality:.95},html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff',scrollY:0},jsPDF:{unit:'mm',format:size.toLowerCase(),orientation:'portrait'}}).from(clone).outputPdf('blob');}
   finally{sh.id='invoiceSheet';host.remove();root.setAttribute('data-dark-mode',pd||'0');if(pt)root.setAttribute('data-theme',pt);}

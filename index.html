@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Shop Manager — v1.0.64</title>
+<title>Shop Manager — v1.0.65</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -840,6 +840,7 @@ input,select,textarea,button{max-width:100%;}
 #sidebar .navbtn[data-view="customers"] .ic{color:#88B8C8;}
 #sidebar .navbtn[data-view="todos"] .ic{color:#A5B9A2;}
 #sidebar .navbtn[data-view="settings"] .ic{color:#A9ADB5;}
+#sidebar .navbtn[data-view="recyclebin"] .ic{color:#D49A9A;}
 #sidebar .navbtn[data-view="uisettings"] .ic{color:#C3AAD8;}
 }
 
@@ -1138,7 +1139,7 @@ html[data-dark-mode="1"] .seg{background:#1a212b;border-color:var(--line);}
         <button class="collapse-toggle no-print" id="sidebarToggle" onclick="toggleSidebar()" title="Collapse sidebar">◂</button>
       </div>
       <div class="sub">Computer Sales &amp; Service</div>
-      <div class="app-ver" id="appVersion" title="App version">v1.0.64</div>
+      <div class="app-ver" id="appVersion" title="App version">v1.0.65</div>
     </div>
     <nav id="nav">
       <div class="navlabel adminonly">Overview</div>
@@ -1168,6 +1169,7 @@ html[data-dark-mode="1"] .seg{background:#1a212b;border-color:var(--line);}
       <div class="navlabel">Tasks</div>
       <button class="navbtn" data-view="todos"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2"/></svg></span> <span class="label">To-Do List</span></button>
       <div class="navlabel">System</div>
+      <button class="navbtn adminonly" data-view="recyclebin"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/><path d="M10 11v6M14 11v6"/></svg></span> <span class="label">Recycle Bin</span> <span class="approval-badge" id="binBadge" style="display:none"></span></button>
       <button class="navbtn adminonly" data-view="settings"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9l1-5h16l1 5M4 9v11h16V9"/><path d="M9 20v-6h6v6"/></svg></span> <span class="label">Shop Settings</span></button>
       <button class="navbtn staffonly" data-view="myapprovals"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span> <span class="label">My Approvals</span></button>
       <button class="navbtn" data-view="uisettings"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3v18a9 9 0 0 0 0-18z" fill="currentColor" fill-opacity=".45"/></svg></span> <span class="label">UI Settings</span></button>
@@ -1199,7 +1201,7 @@ html[data-dark-mode="1"] .seg{background:#1a212b;border-color:var(--line);}
 <script>
 /* ================= DATA + SUPERBASE ================= */
 const DB_KEY='circuitdesk_db_v2',SUPERBASE_TABLE='app_records',SUPERBASE_CREDENTIALS_KEY='circuitdesk_superbase_credentials_v1';
-const DB_ARRAYS=['products','employees','purchases','sales','services','quotations','customers','vouchers','paymentVouchers','todoPages','warrantyJobs','warrantyRequests','approvalRequests','repairProviders','users','renewals','salaryEntries','renewalClients','renewalEntries'];
+const DB_ARRAYS=['products','employees','purchases','sales','services','quotations','customers','vouchers','paymentVouchers','todoPages','warrantyJobs','warrantyRequests','approvalRequests','repairProviders','users','renewals','salaryEntries','renewalClients','renewalEntries','recycleBin'];
 const USER_CREDENTIALS={admin:'Ziyad@2023'};
 let DB,supabaseClient=null,supabaseChannel=null,cloudReady=false,cloudSessionConnected=false,cloudSyncInFlight=false,cloudSyncQueued=false,cloudSnapshot=null,cloudConfig={url:'',key:''},dbInitPromise=null,dbAttemptId=0,cloudAttemptDone=false,lastSavedDBSnapshot=null,lastLocalEditAt=0,localStorageAvailable=true,localRecoveryFileHandle=null,localRecoveryFileName='';
 function cid(){return 'id'+Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4)}
@@ -1221,7 +1223,7 @@ function seedDB(){return ensureManagedUsers({
   purchases:[],sales:[],services:[],salaryEntries:[],renewalClients:[],renewalEntries:[],quotations:[],customers:[],vouchers:[],paymentVouchers:[],users:[],todoPages:[{id:cid(),name:'General',tasks:[]}],warrantyJobs:[],warrantyRequests:[],approvalRequests:[],repairProviders:[],renewals:[]});}
 function normalizeDB(data){
   data=data&&typeof data==='object'?data:{};data.settings=data.settings&&typeof data.settings==='object'?data.settings:{};ensureManagedUsers(data);
-  ['customers','vouchers','paymentVouchers','warrantyJobs','warrantyRequests','approvalRequests','repairProviders','renewals','salaryEntries','renewalClients','renewalEntries'].forEach(k=>{if(!Array.isArray(data[k]))data[k]=[]});
+  ['customers','vouchers','paymentVouchers','warrantyJobs','warrantyRequests','approvalRequests','repairProviders','renewals','salaryEntries','renewalClients','renewalEntries','recycleBin'].forEach(k=>{if(!Array.isArray(data[k]))data[k]=[]});
   ['products','employees','purchases','sales','services','quotations','todoPages'].forEach(k=>{if(!Array.isArray(data[k]))data[k]=[]});
   const s=data.settings;
   if(!s.paymentVoucherPrefix)s.paymentVoucherPrefix='PV';if(!s.nextPaymentVoucherNo)s.nextPaymentVoucherNo=1;if(!Array.isArray(s.userHiddenExtra))s.userHiddenExtra=[];if(!s.voucherPrefix)s.voucherPrefix='SV';if(!s.nextVoucherNo)s.nextVoucherNo=1;
@@ -1828,6 +1830,7 @@ const titles = {
   salary:['Salary Register','Monthly salary, advances and payments'],
   myapprovals:['My Approvals','Your requests sent to Admin'],
   uisettings:['UI Settings','Theme, dark mode and text size'],
+  recyclebin:['Recycle Bin','Deleted records kept for restore (Admin only)'],
   settings:['Shop Settings','Business details used on printed documents'],
 };
 document.querySelectorAll('.navbtn').forEach(btn=>btn.addEventListener('click', ()=> route(btn.dataset.view)));
@@ -1836,7 +1839,7 @@ function route(view){
   document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active', b.dataset.view===view));
   document.getElementById('pageTitle').textContent = titles[view][0];
   document.getElementById('pageCrumb').textContent = titles[view][1];
-  const renderers = {duesregister:renderDuesRegister, renewaltrack:renderRenewals, salary:renderSalary, myapprovals:renderMyApprovals, uisettings:renderUISettings, dashboard:renderDashboardPlus, approvals:renderApprovals, purchase:()=>renderPurchase(), paymentvoucher:()=>renderPaymentVoucher(), sale:()=>renderSale(), voucher:()=>renderVoucher(), voucherregister:renderVoucherRegister, service:()=>renderService(), quotation:()=>renderQuotation(), salesregister:renderSalesRegister, purchaseregister:renderPurchaseRegister, serviceregister:renderServiceRegister, warranty:renderWarranty, inventory:renderInventory, employees:renderEmployees, customers:renderCustomers, todos:renderTodos, settings:renderSettings};
+  const renderers = {recyclebin:renderRecycleBin, duesregister:renderDuesRegister, renewaltrack:renderRenewals, salary:renderSalary, myapprovals:renderMyApprovals, uisettings:renderUISettings, dashboard:renderDashboardPlus, approvals:renderApprovals, purchase:()=>renderPurchase(), paymentvoucher:()=>renderPaymentVoucher(), sale:()=>renderSale(), voucher:()=>renderVoucher(), voucherregister:renderVoucherRegister, service:()=>renderService(), quotation:()=>renderQuotation(), salesregister:renderSalesRegister, purchaseregister:renderPurchaseRegister, serviceregister:renderServiceRegister, warranty:renderWarranty, inventory:renderInventory, employees:renderEmployees, customers:renderCustomers, todos:renderTodos, settings:renderSettings};
   currentPageKey=view;
   renderers[view]();
   window.scrollTo(0,0);
@@ -5083,7 +5086,7 @@ function applyRoleRestrictions(){
   const userEl = document.getElementById('sidefootUser');
   if(userEl) userEl.textContent = 'Signed in as '+(currentUserName||(isAdmin?'Admin':'Staff'));
 }
-const ADMIN_ONLY_VIEWS = ['dashboard','approvals','purchase','inventory','settings','employees'];
+const ADMIN_ONLY_VIEWS = ['recyclebin','dashboard','approvals','purchase','inventory','settings','employees'];
 function startApp(){
   // Admin recovery is deliberately allowed even when every database is down.
   // Normal users/staff still require a connected database.
@@ -5172,7 +5175,7 @@ if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostnam
 </script>
 <script>
 /* v1.0.50 app version + update checker: reads APP_VERSION from the published index.html (and version.json if present) */
-const APP_VERSION='1.0.64';
+const APP_VERSION='1.0.65';
 let _latestVer=null,_lastCheck=0,_updShown=false;
 function _verCmp(a,b){const x=String(a).split('.').map(Number),y=String(b).split('.').map(Number);for(let i=0;i<Math.max(x.length,y.length);i++){const d=(x[i]||0)-(y[i]||0);if(d)return d>0?1:-1;}return 0;}
 function showUpdateBanner(v){if(_updShown)return;_updShown=true;const b=document.createElement('div');b.id='updBanner';b.className='no-print';
@@ -5284,7 +5287,7 @@ async function pdfFromHtml(html,o){showToast(o.share?'Preparing PDF…':'Creatin
 (function(){var prev=null;window.addEventListener('beforeprint',function(){var r=document.documentElement;prev=r.getAttribute('data-dark-mode');r.setAttribute('data-dark-mode','0');r.style.colorScheme='light';});window.addEventListener('afterprint',function(){if(prev===null)return;var r=document.documentElement;r.setAttribute('data-dark-mode',prev);r.style.colorScheme=prev==='1'?'dark':'light';prev=null;});})();
 
 /* v1.0.63 — phone card layout for registers (labels taken from the table header) */
-const CARD_VIEWS=['purchaseregister','salesregister','voucherregister','serviceregister','duesregister','customers','employees','paymentvoucher','salary','renewaltrack','approvals','myapprovals'];
+const CARD_VIEWS=['purchaseregister','salesregister','voucherregister','serviceregister','duesregister','customers','employees','paymentvoucher','salary','renewaltrack','approvals','myapprovals','recyclebin'];
 function cardifyTables(){
   const root=document.getElementById('view');if(!root||!window.matchMedia||!matchMedia('(max-width:700px)').matches)return;
   if(typeof currentPageKey==='undefined'||!CARD_VIEWS.includes(currentPageKey))return;
@@ -5305,6 +5308,53 @@ function cardifyTables(){
 }
 try{new MutationObserver(function(){clearTimeout(window._ctT);window._ctT=setTimeout(cardifyTables,30);}).observe(document.getElementById('view'),{childList:true,subtree:true});}catch(e){}
 window.addEventListener('resize',function(){clearTimeout(window._ctT);window._ctT=setTimeout(cardifyTables,150);});
+
+/* ===== v1.0.65 Recycle Bin: deleted records are kept (Admin) and can be restored ===== */
+const BIN_TABLES={products:'Product',employees:'Employee',purchases:'Purchase',sales:'Sale (GST)',services:'Service',quotations:'Quotation / Challan',customers:'Customer',vouchers:'Non-GST Sale',paymentVouchers:'Payment Voucher',todoPages:'To-Do Page',warrantyJobs:'Warranty / Repair',users:'User Account',salaryEntries:'Salary Entry',renewalClients:'Renewal Client',renewalEntries:'Renewal Payment'};
+let _binSnap=null,_binArm=false;
+function binTake(){const m={};Object.keys(BIN_TABLES).forEach(t=>{m[t]=new Map((DB[t]||[]).map(r=>[r&&r.id,JSON.stringify(r)]));});return m;}
+function binLabel(t,r){const f=(...k)=>k.map(x=>r[x]).filter(Boolean).join(' · ');
+  return ({products:()=>f('sku','name'),employees:()=>f('name','role'),purchases:()=>f('purchaseNo','supplier','date'),sales:()=>f('invoiceNo','customer','date'),services:()=>f('serviceNo','customer','date'),quotations:()=>f('docNo','number','customer'),customers:()=>f('name','phone'),vouchers:()=>f('voucherNo','customer','date'),paymentVouchers:()=>f('voucherNo','supplier','date'),todoPages:()=>f('name'),warrantyJobs:()=>f('ref','product','customer'),users:()=>f('name','username'),salaryEntries:()=>f('date','employeeName','type','amount'),renewalClients:()=>f('name'),renewalEntries:()=>f('date','paidDate','amount')}[t]||(()=>''))()||(r.id||'record');}
+function binCapture(){ /* called just before saveDB while a delete is running */
+  if(!_binArm||!_binSnap)return;if(!Array.isArray(DB.recycleBin))DB.recycleBin=[];
+  const batch=cid(),now=new Date().toISOString();
+  Object.keys(BIN_TABLES).forEach(t=>{const cur=new Set((DB[t]||[]).map(r=>r&&r.id));
+    _binSnap[t].forEach((json,id)=>{if(id==null||cur.has(id))return;
+      if(DB.recycleBin.some(b=>b.table===t&&b.recordId===id))return;
+      const rec=JSON.parse(json);DB.recycleBin.push({id:cid(),table:t,recordId:id,label:binLabel(t,rec),deletedAt:now,deletedBy:currentUserName||currentUserRole||'',batch,record:rec});});});
+  _binSnap=binTake();
+}
+(function(){const orig=saveDB;saveDB=function(){binCapture();const r=orig.apply(this,arguments);try{binBadge()}catch(e){}return r;};})();
+function binArmed(fn){return function(){_binSnap=binTake();_binArm=true;try{return fn.apply(this,arguments);}finally{_binArm=false;}};}
+(function(){const o=runConfirmed;runConfirmed=function(){const cb=_confirmCb;_confirmCb=null;closeModal();if(cb){_binSnap=binTake();_binArm=true;try{cb();}finally{_binArm=false;}}};})();
+['deleteSalaryEntry','deleteRenClient'].forEach(n=>{const o=window[n];if(typeof o==='function')window[n]=binArmed(o);});
+(function(){const o=approveRegisterRequest;approveRegisterRequest=function(id){const r=(DB.approvalRequests||[]).find(x=>x.id===id&&x.status==='Pending');
+  if(r&&r.action==='delete'){askConfirm('Approve this delete request? The record will move to the Recycle Bin and can be restored.',function(){o(id);});return;}return o(id);};
+  const w=approveWarrantyRequest;approveWarrantyRequest=function(id){const r=(DB.warrantyRequests||[]).find(x=>x.id===id&&x.status==='Pending');
+  if(r&&r.action==='delete'){askConfirm('Approve this delete request? The record will move to the Recycle Bin and can be restored.',function(){w(id);});return;}return w(id);};})();
+function binBadge(){const b=document.getElementById('binBadge');if(!b)return;const n=(DB.recycleBin||[]).length;b.textContent=n;b.style.display=currentUserRole==='admin'&&n>0?'inline-flex':'none';}
+function binRestoreFx(t,r){ /* re-apply the stock / paid-amount effects that deleting had reversed */
+  if(t==='sales'||t==='vouchers')(r.lines||[]).forEach(l=>{const p=DB.products.find(x=>x.id===l.productId);if(p)p.stock-=(+l.qty||0);if(l.detail)setBarcodeStatus(l.productId,l.detail,'sold');});
+  if(t==='purchases')(r.lines||[]).forEach(l=>{const p=DB.products.find(x=>x.id===l.productId);if(p)p.stock+=(+l.qty||0);});
+  if(t==='paymentVouchers')(r.allocations||[]).forEach(a=>{const p=DB.purchases.find(x=>x.id===a.purchaseId);if(p)p.paidAmount=(+p.paidAmount||0)+(+a.amountApplied||0);});}
+function binRestoreOne(b){const t=b.table;if(!Array.isArray(DB[t]))DB[t]=[];
+  if(DB[t].some(x=>x.id===b.recordId))return false;DB[t].push(b.record);binRestoreFx(t,b.record);DB.recycleBin=DB.recycleBin.filter(x=>x.id!==b.id);return true;}
+function restoreBin(id){const b=(DB.recycleBin||[]).find(x=>x.id===id);if(!b)return;
+  const group=(DB.recycleBin||[]).filter(x=>x.batch===b.batch&&x.id!==b.id);
+  askConfirm('Restore <b>'+safeText(b.label)+'</b> ('+safeText(BIN_TABLES[b.table]||b.table)+')?'+(b.table==='sales'||b.table==='vouchers'?' Stock will be deducted again.':b.table==='purchases'?' Stock will be added again.':'')+(group.length?'<br>'+group.length+' related record(s) deleted together will be restored too.':''),function(){
+    let n=0;[b,...group].forEach(x=>{if(binRestoreOne(x))n++;});_binArm=false;saveDB();renderRecycleBin();showToast(n?'Restored '+n+' record(s)':'Record already exists — nothing restored');});}
+function purgeBin(id){const b=(DB.recycleBin||[]).find(x=>x.id===id);if(!b)return;
+  askConfirm('Permanently delete <b>'+safeText(b.label)+'</b>? This cannot be undone.',function(){DB.recycleBin=DB.recycleBin.filter(x=>x.id!==id);saveDB();renderRecycleBin();});}
+function emptyBin(){if(!(DB.recycleBin||[]).length)return;askConfirm('Permanently delete everything in the Recycle Bin ('+DB.recycleBin.length+' item(s))? This cannot be undone.',function(){DB.recycleBin=[];saveDB();renderRecycleBin();});}
+let binFilter='',binSearch='';
+function renderRecycleBin(){
+  if(currentUserRole!=='admin'){document.getElementById('view').innerHTML='<div class="panel"><div class="panel-body">Only Admin can open the Recycle Bin.</div></div>';return;}
+  const q=binSearch.trim().toLowerCase(),all=[...(DB.recycleBin||[])].reverse(),rows=all.filter(b=>(!binFilter||b.table===binFilter)&&(!q||(b.label+' '+(BIN_TABLES[b.table]||'')).toLowerCase().includes(q)));
+  const types=[...new Set(all.map(b=>b.table))];
+  document.getElementById('view').innerHTML=`<div class="row db-filter" style="margin-bottom:10px"><div class="field"><label>Type</label><select onchange="binFilter=this.value;renderRecycleBin()"><option value="">All</option>${types.map(t=>`<option value="${t}" ${binFilter===t?'selected':''}>${safeText(BIN_TABLES[t]||t)}</option>`).join('')}</select></div><div class="field" style="flex:1 1 180px"><label>Search</label><input value="${safeText(binSearch)}" placeholder="Name, number…" oninput="binSearch=this.value;clearTimeout(window._bsT);window._bsT=setTimeout(renderRecycleBin,300)"></div></div>
+  <div class="panel"><div class="panel-head"><h3>Recycle Bin (${rows.length})</h3><button class="btn danger sm" onclick="emptyBin()" ${all.length?'':'disabled'}>Empty Recycle Bin</button></div><div class="panel-body table-scroll" style="padding:0"><table><thead><tr><th>Type</th><th>Record</th><th>Deleted by</th><th>Deleted on</th><th></th></tr></thead><tbody>${rows.length?rows.map(b=>`<tr><td>${safeText(BIN_TABLES[b.table]||b.table)}</td><td>${safeText(b.label)}</td><td>${safeText(b.deletedBy||'—')}</td><td>${safeText(new Date(b.deletedAt).toLocaleString())}</td><td style="white-space:nowrap"><button class="btn ghost sm" onclick="restoreBin('${b.id}')">♻ Restore</button> <button class="btn danger sm" onclick="purgeBin('${b.id}')">Delete forever</button></td></tr>`).join(''):'<tr><td colspan="5" class="empty">Recycle Bin is empty. Deleted records appear here and can be restored.</td></tr>'}</tbody></table></div></div>`;
+}
+try{setTimeout(binBadge,1500);}catch(e){}
 </script>
 </body>
 </html>

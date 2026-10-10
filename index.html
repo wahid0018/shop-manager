@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Shop Manager — v1.0.63</title>
+<title>Shop Manager — v1.0.64</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -1138,7 +1138,7 @@ html[data-dark-mode="1"] .seg{background:#1a212b;border-color:var(--line);}
         <button class="collapse-toggle no-print" id="sidebarToggle" onclick="toggleSidebar()" title="Collapse sidebar">◂</button>
       </div>
       <div class="sub">Computer Sales &amp; Service</div>
-      <div class="app-ver" id="appVersion" title="App version">v1.0.63</div>
+      <div class="app-ver" id="appVersion" title="App version">v1.0.64</div>
     </div>
     <nav id="nav">
       <div class="navlabel adminonly">Overview</div>
@@ -4329,7 +4329,7 @@ function renderDuesRegister(){
   const tot=rows.reduce((t,r)=>({total:t.total+r.total,paid:t.paid+r.paid,due:t.due+r.due}),{total:0,paid:0,due:0});
   const days=[...new Set(rows.map(r=>r.date))],age=d=>d?Math.max(0,Math.floor((new Date(today)-new Date(d))/864e5)):'';
   const body=days.map(d=>{const dr=rows.filter(r=>r.date===d),dd=dr.reduce((n,r)=>n+r.due,0);
-    return `<tr class="dues-day"><td colspan="8"><b>${safeText(d||'No date')}</b> · ${dr.length} bill${dr.length>1?'s':''} · Due ₹${fmt(dd)}</td></tr>`+dr.map(r=>`<tr><td>${safeText(r.type)}</td><td class="mono">${safeText(r.ref)}</td><td>${safeText(r.party)}${r.phone?'<br><span style="font-size:11px;color:var(--text-soft)">'+safeText(r.phone)+'</span>':''}</td><td class="num mono">₹${fmt(r.total)}</td><td class="num mono">₹${fmt(r.paid)}</td><td class="num mono" style="font-weight:700;color:var(--red)">₹${fmt(r.due)}</td><td class="num">${age(r.date)}d</td><td style="white-space:nowrap"><button class="btn ghost sm" onclick="duesOpen('${r.type}','${r.id}')">View</button> <button class="btn ghost sm" onclick="duesRemind('${r.type}','${r.id}')">💬 Remind</button></td></tr>`).join('');}).join('');
+    return dr.map(r=>`<tr><td>${safeText(r.type)}</td><td class="mono">${safeText(r.ref)}</td><td>${safeText(r.party)}${r.phone?'<br><span style="font-size:11px;color:var(--text-soft)">'+safeText(r.phone)+'</span>':''}</td><td class="num mono">₹${fmt(r.total)}</td><td class="num mono">₹${fmt(r.paid)}</td><td class="num mono" style="font-weight:700;color:var(--red)">₹${fmt(r.due)}</td><td class="num">${age(r.date)}d</td><td style="white-space:nowrap"><button class="btn ghost sm" onclick="duesOpen('${r.type}','${r.id}')">View</button> <button class="btn ghost sm" onclick="duesRemind('${r.type}','${r.id}')">💬 Remind</button></td></tr>`).join('');}).join('');
   document.getElementById('view').innerHTML=`<div class="row db-filter" style="margin-bottom:10px">
     <div class="field"><label>From</label><input type="date" value="${duesFrom}" onchange="duesFrom=this.value;renderDuesRegister()"></div>
     <div class="field"><label>To</label><input type="date" value="${duesTo}" onchange="duesTo=this.value;renderDuesRegister()"></div>
@@ -5172,7 +5172,7 @@ if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostnam
 </script>
 <script>
 /* v1.0.50 app version + update checker: reads APP_VERSION from the published index.html (and version.json if present) */
-const APP_VERSION='1.0.63';
+const APP_VERSION='1.0.64';
 let _latestVer=null,_lastCheck=0,_updShown=false;
 function _verCmp(a,b){const x=String(a).split('.').map(Number),y=String(b).split('.').map(Number);for(let i=0;i<Math.max(x.length,y.length);i++){const d=(x[i]||0)-(y[i]||0);if(d)return d>0?1:-1;}return 0;}
 function showUpdateBanner(v){if(_updShown)return;_updShown=true;const b=document.createElement('div');b.id='updBanner';b.className='no-print';

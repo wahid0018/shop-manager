@@ -1212,6 +1212,58 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--amber)!i
 }
 html[data-dark-mode="1"] #sidebar .navbtn.active,html[data-theme="midnight"] #sidebar .navbtn.active{background:var(--md-accent-soft)!important;color:var(--amber)!important;}
 
+/* ===== v1.0.69 — collapse button, auto-collapse switch, themed login, dark-mode delete contrast ===== */
+#sidebar .collapse-toggle{width:34px!important;height:34px!important;border-radius:12px!important;background:var(--md-hover)!important;
+  color:var(--md-text)!important;font-size:0!important;position:relative;border:1px solid var(--md-line)!important;transition:background .15s,transform .2s;}
+#sidebar .collapse-toggle::before{content:"";width:8px;height:8px;border-left:2.5px solid currentColor;border-bottom:2.5px solid currentColor;
+  transform:rotate(45deg);margin-left:3px;display:block;transition:transform .2s;}
+#sidebar.collapsed .collapse-toggle::before{transform:rotate(-135deg);margin-left:-3px;}
+#sidebar .collapse-toggle:hover{background:var(--md-accent-soft)!important;color:var(--md-accent-text)!important;}
+#sidebar.collapsed .brand .mark{flex-direction:column;gap:10px;}
+.sb-auto{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;margin:0 0 8px;padding:8px 12px;border:none;
+  border-radius:12px;background:transparent;color:var(--md-muted);font:500 12px 'Inter',sans-serif;cursor:pointer;}
+.sb-auto:hover{background:var(--md-hover);color:var(--md-text);}
+.sb-auto .sw{width:32px;height:18px;border-radius:99px;background:var(--md-line);position:relative;flex:none;transition:background .15s;}
+.sb-auto .sw::after{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:left .15s;}
+.sb-auto.on .sw{background:var(--amber);} .sb-auto.on .sw::after{left:16px;}
+#sidebar.collapsed .sb-auto .t{display:none;} #sidebar.collapsed .sb-auto{justify-content:center;padding:8px 0;}
+#sidebar.collapsed .sidefoot{display:block!important;padding:8px 6px!important;} #sidebar.collapsed .sidefoot>*:not(.sb-auto):not(.logout-contrast){display:none;}
+#sidebar.collapsed .logout-contrast{font-size:0!important;padding:10px 0!important;} #sidebar.collapsed .logout-contrast::before{content:"↪";font-size:15px;}
+
+/* login page */
+#loginScreen{background:radial-gradient(900px 500px at 15% 10%,var(--md-accent-soft),transparent 60%),var(--md-bg)!important;}
+#loginScreen .login-card{background:var(--md-surface)!important;color:var(--md-text)!important;border-radius:26px!important;
+  padding:38px 34px!important;box-shadow:var(--md-shadow),0 30px 60px -30px rgba(16,24,40,.25)!important;border:1px solid var(--md-line);}
+#loginScreen .login-card>div:first-child>div:first-child{width:34px!important;height:34px!important;border-radius:11px!important;transform:none!important;
+  background:var(--amber)!important;box-shadow:0 8px 16px -8px var(--amber);}
+#loginScreen .login-brand-title{font-size:20px!important;color:var(--md-text)!important;}
+#loginScreen .login-card p,#loginScreen .login-card label{color:var(--md-muted)!important;}
+#loginScreen .login-check{color:var(--md-text)!important;}
+#loginScreen #databaseGate{background:var(--md-accent-soft)!important;color:var(--md-text)!important;border-radius:12px!important;}
+#loginScreen input{background:var(--md-bg)!important;border:1px solid var(--md-line)!important;border-radius:14px!important;color:var(--md-text)!important;padding:11px 14px;}
+#loginScreen .btn:not(.ghost){border-radius:14px!important;background:var(--amber)!important;color:#fff!important;border:none!important;font-weight:600;
+  box-shadow:0 10px 20px -10px var(--amber);}
+#loginScreen .btn.ghost{background:var(--md-hover)!important;color:var(--md-text)!important;border:none!important;}
+
+/* delete buttons — readable on dark surfaces */
+html[data-dark-mode="1"] .btn.danger,html[data-theme="midnight"] .btn.danger,
+html[data-dark-mode="1"] .wr-act .btn.danger,html[data-dark-mode="1"] .ic-act .btn.danger,html[data-dark-mode="1"] table.ct td.ct-act .btn.danger{
+  background:rgba(255,107,107,.14)!important;color:#ffb1b1!important;border:1px solid rgba(255,120,120,.45)!important;font-weight:600;}
+html[data-dark-mode="1"] .btn.danger:hover,html[data-theme="midnight"] .btn.danger:hover{background:rgba(255,107,107,.28)!important;color:#fff!important;}
+html:not([data-dark-mode="1"]) .btn.danger{color:#c62f2f;background:#fff1f1;border-color:#f3c4c4;font-weight:600;}
+
+/* no-internet overlay (blocks all entries until the connection is restored) */
+#netOverlay{position:fixed;inset:0;z-index:20000;display:flex;align-items:center;justify-content:center;padding:16px;
+  background:rgba(13,17,23,.62);backdrop-filter:blur(5px);cursor:not-allowed;}
+#netOverlay .net-card,#netPopup .net-card{background:var(--md-surface);color:var(--md-text);border-radius:24px;padding:28px 26px;cursor:default;
+  box-shadow:0 24px 60px -20px rgba(0,0,0,.5);}
+#netOverlay .net-card h3,#netPopup .net-card h3{color:var(--md-text);}
+#netOverlay .net-card p,#netPopup .net-card p{color:var(--md-muted);}
+/* delete buttons: strong contrast in dark mode, wherever they sit */
+html[data-dark-mode="1"] button.btn.danger,html[data-dark-mode="1"] td .btn.danger,html[data-dark-mode="1"] .btn.danger.sm,
+html[data-theme="midnight"] button.btn.danger{background:#3a1c20!important;color:#ffc2c2!important;border:1px solid #c0575c!important;font-weight:600;}
+html[data-dark-mode="1"] button.btn.danger:hover,html[data-theme="midnight"] button.btn.danger:hover{background:#c0392f!important;color:#fff!important;border-color:#e0675f!important;}
+
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1361,7 +1413,7 @@ window.APP_ENV = Object.freeze({
   }),
   TIMING: Object.freeze({
     UPDATE_CHECK_MS: 300000,
-    NET_PROBE_MS: 12000,
+    NET_PROBE_MS: 5000,
     NET_PROBE_TIMEOUT_MS: 6000
   })
 });
@@ -1369,7 +1421,7 @@ window.APP_ENV = Object.freeze({
 </script>
 <script>
 /* App version. Bumped by tools/release.py (also updates version.json and the ?v= cache stamps in index.html). */
-const APP_VERSION='1.0.68';
+const APP_VERSION='1.0.69';
 document.title='Shop Manager — v'+APP_VERSION;
 
 </script>
@@ -5564,6 +5616,32 @@ async function runUpdateCheck(){const st=document.getElementById('updStatus'),ap
 
 </script>
 <script>
+/* Auto-collapse for the desktop side panel.
+   ON  → the panel folds after a section is chosen and when the mouse leaves it (hover re-opens it, see services/updater.js).
+   OFF → it only changes with the collapse button. Choice is remembered per device. */
+(function(){
+  var KEY='circuitdesk_sidebar_auto', sb=document.getElementById('sidebar'), t=0;
+  if(!sb)return;
+  function on(){try{return localStorage.getItem(KEY)!=='0';}catch(e){return true;}}
+  function desktop(){try{return !isMobileLayout();}catch(e){return true;}}
+  function sync(){var tg=document.getElementById('sidebarToggle');if(!tg)return;var c=sb.classList.contains('collapsed');tg.textContent=c?'▸':'◂';tg.title=c?'Expand side panel':'Collapse side panel';}
+  function fold(){if(!on()||!desktop())return;
+    if(sb.classList.contains('peek')){window.sbEndPeek&&window.sbEndPeek();}
+    else if(!sb.classList.contains('collapsed')){sb.classList.add('collapsed');}
+    sync();}
+  var btn=document.createElement('button');btn.type='button';btn.className='sb-auto';
+  btn.innerHTML='<span class="t">Auto-collapse</span><span class="sw"></span>';
+  function paint(){btn.classList.toggle('on',on());btn.title='Auto-collapse side panel: '+(on()?'On':'Off');}
+  btn.onclick=function(){try{localStorage.setItem(KEY,on()?'0':'1');}catch(e){}paint();};
+  var lo=sb.querySelector('.logout-contrast');if(lo&&lo.parentNode)lo.parentNode.insertBefore(btn,lo);paint();
+  document.getElementById('nav').addEventListener('click',function(e){if(e.target.closest('.navbtn')){clearTimeout(t);t=setTimeout(fold,120);}});
+  sb.addEventListener('mouseleave',function(){clearTimeout(t);t=setTimeout(fold,1400);});
+  sb.addEventListener('mouseenter',function(){clearTimeout(t);});
+  sync();
+})();
+
+</script>
+<script>
 /* PDF export / share + device dark mode at startup */
 try{applyDarkPref();}catch(e){}
 function invDocInfo(){const sh=document.getElementById('invoiceSheet'),q=x=>((sh.querySelector(x)||{}).innerText||'').trim(),pm=sh.querySelector('.inv-meta'),pl=pm&&pm.children[0]?pm.children[0].innerText.split('\n').map(x=>x.trim()).filter(Boolean):[];return{party:(pl[1]||pl[0]||'').replace(/^(Bill To|To|Supplier|Paid To|Party)\s*:?\s*/i,''),ref:q('.inv-head .tag .co-sub'),title:q('.inv-head .tag .t1')||'Invoice',total:q('.trow.grand').replace(/\s+/g,' '),shop:q('.inv-head .co')};}
@@ -5729,7 +5807,7 @@ async function netProbe(){
 async function netRefresh(){
   let ok=true;try{ok=await netProbe();}catch(e){ok=false;}
   const was=Net.ok,first=!Net.known;Net.ok=ok;Net.known=true;
-  if(ok!==was||first)netRender(was);return ok;
+  if(ok!==was||first)netRender(was);else netOverlay();return ok;
 }
 function netRender(was){
   const bar=document.getElementById('topbarStatus');
@@ -5738,8 +5816,19 @@ function netRender(was){
       w.innerHTML='⚠ <b>Connection failed</b> — check internet. Entries are disabled.';}
     else if(w)w.remove();}
   document.documentElement.classList.toggle('net-down',!Net.ok);
+  netOverlay();
   try{if(!Net.ok&&currentUserRole)showToast('Connection failed — entries are disabled until internet is back');
       else if(Net.ok&&was===false&&currentUserRole)showToast('Connection restored');}catch(e){}
+}
+/* full-screen blocker shown while signed in and the connection is down; removed automatically when it returns */
+function netOverlay(){
+  let o=document.getElementById('netOverlay');
+  const show=!Net.ok&&!!netCreds()&&!!currentUserRole;
+  if(!show){if(o)o.remove();return;}
+  if(o)return;
+  o=document.createElement('div');o.id='netOverlay';o.className='no-print';o.setAttribute('role','alertdialog');o.setAttribute('aria-modal','true');
+  o.innerHTML='<div class="net-card"><div class="net-ico">📡</div><h3>No internet connection</h3><p>Entries are disabled. This screen will close automatically when the connection is back.</p><button class="btn amber" type="button" onclick="netRefresh()">Try again</button></div>';
+  document.body.appendChild(o);
 }
 function netPopup(){
   let o=document.getElementById('netPopup');if(o)return;

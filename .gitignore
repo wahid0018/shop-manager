@@ -1,0 +1,6 @@
+dist/
+node_modules/
+.DS_Store
+*.log
+# local-only Supabase connection (the hosting normally provides it)
+config.local.json

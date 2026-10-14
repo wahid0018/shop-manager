@@ -1421,7 +1421,7 @@ window.APP_ENV = Object.freeze({
 </script>
 <script>
 /* App version. Bumped by tools/release.py (also updates version.json and the ?v= cache stamps in index.html). */
-const APP_VERSION='1.0.70';
+const APP_VERSION='1.0.71';
 document.title='Shop Manager — v'+APP_VERSION;
 
 </script>
@@ -1489,6 +1489,7 @@ const DB_ARRAYS=['products','employees','purchases','sales','services','quotatio
 const USER_CREDENTIALS={[APP_ENV.BOOTSTRAP_ADMIN.username]:APP_ENV.BOOTSTRAP_ADMIN.password};
 let DB,supabaseClient=null,supabaseChannel=null,cloudReady=false,cloudSessionConnected=false,cloudSyncInFlight=false,cloudSnapshot=null,cloudConfig={url:'',key:''},dbInitPromise=null,dbAttemptId=0,cloudAttemptDone=false,lastSavedDBSnapshot=null,lastLocalEditAt=0,localStorageAvailable=true,localRecoveryFileHandle=null,localRecoveryFileName='';
 function cid(){return 'id'+Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4)}
+function nextAfter(no,cur){const m=String(no||'').match(/(\d+)\D*$/);const n=m?parseInt(m[1],10)+1:0;return Math.max(+cur||1,n)}
 function buildDocNo(prefix,num){const n=String(num).padStart(4,'0');return prefix?(prefix+'-'+n):n}
 
 </script>
@@ -3601,7 +3602,7 @@ function saveSale(){
     subtotal:sub, subtotalBeforeDiscount, supplyType:supply, priceMode, gstAmount:gstAmt, breakup, discountAmount, grandTotal, paidAmount, deduction, paymentMode, notes };
   DB.sales.push(saleObj);
   newLines.forEach(l=>{ DB.products.find(p=>p.id===l.productId).stock -= l.qty; if(l.detail) setBarcodeStatus(l.productId, l.detail, 'sold'); });
-  DB.settings.nextInvoiceNo++;
+  DB.settings.nextInvoiceNo=nextAfter(invoiceNo,DB.settings.nextInvoiceNo+1);
   saveDB(); showToast(willGoNegative.length ? ('Sale recorded — note: '+willGoNegative.join(', ')+' now below zero stock') : 'Sale recorded — stock updated');
   renderSale();
   printSaleInvoice(saleObj.id);
@@ -3857,7 +3858,7 @@ function saveVoucher(){
     subtotal:lineTotal, discountAmount, grandTotal, paidAmount, deduction, paymentMode, notes };
   DB.vouchers.push(voucherObj);
   newLines.forEach(l=>{ DB.products.find(p=>p.id===l.productId).stock -= l.qty; if(l.detail) setBarcodeStatus(l.productId, l.detail, 'sold'); });
-  DB.settings.nextVoucherNo++;
+  DB.settings.nextVoucherNo=nextAfter(voucherNo,DB.settings.nextVoucherNo+1);
   saveDB(); showToast(willGoNegative.length ? ('Voucher recorded — note: '+willGoNegative.join(', ')+' now below zero stock') : 'Voucher recorded — stock updated');
   renderVoucher();
   printVoucher(voucherObj.id);

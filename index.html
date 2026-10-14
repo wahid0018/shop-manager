@@ -1421,7 +1421,7 @@ window.APP_ENV = Object.freeze({
 </script>
 <script>
 /* App version. Bumped by tools/release.py (also updates version.json and the ?v= cache stamps in index.html). */
-const APP_VERSION='1.0.71';
+const APP_VERSION='1.0.72';
 document.title='Shop Manager — v'+APP_VERSION;
 
 </script>
@@ -1490,7 +1490,7 @@ const USER_CREDENTIALS={[APP_ENV.BOOTSTRAP_ADMIN.username]:APP_ENV.BOOTSTRAP_ADM
 let DB,supabaseClient=null,supabaseChannel=null,cloudReady=false,cloudSessionConnected=false,cloudSyncInFlight=false,cloudSnapshot=null,cloudConfig={url:'',key:''},dbInitPromise=null,dbAttemptId=0,cloudAttemptDone=false,lastSavedDBSnapshot=null,lastLocalEditAt=0,localStorageAvailable=true,localRecoveryFileHandle=null,localRecoveryFileName='';
 function cid(){return 'id'+Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4)}
 function nextAfter(no,cur){const m=String(no||'').match(/(\d+)\D*$/);const n=m?parseInt(m[1],10)+1:0;return Math.max(+cur||1,n)}
-function buildDocNo(prefix,num){const n=String(num).padStart(4,'0');return prefix?(prefix+'-'+n):n}
+function buildDocNo(prefix,num){const pd=(typeof DB!=='undefined'&&DB.settings&&DB.settings.numberPad!=null)?(+DB.settings.numberPad||0):4;const n=pd>0?String(num).padStart(pd,'0'):String(num);return prefix?(prefix+'-'+n):n}
 
 </script>
 <script>
@@ -4778,6 +4778,7 @@ function renderSettings(){
           <div class="field"><label>Invoice Prefix</label><input id="st_pref" value="${st.invoicePrefix}"></div>
           <div class="field"><label>Service Prefix</label><input id="st_spref" value="${st.servicePrefix}"></div>
           <div class="field"><label>Quotation Prefix</label><input id="st_qpref" value="${st.quotePrefix}"></div>
+          <div class="field"><label>Leading zeros in numbers</label><select id="st_pad">${[[0,'None (INV-1)'],[2,'2 digits (INV-01)'],[3,'3 digits (INV-001)'],[4,'4 digits (INV-0001)'],[5,'5 digits (INV-00001)'],[6,'6 digits (INV-000001)']].map(([v,l])=>`<option value="${v}" ${(st.numberPad!=null?+st.numberPad:4)===v?'selected':''}>${l}</option>`).join('')}</select></div>
         </div>
         <div class="field" style="max-width:220px;"><label>Default GST % (Sales)</label><input id="st_gst" type="number" step="0.01" value="${st.gstPercent}"></div>
         <p style="font-size:12px;color:#8a8578;margin-top:-4px;">Common GST slabs in India: 0%, 5%, 12%, 18%, 28%. Most computer hardware is taxed at 18%. Service jobs are billed without GST.</p>
@@ -4956,6 +4957,7 @@ function saveSettings(){
   DB.settings.invoicePrefix = document.getElementById('st_pref').value.trim();
   DB.settings.servicePrefix = document.getElementById('st_spref').value.trim();
   DB.settings.quotePrefix = document.getElementById('st_qpref').value.trim();
+  DB.settings.numberPad = parseInt(document.getElementById('st_pad').value,10)||0;
   DB.settings.gstPercent = parseFloat(document.getElementById('st_gst').value)||0;
   if(brandImageDraft.logo==='REMOVE') DB.settings.logo='';
   else if(brandImageDraft.logo) DB.settings.logo=brandImageDraft.logo;

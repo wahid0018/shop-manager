@@ -1346,6 +1346,7 @@ html[data-dark-mode="1"] button.btn.danger:hover,html[data-theme="midnight"] but
       <button class="navbtn" data-view="purchaseregister"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M4 10h10M4 15h7"/><path d="M18 13v7m0 0l-3-3m3 3l3-3"/></svg></span> <span class="label">Purchase Register</span></button>
       <button class="navbtn" data-view="paymentvoucher"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h10M7 9h10M7 5c6 0 6 8 0 8h-1l7 7"/></svg></span> <span class="label">Purchase Payment Voucher</span></button>
       <button class="navbtn" data-view="salesregister"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M4 10h10M4 15h7"/><path d="M18 20v-7m0 0l-3 3m3-3l3 3"/></svg></span> <span class="label">Sales Register</span></button>
+      <button class="navbtn adminonly" data-view="creditnote"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h4"/></svg></span> <span class="label">Credit Note</span></button>
       <button class="navbtn adminonly" data-view="gstr1"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h7"/></svg></span> <span class="label">GSTR-1 Return</span></button>
       <button class="navbtn" data-view="voucherregister"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M4 10h10M4 15h7"/><path d="M15 18l2 2 4-4"/></svg></span> <span class="label">Non-GST Sale Register</span></button>
       <button class="navbtn" data-view="serviceregister"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M4 10h10M4 15h7"/><circle cx="18" cy="17" r="3"/></svg></span> <span class="label">Service Register</span></button>
@@ -1432,7 +1433,7 @@ window.APP_ENV = Object.freeze({
 </script>
 <script>
 /* App version. Bumped by tools/release.py (also updates version.json and the ?v= cache stamps in index.html). */
-const APP_VERSION='1.0.75';
+const APP_VERSION='1.0.77';
 document.title='Shop Manager — v'+APP_VERSION;
 
 </script>
@@ -1496,7 +1497,7 @@ const AppStore=(function(){
 <script>
 /* Global state containers and ID helpers */
 const DB_KEY=APP_ENV.STORAGE.DB_KEY,SUPERBASE_TABLE=APP_ENV.SUPABASE.TABLE,SUPERBASE_CREDENTIALS_KEY=APP_ENV.STORAGE.CREDENTIALS_KEY;
-const DB_ARRAYS=['products','employees','purchases','sales','services','quotations','customers','vouchers','paymentVouchers','todoPages','warrantyJobs','warrantyRequests','approvalRequests','repairProviders','users','renewals','salaryEntries','renewalClients','renewalEntries','recycleBin'];
+const DB_ARRAYS=['products','employees','purchases','sales','services','quotations','customers','vouchers','paymentVouchers','creditNotes','todoPages','warrantyJobs','warrantyRequests','approvalRequests','repairProviders','users','renewals','salaryEntries','renewalClients','renewalEntries','recycleBin'];
 const USER_CREDENTIALS={[APP_ENV.BOOTSTRAP_ADMIN.username]:APP_ENV.BOOTSTRAP_ADMIN.password};
 let DB,supabaseClient=null,supabaseChannel=null,cloudReady=false,cloudSessionConnected=false,cloudSyncInFlight=false,cloudSnapshot=null,cloudConfig={url:'',key:''},dbInitPromise=null,dbAttemptId=0,cloudAttemptDone=false,lastSavedDBSnapshot=null,lastLocalEditAt=0,localStorageAvailable=true,localRecoveryFileHandle=null,localRecoveryFileName='';
 function cid(){return 'id'+Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4)}
@@ -1524,7 +1525,7 @@ function seedDB(){return ensureManagedUsers({
   purchases:[],sales:[],services:[],salaryEntries:[],renewalClients:[],renewalEntries:[],quotations:[],customers:[],vouchers:[],paymentVouchers:[],users:[],todoPages:[{id:cid(),name:'General',tasks:[]}],warrantyJobs:[],warrantyRequests:[],approvalRequests:[],repairProviders:[],renewals:[]});}
 function normalizeDB(data){
   data=data&&typeof data==='object'?data:{};data.settings=data.settings&&typeof data.settings==='object'?data.settings:{};ensureManagedUsers(data);
-  ['customers','vouchers','paymentVouchers','warrantyJobs','warrantyRequests','approvalRequests','repairProviders','renewals','salaryEntries','renewalClients','renewalEntries','recycleBin'].forEach(k=>{if(!Array.isArray(data[k]))data[k]=[]});
+  ['customers','vouchers','paymentVouchers','creditNotes','warrantyJobs','warrantyRequests','approvalRequests','repairProviders','renewals','salaryEntries','renewalClients','renewalEntries','recycleBin'].forEach(k=>{if(!Array.isArray(data[k]))data[k]=[]});
   ['products','employees','purchases','sales','services','quotations','todoPages'].forEach(k=>{if(!Array.isArray(data[k]))data[k]=[]});
   const s=data.settings;
   if(!s.paymentVoucherPrefix)s.paymentVoucherPrefix='PV';if(!s.nextPaymentVoucherNo)s.nextPaymentVoucherNo=1;if(!Array.isArray(s.userHiddenExtra))s.userHiddenExtra=[];if(!s.voucherPrefix)s.voucherPrefix='SV';if(!s.nextVoucherNo)s.nextVoucherNo=1;
@@ -1912,6 +1913,24 @@ function initSidebarSections(){
     if(!section.dataset.sectionId)section.dataset.sectionId=section.querySelector('.nav-section-title')?.textContent.trim()||('section'+i);
     setSidebarSectionState(section,saved[section.dataset.sectionId]===true,false);
   });
+  syncNavSectionVisibility();watchNavSections();
+}
+/* Hide a section header when every menu item under it is hidden (role, staff access or admin toggles) */
+function syncNavSectionVisibility(){
+  const nav=document.getElementById('nav');if(!nav)return;
+  nav.querySelectorAll('.nav-section').forEach(sec=>{
+    const btns=Array.from(sec.querySelectorAll('.navbtn'));
+    const any=!btns.length||btns.some(b=>getComputedStyle(b).display!=='none');
+    const want=any?'':'none';
+    if(sec.style.display!==want)sec.style.display=want;
+  });
+}
+let _navObs=null;
+function watchNavSections(){
+  const nav=document.getElementById('nav');if(!nav||_navObs||typeof MutationObserver==='undefined')return;
+  let queued=false;
+  _navObs=new MutationObserver(()=>{if(queued)return;queued=true;Promise.resolve().then(()=>{queued=false;syncNavSectionVisibility();});});
+  _navObs.observe(nav,{subtree:true,attributes:true,attributeFilter:['style','class','hidden']});
 }
 function toggleSidebarSection(section){
   if(!section)return;
@@ -2141,6 +2160,7 @@ const titles = {
   customers:['Customers','Save repeat customers to pick them instantly in Sale & Quotation'],
   todos:['To-Do List','Organize tasks across multiple pages'],
   duesregister:['Pending Dues Register','Unpaid sales, Non-GST sales and services by date'],
+  creditnote:['Credit Note','Sales return / post-sale discount against a sale invoice — included in GSTR-1'],
   gstr1:['GSTR-1 Return','Sale invoices only — JSON and Excel export for the GST portal'],
   renewaltrack:['Software Renewals','Subscription tracking by financial year'],
   salary:['Salary Register','Monthly salary, advances and payments'],
@@ -2155,7 +2175,7 @@ function route(view){
   document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active', b.dataset.view===view));
   document.getElementById('pageTitle').textContent = titles[view][0];
   document.getElementById('pageCrumb').textContent = titles[view][1];
-  const renderers = {gstr1:renderGstr1, recyclebin:renderRecycleBin, duesregister:renderDuesRegister, renewaltrack:renderRenewals, salary:renderSalary, myapprovals:renderMyApprovals, uisettings:renderUISettings, dashboard:renderDashboardPlus, approvals:renderApprovals, purchase:()=>renderPurchase(), paymentvoucher:()=>renderPaymentVoucher(), sale:()=>renderSale(), voucher:()=>renderVoucher(), voucherregister:renderVoucherRegister, service:()=>renderService(), quotation:()=>renderQuotation(), salesregister:renderSalesRegister, purchaseregister:renderPurchaseRegister, serviceregister:renderServiceRegister, warranty:renderWarranty, inventory:renderInventory, employees:renderEmployees, customers:renderCustomers, todos:renderTodos, settings:renderSettings};
+  const renderers = {creditnote:renderCreditNote, gstr1:renderGstr1, recyclebin:renderRecycleBin, duesregister:renderDuesRegister, renewaltrack:renderRenewals, salary:renderSalary, myapprovals:renderMyApprovals, uisettings:renderUISettings, dashboard:renderDashboardPlus, approvals:renderApprovals, purchase:()=>renderPurchase(), paymentvoucher:()=>renderPaymentVoucher(), sale:()=>renderSale(), voucher:()=>renderVoucher(), voucherregister:renderVoucherRegister, service:()=>renderService(), quotation:()=>renderQuotation(), salesregister:renderSalesRegister, purchaseregister:renderPurchaseRegister, serviceregister:renderServiceRegister, warranty:renderWarranty, inventory:renderInventory, employees:renderEmployees, customers:renderCustomers, todos:renderTodos, settings:renderSettings};
   currentPageKey=view;AppStore.set('ui.page',view);
   try{renderers[view]();}
   catch(e){AppErrors.report(e,'route:'+view);document.getElementById('view').innerHTML='<div class="panel"><div class="panel-body"><b>This screen could not be loaded.</b><br><span style="font-size:12px;color:var(--text-soft)">'+safeText(e.message||'Unknown error')+'</span><br><br><button class="btn amber sm" type="button" onclick="route(\''+view+'\')">Try again</button></div></div>';}
@@ -4574,7 +4594,7 @@ function renderMyApprovals(){
   document.getElementById('view').innerHTML=`<div class="panel"><div class="panel-head"><h3>My Approval Requests</h3><span style="font-size:12px;color:var(--text-soft)">In process: ${pend}</span></div><div class="panel-body table-scroll" style="padding:0"><table><thead><tr><th>Requested</th><th>Section</th><th>Record</th><th>Request</th><th>Status</th><th>Reviewed</th></tr></thead><tbody>${rows.length?rows.map(r=>{const rec=r.entity==='warranty'?(DB.warrantyJobs||[]).find(x=>x.id===r.recordId):registerRecords(r.entity).find(x=>x.id===r.recordId);const pv=r.entity==='paymentvoucher'?r.changes?.paymentVoucher:null;const what=r.action==='delete'?'Delete record':r.action==='create'?(pv?'New payment voucher · ₹'+fmt(pv.totalAmount):'New record'):'Edit record';return `<tr><td>${safeText(new Date(r.requestedAt).toLocaleString())}</td><td>${safeText(labels[r.entity]||r.entity)}</td><td>${safeText(registerRef(r.entity,rec))}</td><td>${safeText(what)}</td><td>${badge(r.status)}</td><td>${r.reviewedAt?safeText(new Date(r.reviewedAt).toLocaleString()):'—'}</td></tr>`}).join(''):'<tr><td colspan="6" class="empty">You have not sent any approval requests.</td></tr>'}</tbody></table></div></div>`;
 }
 function toggleAdminVisibility(view,visible){DB.settings.adminHiddenViews=(DB.settings.adminHiddenViews||[]).filter(v=>v!==view);if(!visible)DB.settings.adminHiddenViews.push(view);saveDB();applyRoleRestrictions();}
-const ADMIN_TOGGLE_VIEWS=['gstr1','duesregister','renewaltrack','salary','dashboard','purchase','sale','voucher','service','quotation','approvals','purchaseregister','paymentvoucher','salesregister','voucherregister','serviceregister','warranty','inventory','employees','customers','todos'];
+const ADMIN_TOGGLE_VIEWS=['creditnote','gstr1','duesregister','renewaltrack','salary','dashboard','purchase','sale','voucher','service','quotation','approvals','purchaseregister','paymentvoucher','salesregister','voucherregister','serviceregister','warranty','inventory','employees','customers','todos'];
 
 </script>
 <script>
@@ -5516,10 +5536,11 @@ function applyRoleRestrictions(){
   document.querySelectorAll('.staffonly').forEach(el=>{ el.style.display = isAdmin ? 'none' : ''; });
   if(isAdmin){ const hid=(DB.settings&&DB.settings.adminHiddenViews)||[]; ADMIN_TOGGLE_VIEWS.forEach(v=>{const b=document.querySelector('.navbtn[data-view="'+v+'"]'); if(b) b.style.display=hid.includes(v)?'none':'';}); }
   if(!isAdmin){ STAFF_CONFIGURABLE_VIEWS.forEach(v=>{const b=document.querySelector('.navbtn[data-view="'+v+'"]');if(b)b.style.display=canStaffAccess(v)?'':'none';}); }
+  try{syncNavSectionVisibility();}catch(e){}
   const userEl = document.getElementById('sidefootUser');
   if(userEl) userEl.textContent = 'Signed in as '+(currentUserName||(isAdmin?'Admin':'Staff'));
 }
-const ADMIN_ONLY_VIEWS = ['gstr1','recyclebin','dashboard','approvals','purchase','inventory','settings','employees'];
+const ADMIN_ONLY_VIEWS = ['creditnote','gstr1','recyclebin','dashboard','approvals','purchase','inventory','settings','employees'];
 function startApp(){
   // Admin recovery is deliberately allowed even when every database is down.
   // Normal users/staff still require a connected database.
@@ -5897,6 +5918,113 @@ netStart();
 
 </script>
 <script>
+/* ================= CREDIT NOTE (sales return / post-sale discount) ================= */
+const CN_REASONS=['01-Sales Return','02-Post Sale Discount','03-Deficiency in services','04-Correction in invoice','05-Change in POS','06-Finalization of Provisional assessment','07-Others'];
+let cnSale=null,cnLines=[];
+function cnPriorCredit(saleId){return (DB.creditNotes||[]).filter(n=>n.saleId===saleId).reduce((t,n)=>t+(+n.grandTotal||0),0);}
+function renderCreditNote(){
+  if(!Array.isArray(DB.creditNotes))DB.creditNotes=[];
+  cnSale=null;cnLines=[];
+  const sales=sortRecent(DB.sales),no=buildDocNo('CN',seriesNext(DB.creditNotes,'noteNo','CN'));
+  const notes=sortRecent(DB.creditNotes);
+  document.getElementById('view').innerHTML=`
+    <div class="panel" style="margin-bottom:16px"><div class="panel-head"><h3>New Credit Note</h3></div><div class="panel-body">
+      <p style="font-size:12px;color:var(--text-soft);margin:0 0 10px">Issued against a Sale Invoice. Credit notes are reported in GSTR-1 (Table 9B) for the month of the credit note date.</p>
+      <div class="row">
+        <div class="field"><label>Credit Note No</label><input id="cn_no" value="${no}"></div>
+        <div class="field"><label>Date</label><input id="cn_date" type="date" value="${todayStr()}"></div>
+        <div class="field" style="flex:2"><label>Against Invoice</label><input id="cn_inv" list="cn_invlist" placeholder="Type or pick an invoice number" onchange="cnLoad()" autocomplete="off"><datalist id="cn_invlist">${sales.map(s=>`<option value="${safeText(s.invoiceNo)}">${safeText(s.customer)} · ${safeText(s.date)} · ₹${fmt(s.grandTotal)}</option>`).join('')}</datalist></div>
+        <div class="field"><label>Reason (GST)</label><select id="cn_reason" onchange="document.getElementById('cn_stock').checked=this.value.startsWith('01')">${CN_REASONS.map(r=>`<option>${r}</option>`).join('')}</select></div>
+      </div>
+      <div id="cn_body"><div class="empty">Select the original invoice to load its items.</div></div>
+    </div></div>
+    <div class="panel"><div class="panel-head"><h3>Credit Notes (${notes.length})</h3></div><div class="panel-body table-scroll" style="padding:0"><table><thead><tr><th>Credit note</th><th>Date</th><th>Customer</th><th>Against</th><th>Reason</th><th class="num">Value</th><th></th></tr></thead><tbody>
+      ${notes.length?notes.map(n=>`<tr><td class="mono">${safeText(n.noteNo)}</td><td>${safeText(n.date)}</td><td>${safeText(n.customer)}</td><td class="mono">${safeText(n.invoiceNo)}</td><td>${safeText(n.reason)}</td><td class="num mono">₹${fmt(n.grandTotal)}</td><td style="white-space:nowrap"><button class="btn ghost sm" onclick="printCreditNote('${n.id}')">Print</button> <button class="btn danger sm" onclick="deleteCreditNote('${n.id}')">Del</button></td></tr>`).join(''):'<tr><td colspan="7" class="empty">No credit notes yet.</td></tr>'}
+    </tbody></table></div></div>`;
+}
+function cnLoad(){
+  const v=document.getElementById('cn_inv').value.trim(),s=DB.sales.find(x=>x.invoiceNo===v),body=document.getElementById('cn_body');
+  if(!s){cnSale=null;cnLines=[];body.innerHTML='<div class="empty">Invoice not found — pick one from the list.</div>';return;}
+  cnSale=s;
+  const scale=(+s.subtotalBeforeDiscount>0)?1-((+s.discountAmount||0)/(+s.subtotalBeforeDiscount)):1;
+  cnLines=s.lines.map(l=>({productId:l.productId,name:l.name,hsn:l.hsn||'',gstPercent:+l.gstPercent||0,maxQty:+l.qty||0,cqty:+l.qty||0,price:Math.round((+l.price||0)*scale*100)/100}));
+  const prior=cnPriorCredit(s.id);
+  body.innerHTML=`
+    <div style="font-size:12.5px;margin:6px 0 10px"><strong>${safeText(s.customer)}</strong>${s.customerGstin?' · GSTIN '+safeText(s.customerGstin):' · unregistered'} · ${s.supplyType==='inter'?'Inter-state (IGST)':'Intra-state (CGST+SGST)'} · Invoice value ₹${fmt(s.grandTotal)}${prior>0?' · already credited ₹'+fmt(prior):''}</div>
+    <div class="table-scroll"><table><thead><tr><th>Item</th><th>HSN</th><th class="num">Invoice qty</th><th class="num">Credit qty</th><th class="num">Price${s.priceMode==='inclusive'?' (incl. GST)':''}</th><th class="num">Tax %</th><th class="num">Amount</th></tr></thead><tbody>
+    ${cnLines.map((l,i)=>`<tr><td>${safeText(l.name)}</td><td class="mono">${safeText(l.hsn)}</td><td class="num mono">${l.maxQty}</td><td class="num"><input type="number" min="0" max="${l.maxQty}" step="1" value="${l.cqty}" style="width:80px;text-align:right" class="mono" oninput="cnEdit(${i},'cqty',this.value)"></td><td class="num"><input type="number" min="0" step="0.01" value="${l.price}" style="width:100px;text-align:right" class="mono" oninput="cnEdit(${i},'price',this.value)"></td><td class="num mono">${l.gstPercent}%</td><td class="num mono" id="cn_amt${i}">₹0.00</td></tr>`).join('')}
+    </tbody></table></div>
+    <div class="row" style="margin-top:10px"><div class="field" style="flex:2"><label>Notes</label><input id="cn_notes" placeholder="Optional"></div>
+      <div class="field" style="flex:none;align-self:flex-end"><label style="display:flex;gap:6px;align-items:center;margin:0"><input type="checkbox" id="cn_stock" checked> Return items to stock</label></div></div>
+    <div class="totals-box" id="cn_totals"></div>
+    <div style="margin-top:12px"><button class="btn amber" onclick="saveCreditNote()">Save &amp; Print Credit Note</button></div>`;
+  document.getElementById('cn_stock').checked=document.getElementById('cn_reason').value.startsWith('01');
+  cnTotals();
+}
+function cnEdit(i,f,v){cnLines[i][f]=Math.max(0,parseFloat(v)||0);cnTotals();}
+function cnCalc(){
+  const act=cnLines.filter(l=>l.cqty>0);
+  return computeItemwiseTotals(act.map(l=>({qty:l.cqty,price:l.price,gstPercent:l.gstPercent})),cnSale.priceMode||'exclusive');
+}
+function cnTotals(){
+  if(!cnSale)return;
+  cnLines.forEach((l,i)=>{const r=computeLineTax(l.cqty*l.price,l.gstPercent,cnSale.priceMode||'exclusive'),e=document.getElementById('cn_amt'+i);if(e)e.textContent='₹'+fmt(r.grand);});
+  const t=cnCalc();
+  document.getElementById('cn_totals').innerHTML=`<div class="trow"><span>Taxable Amount</span><span class="mono">₹${fmt(t.subtotal)}</span></div>${gstBreakupRowsHTML(t.breakup,cnSale.supplyType)}<div class="trow grand"><span>Credit Note Total</span><span class="mono">₹${fmt(t.grandTotal)}</span></div>`;
+}
+function saveCreditNote(){
+  if(!cnSale){showToast('Select the original invoice first');return;}
+  const no=document.getElementById('cn_no').value.trim(),date=document.getElementById('cn_date').value||todayStr();
+  if(!no){showToast('Credit note number is required');return;}
+  if((DB.creditNotes||[]).some(n=>n.noteNo===no)){showToast('Credit note "'+no+'" already exists — choose a different number');return;}
+  const act=cnLines.filter(l=>l.cqty>0);
+  if(!act.length){showToast('Enter a credit quantity for at least one item');return;}
+  if(act.some(l=>l.cqty>l.maxQty)){showToast('Credit quantity cannot exceed the invoice quantity');return;}
+  const t=cnCalc();
+  if(cnPriorCredit(cnSale.id)+t.grandTotal>(+cnSale.grandTotal||0)+0.5){showToast('Total credit notes for this invoice would exceed the invoice value');return;}
+  const reason=document.getElementById('cn_reason').value,returnStock=document.getElementById('cn_stock').checked;
+  const note={id:cid(),noteNo:no,date,saleId:cnSale.id,invoiceNo:cnSale.invoiceNo,invoiceDate:cnSale.date,invoiceTotal:cnSale.grandTotal,customer:cnSale.customer,phone:cnSale.phone||'',customerGstin:cnSale.customerGstin||'',
+    placeOfSupply:cnSale.placeOfSupply||'',supplyType:cnSale.supplyType,priceMode:cnSale.priceMode||'exclusive',reason,returnStock,notes:document.getElementById('cn_notes').value.trim(),
+    lines:act.map(l=>({productId:l.productId,name:l.name,hsn:l.hsn,qty:l.cqty,price:l.price,gstPercent:l.gstPercent})),
+    subtotal:t.subtotal,gstAmount:t.gstAmount,breakup:t.breakup,grandTotal:t.grandTotal};
+  DB.creditNotes.push(note);
+  if(returnStock)note.lines.forEach(l=>{const p=DB.products.find(x=>x.id===l.productId);if(p)p.stock+=l.qty;});
+  saveDB();showToast('Credit note saved'+(returnStock?' — stock returned':''));
+  renderCreditNote();printCreditNote(note.id);
+}
+function deleteCreditNote(id){
+  askConfirm('Delete this credit note?'+((DB.creditNotes.find(x=>x.id===id)||{}).returnStock?' Returned stock will be taken out again.':''),()=>{
+    const n=DB.creditNotes.find(x=>x.id===id);if(!n)return;
+    if(n.returnStock)n.lines.forEach(l=>{const p=DB.products.find(x=>x.id===l.productId);if(p)p.stock-=l.qty;});
+    DB.creditNotes=DB.creditNotes.filter(x=>x.id!==id);saveDB();renderCreditNote();});
+}
+function printCreditNote(id){
+  const n=(DB.creditNotes||[]).find(x=>x.id===id);if(!n)return;const st=DB.settings;
+  document.querySelectorAll('#invoiceWrap').forEach(e=>e.remove());
+  document.getElementById('view').insertAdjacentHTML('beforeend',`
+  <div id="invoiceWrap" style="margin-top:20px;">
+    <div class="no-print" style="display:flex;justify-content:flex-end;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
+      <label style="margin:0;font-weight:600;font-size:12px;">Page Size</label>${pageSizeSelectHTML()}
+      <button class="btn ghost sm" onclick="document.getElementById('invoiceWrap').remove()">Close</button>
+      <button class="btn amber sm" onclick="tryPrint()">🖨 Print</button>
+      <button class="btn ghost sm" onclick="downloadInvoicePdf()">📄 PDF</button>
+    </div>
+    <div id="invoiceSheet" class="size-${currentPageSize.toLowerCase()}">
+      <div class="inv-head"><div style="display:flex;gap:12px;align-items:center;">${st.logo?`<img src="${st.logo}" style="width:88px;height:88px;object-fit:contain;flex:none;">`:''}<div><div class="co">${st.shopName}</div><div class="co-sub">${st.address}<br>${st.phone}${st.gstin?`<br>GSTIN: ${st.gstin}`:''}</div></div></div>
+        <div class="tag"><div class="t1">CREDIT NOTE</div><div class="co-sub mono">${safeText(n.noteNo)}</div></div></div>
+      <div class="inv-meta"><div><strong>Customer:</strong><br>${safeText(n.customer)}${n.phone?'<br>'+safeText(n.phone):''}${n.customerGstin?'<br>GSTIN: '+safeText(n.customerGstin):''}</div>
+        <div style="text-align:right;"><strong>Date:</strong> ${safeText(n.date)}<br><strong>Against Invoice:</strong> ${safeText(n.invoiceNo)} (${safeText(n.invoiceDate||'')})<br><strong>Reason:</strong> ${safeText(n.reason)}</div></div>
+      <table class="inv-table"><thead><tr><th>Sl.</th><th>Item</th><th>HSN</th><th class="num">Qty</th><th class="num">Unit Price</th><th class="num">Tax %</th><th class="num">Total</th></tr></thead><tbody>
+      ${n.lines.map((l,i)=>{const r=computeLineTax(l.qty*l.price,l.gstPercent,n.priceMode);return `<tr><td class="mono">${i+1}</td><td>${safeText(l.name)}</td><td class="mono">${safeText(l.hsn)}</td><td class="num mono">${l.qty}</td><td class="num mono">₹${fmt(l.price)}</td><td class="num mono">${l.gstPercent}%</td><td class="num mono">₹${fmt(r.grand)}</td></tr>`;}).join('')}</tbody></table>
+      <div class="inv-bottom">${n.notes?`<div style="margin:14px 0;font-size:12px;"><strong>Notes:</strong> ${safeText(n.notes)}</div>`:''}
+        <div style="display:flex;justify-content:flex-end"><div class="totals-box" style="flex:1;max-width:340px;margin-top:0;padding-top:0;border-top:none;">
+          <div class="trow"><span>Taxable Amount</span><span class="mono">₹${fmt(n.subtotal)}</span></div>${gstBreakupRowsHTML(n.breakup,n.supplyType)}
+          <div class="trow grand"><span>Credit Note Total</span><span class="mono">₹${fmt(n.grandTotal)}</span></div></div></div></div>
+    </div>
+  </div>`);
+  const w=document.getElementById('invoiceWrap');if(w&&w.scrollIntoView)w.scrollIntoView({behavior:'smooth'});
+}
+
 /* ================= GSTR-1 (Sale invoices only) ================= */
 const GSTR1_RATES=[0,0.1,0.25,1,1.5,3,5,6,7.5,12,18,28,40];
 const GSTR1_UQC=[['NOS','NOS - Numbers'],['PCS','PCS - Pieces'],['UNT','UNT - Units'],['SET','SET - Sets'],['PAC','PAC - Packs'],['BOX','BOX - Box'],['PRS','PRS - Pairs'],['KGS','KGS - Kilograms'],['GMS','GMS - Grams'],['MTR','MTR - Meters'],['LTR','LTR - Litres'],['BTL','BTL - Bottles'],['DOZ','DOZ - Dozens'],['OTH','OTH - Others']];
@@ -5971,16 +6099,57 @@ function gstr1Build(db,opts){
     });
   });
   const fin=r=>{['qty','val','txval','iamt','camt','samt'].forEach(f=>r[f]=gstr1R2(r[f]));return r;};
-  const hsnList=m=>Object.values(m).map(fin).sort((a,b)=>String(a.hsn_sc).localeCompare(b.hsn_sc)||a.rt-b.rt).map((r,i)=>({num:i+1,...r}));
+  const hsnList=m=>Object.values(m).map(fin).filter(r=>r.qty!==0||r.txval!==0||r.val!==0).sort((a,b)=>String(a.hsn_sc).localeCompare(b.hsn_sc)||a.rt-b.rt).map((r,i)=>({num:i+1,...r}));
+  /* Credit notes (Table 9B): registered -> CDNR; unregistered B2CL-type -> CDNUR; other unregistered -> netted in B2CS; 0% -> netted in Table 8; HSN netted */
+  const notes=(db.creditNotes||[]).filter(n=>n.date>=per.from&&n.date<=per.to).sort((a,b)=>String(a.date).localeCompare(String(b.date))||String(a.noteNo).localeCompare(String(b.noteNo),undefined,{numeric:true}));
+  const cdnrMap={},cdnur=[];
+  notes.forEach(n=>{
+    const ref=n.noteNo||'(no number)',num=String(n.noteNo||''),T=[{t:'creditnote',id:n.id,label:'Open note'}];
+    const orig=(db.sales||[]).find(x=>x.id===n.saleId),TO=orig?[...T,{t:'sale',id:orig.id,label:'Original invoice'}]:T;
+    if(!num||num.length>16||!/^[A-Za-z0-9\/-]+$/.test(num)||/^[0\/-]/.test(num))issue('error',ref,'Credit note number must be 1–16 characters, only letters, digits, "-" or "/", and must not start with 0, "-" or "/".',T);
+    const ctin=String(n.customerGstin||'').trim().toUpperCase();let registered=false;
+    if(ctin){if(!gstinValid(ctin))issue('error',ref,'Customer GSTIN "'+ctin+'" is not valid — treated as unregistered until corrected.',TO);else if(ctin===sellerGstin)issue('error',ref,'Customer GSTIN is the same as your own GSTIN.',TO);else registered=true;}
+    const inter=n.supplyType==='inter';
+    const pos=n.placeOfSupply||(registered?ctin.slice(0,2):'')||(!inter?sellerState:'');
+    if(!pos)issue('error',ref,'Place of Supply is missing on this credit note.',TO);
+    else if(!gstr1StateName(pos))issue('error',ref,'Place of Supply code "'+pos+'" is not a valid state code.',TO);
+    if(pos&&sellerState&&((pos!==sellerState)!==inter))issue('error',ref,'Supply type does not match Place of Supply — wrong tax heads would be filed.',TO);
+    if(!orig)issue('warn',ref,'Original invoice '+(n.invoiceNo||'')+' no longer exists in the sales list.',T);
+    const val=gstr1R2(n.grandTotal);if(!(val>0))issue('warn',ref,'Credit note value is zero.',T);
+    const itms=[];let k=0;
+    (n.breakup||[]).forEach(b=>{const rate=+b.rate||0;
+      if(!GSTR1_RATES.includes(rate))issue('error',ref,'GST rate '+rate+'% is not a valid GST slab.',T);
+      if(rate<=0){const key=(inter?'INTR':'INTRA')+(registered?'B2B':'B2C');nil[key]=gstr1R2(nil[key]-(+b.taxable||0));return;}
+      itms.push({num:++k,itm_det:taxRow(rate,b.taxable,b.gstAmt,inter)});});
+    const origVal=orig?(+orig.grandTotal||0):(+n.invoiceTotal||0);
+    if(itms.length){
+      if(registered){(cdnrMap[ctin]=cdnrMap[ctin]||[]).push({ntty:'C',nt_num:num,nt_dt:gstr1Dmy(n.date),val,pos,rchrg:'N',inv_typ:'R',itms,_name:n.customer||'',_id:n.id,_inv:n.invoiceNo||''});}
+      else if(inter&&origVal>GSTR1_B2CL_LIMIT){cdnur.push({typ:'B2CL',ntty:'C',nt_num:num,nt_dt:gstr1Dmy(n.date),val,pos,itms:itms.map(i=>({num:i.num,itm_det:{txval:i.itm_det.txval,rt:i.itm_det.rt,iamt:i.itm_det.iamt,csamt:0}})),_id:n.id,_inv:n.invoiceNo||''});}
+      else{itms.forEach(i=>{const d=i.itm_det,key=(inter?'INTER':'INTRA')+'|'+pos+'|'+d.rt;const r=b2cs[key]=b2cs[key]||{sply_ty:inter?'INTER':'INTRA',rt:d.rt,typ:'OE',pos,txval:0,iamt:0,camt:0,samt:0,csamt:0,_inv:[]};['txval','iamt','camt','samt'].forEach(f=>r[f]=gstr1R2(r[f]-d[f]));if(!r._inv.some(x=>x.id===n.id))r._inv.push({id:n.id,no:num,date:n.date,val:-val,cn:true});});}
+    }
+    const retQty=String(n.reason||'').startsWith('01');
+    (n.lines||[]).forEach(l=>{
+      const p=prod(l.productId)||{},hsn=String(l.hsn||p.hsn||'').trim(),g=+l.gstPercent||0,amt=(+l.qty||0)*(+l.price||0);
+      const taxable=(n.priceMode==='inclusive'?(g>0?amt/(1+g/100):amt):amt),tax=taxable*g/100;
+      const TH=[...(p.id?[{t:'product',id:p.id,label:'Item'}]:[]),...T];
+      if(!hsn){const kk='n|'+(l.name||l.productId);if(!seenHsnIssue[kk]){seenHsnIssue[kk]=1;issue('error',l.name||'Product','No HSN code on this product — HSN is mandatory in Table 12.',TH);}}
+      else if(!/^\d+$/.test(hsn)||hsn.length<minDig||hsn.length>8){const kk='h|'+hsn;if(!seenHsnIssue[kk]){seenHsnIssue[kk]=1;issue('error',(l.name||'Product')+' / HSN '+hsn,'HSN must be numeric with at least '+minDig+' digits (turnover '+(o.aato5cr?'above':'up to')+' ₹5 Cr).',TH);}}
+      const uqc=p.uqc||'NOS',tgt=registered?hsnB2B:hsnB2C,key=hsn+'|'+uqc+'|'+g;
+      const r=tgt[key]=tgt[key]||{hsn_sc:hsn,desc:String(l.name||p.name||'').slice(0,30),uqc,qty:0,val:0,rt:g,txval:0,iamt:0,camt:0,samt:0,csamt:0};
+      if(retQty)r.qty-=(+l.qty||0);r.txval-=taxable;r.val-=(taxable+tax);
+      if(inter)r.iamt-=tax;else{r.camt-=tax/2;r.samt-=tax/2;}
+    });
+  });
   /* documents issued (Table 13) – gaps in a series are reported as cancelled/unused */
-  const series={};
-  sales.forEach(s=>{const inum=String(s.invoiceNo||''),m=inum.match(/^(.*?)(\d+)$/),key=m?m[1]:inum;(series[key]=series[key]||[]).push({inum,n:m?parseInt(m[2],10):0});});
-  const docs=Object.entries(series).map(([k,arr])=>{arr.sort((a,b)=>a.n-b.n);const first=arr[0],last=arr[arr.length-1],span=last.n-first.n+1,tot=Math.max(span,arr.length),canc=tot-arr.length;
-    if(canc>0)issue('info',k||'Invoice series','Series "'+(k||'(none)')+'": '+canc+' number(s) missing between '+first.inum+' and '+last.inum+' — reported as cancelled/unused in Table 13. Check that this is correct.');
-    return{from:first.inum,to:last.inum,totnum:tot,cancel:canc,net_issue:arr.length};});
+  const mkDocs=(list,field,label)=>{const series={};list.forEach(s=>{const inum=String(s[field]||''),m=inum.match(/^(.*?)(\d+)$/),key=m?m[1]:inum;(series[key]=series[key]||[]).push({inum,n:m?parseInt(m[2],10):0});});
+    return Object.entries(series).map(([k,arr])=>{arr.sort((a,b)=>a.n-b.n);const first=arr[0],last=arr[arr.length-1],span=last.n-first.n+1,tot=Math.max(span,arr.length),canc=tot-arr.length;
+      if(canc>0)issue('info',k||label,label+' series "'+(k||'(none)')+'": '+canc+' number(s) missing between '+first.inum+' and '+last.inum+' — reported as cancelled/unused in Table 13. Check that this is correct.');
+      return{from:first.inum,to:last.inum,totnum:tot,cancel:canc,net_issue:arr.length};});};
+  const docs=mkDocs(sales,'invoiceNo','Invoice'),ndocs=mkDocs(notes,'noteNo','Credit note');
+  const cdnr=Object.entries(cdnrMap).map(([ctin,nt])=>({ctin,nt}));
   const b2b=Object.entries(b2bMap).map(([ctin,inv])=>({ctin,inv}));
   const b2clL=Object.entries(b2cl).map(([pos,inv])=>({pos,inv}));
-  const b2csL=Object.values(b2cs).sort((a,b)=>a.pos.localeCompare(b.pos)||a.rt-b.rt);
+  const b2csL=Object.values(b2cs).filter(r=>r.txval!==0||r.iamt!==0||r.camt!==0||r.samt!==0).sort((a,b)=>a.pos.localeCompare(b.pos)||a.rt-b.rt);
   const sum=(arr,f)=>gstr1R2(arr.reduce((t,x)=>t+(x[f]||0),0));
   const itmSum=(invs,f)=>gstr1R2(invs.reduce((t,v)=>t+v.itms.reduce((u,i)=>u+(i.itm_det[f]||0),0),0));
   const allB2b=b2b.flatMap(x=>x.inv),allB2cl=b2clL.flatMap(x=>x.inv);
@@ -5988,19 +6157,26 @@ function gstr1Build(db,opts){
     b2b:{count:allB2b.length,txval:itmSum(allB2b,'txval'),iamt:itmSum(allB2b,'iamt'),camt:itmSum(allB2b,'camt'),samt:itmSum(allB2b,'samt')},
     b2cl:{count:allB2cl.length,txval:itmSum(allB2cl,'txval'),iamt:itmSum(allB2cl,'iamt'),camt:0,samt:0},
     b2cs:{count:b2csL.length,txval:sum(b2csL,'txval'),iamt:sum(b2csL,'iamt'),camt:sum(b2csL,'camt'),samt:sum(b2csL,'samt')},
+    cdnr:{count:cdnr.flatMap(x=>x.nt).length,txval:itmSum(cdnr.flatMap(x=>x.nt),'txval'),iamt:itmSum(cdnr.flatMap(x=>x.nt),'iamt'),camt:itmSum(cdnr.flatMap(x=>x.nt),'camt'),samt:itmSum(cdnr.flatMap(x=>x.nt),'samt')},
+    cdnur:{count:cdnur.length,txval:itmSum(cdnur,'txval'),iamt:itmSum(cdnur,'iamt'),camt:0,samt:0},notes:notes.length,
     nil:gstr1R2(Object.values(nil).reduce((a,b)=>a+b,0))};
   const rank={error:0,warn:1,info:2};issues.sort((a,b)=>rank[a.level]-rank[b.level]);
-  return{period:per,gstin:sellerGstin,sellerState,minDig,b2b,b2cl:b2clL,b2cs:b2csL,nil,hsn_b2b:hsnList(hsnB2B),hsn_b2c:hsnList(hsnB2C),docs,totals,issues,errors:issues.filter(i=>i.level==='error').length};
+  return{period:per,gstin:sellerGstin,sellerState,minDig,b2b,b2cl:b2clL,b2cs:b2csL,cdnr,cdnur,nil,hsn_b2b:hsnList(hsnB2B),hsn_b2c:hsnList(hsnB2C),docs,ndocs,totals,issues,errors:issues.filter(i=>i.level==='error').length};
 }
 function gstr1Json(d,opts){
   const o=opts||{},out={gstin:d.gstin,fp:d.period.fp,version:'GST2.2',hash:'hash',gt:+o.gt||0,cur_gt:+o.cgt||0};
   if(d.b2b.length)out.b2b=d.b2b.map(c=>({ctin:c.ctin,inv:c.inv.map(i=>({inum:i.inum,idt:i.idt,val:i.val,pos:i.pos,rchrg:i.rchrg,inv_typ:i.inv_typ,itms:i.itms}))}));
   if(d.b2cl.length)out.b2cl=d.b2cl.map(c=>({pos:c.pos,inv:c.inv.map(i=>({inum:i.inum,idt:i.idt,val:i.val,itms:i.itms}))}));
   if(d.b2cs.length)out.b2cs=d.b2cs.map(r=>({sply_ty:r.sply_ty,rt:r.rt,typ:r.typ,pos:r.pos,txval:r.txval,iamt:r.iamt,camt:r.camt,samt:r.samt,csamt:r.csamt}));
-  const nilTotal=Object.values(d.nil).reduce((a,b)=>a+b,0);
-  if(nilTotal>0)out.nil={inv:Object.entries(d.nil).filter(e=>e[1]>0).map(([k,v])=>({sply_ty:k,expt_amt:0,nil_amt:gstr1R2(v),ngsup_amt:0}))};
+  if(d.cdnr.length)out.cdnr=d.cdnr.map(c=>({ctin:c.ctin,nt:c.nt.map(n=>({ntty:n.ntty,nt_num:n.nt_num,nt_dt:n.nt_dt,val:n.val,pos:n.pos,rchrg:n.rchrg,inv_typ:n.inv_typ,itms:n.itms}))}));
+  if(d.cdnur.length)out.cdnur=d.cdnur.map(n=>({typ:n.typ,ntty:n.ntty,nt_num:n.nt_num,nt_dt:n.nt_dt,val:n.val,pos:n.pos,itms:n.itms}));
+  const nilTotal=Object.values(d.nil).reduce((a,b)=>a+Math.abs(b),0);
+  if(nilTotal>0)out.nil={inv:Object.entries(d.nil).filter(e=>e[1]!==0).map(([k,v])=>({sply_ty:k,expt_amt:0,nil_amt:gstr1R2(v),ngsup_amt:0}))};
   const hs={};if(d.hsn_b2b.length)hs.hsn_b2b=d.hsn_b2b;if(d.hsn_b2c.length)hs.hsn_b2c=d.hsn_b2c;if(Object.keys(hs).length)out.hsn=hs;
-  if(d.docs.length)out.doc_issue={doc_det:[{doc_num:1,doc_typ:'Invoices for outward supply',docs:d.docs.map((x,i)=>({num:i+1,from:x.from,to:x.to,totnum:x.totnum,cancel:x.cancel,net_issue:x.net_issue}))}]};
+  const dd=[];const dmap=(a)=>a.map((x,i)=>({num:i+1,from:x.from,to:x.to,totnum:x.totnum,cancel:x.cancel,net_issue:x.net_issue}));
+  if(d.docs.length)dd.push({doc_num:1,doc_typ:'Invoices for outward supply',docs:dmap(d.docs)});
+  if(d.ndocs.length)dd.push({doc_num:5,doc_typ:'Credit Note',docs:dmap(d.ndocs)});
+  if(dd.length)out.doc_issue={doc_det:dd};
   return out;
 }
 function gstr1PosLabel(c){return c?(c+'-'+gstr1StateName(c)):'';}
@@ -6014,12 +6190,16 @@ function gstr1Xlsx(d){
   add('b2cl',b2cl);
   const b2cs=[['Type','Place Of Supply','Applicable % of Tax Rate','Rate','Taxable Value','Cess Amount','E-Commerce GSTIN']];
   d.b2cs.forEach(r=>b2cs.push(['OE',gstr1PosLabel(r.pos),'',r.rt,r.txval,0,'']));add('b2cs',b2cs);
+  const cr=[['GSTIN/UIN of Recipient','Receiver Name','Note/Refund Voucher Number','Note/Refund Voucher date','Document Type','Place Of Supply','Reverse Charge','Note Supply Type','Note/Refund Voucher Value','Applicable % of Tax Rate','Rate','Taxable Value','Cess Amount']];
+  d.cdnr.forEach(c=>c.nt.forEach(n=>n.itms.forEach(t=>cr.push([c.ctin,n._name,n.nt_num,gstr1DmyMon(n.nt_dt.split('-').reverse().join('-')),'Credit Note',gstr1PosLabel(n.pos),'N','Regular',n.val,'',t.itm_det.rt,t.itm_det.txval,0]))));add('cdnr',cr);
+  const cu=[['UR Type','Note/Refund Voucher Number','Note/Refund Voucher date','Document Type','Place Of Supply','Note/Refund Voucher Value','Applicable % of Tax Rate','Rate','Taxable Value','Cess Amount']];
+  d.cdnur.forEach(n=>n.itms.forEach(t=>cu.push([n.typ,n.nt_num,gstr1DmyMon(n.nt_dt.split('-').reverse().join('-')),'Credit Note',gstr1PosLabel(n.pos),n.val,'',t.itm_det.rt,t.itm_det.txval,0])));add('cdnur',cu);
   const nl=d.nil,ex=[['Description','Nil Rated Supplies','Exempted(other than nil rated/non GST supply)','Non-GST supplies'],
     ['Inter-State supplies to registered persons',nl.INTRB2B,0,0],['Intra-State supplies to registered persons',nl.INTRAB2B,0,0],['Inter-State supplies to unregistered persons',nl.INTRB2C,0,0],['Intra-State supplies to unregistered persons',nl.INTRAB2C,0,0]];add('exemp',ex);
   const hh=['HSN','Description','UQC','Total Quantity','Total Value','Rate','Taxable Value','Integrated Tax Amount','Central Tax Amount','State/UT Tax Amount','Cess Amount'];
   const hr=a=>[hh,...a.map(r=>[r.hsn_sc,r.desc,r.uqc+'-'+(((GSTR1_UQC.find(u=>u[0]===r.uqc)||[])[1]||(' - '+r.uqc)).split(' - ')[1]).toUpperCase(),r.qty,r.val,r.rt,r.txval,r.iamt,r.camt,r.samt,0])];
   add('hsn(b2b)',hr(d.hsn_b2b));add('hsn(b2c)',hr(d.hsn_b2c));
-  add('docs',[['Nature of Document','Sr. No. From','Sr. No. To','Total Number','Cancelled'],...d.docs.map(x=>['Invoices for outward supply',x.from,x.to,x.totnum,x.cancel])]);
+  add('docs',[['Nature of Document','Sr. No. From','Sr. No. To','Total Number','Cancelled'],...d.docs.map(x=>['Invoices for outward supply',x.from,x.to,x.totnum,x.cancel]),...d.ndocs.map(x=>['Credit Note',x.from,x.to,x.totnum,x.cancel])]);
   add('Issues (not for upload)',[['Level','Reference','Message'],...d.issues.map(i=>[i.level,i.ref,i.msg])]);
   return wb;
 }
@@ -6051,22 +6231,26 @@ function runGstr1(){
   const lvl={error:'<span class="badge bad">Error</span>',warn:'<span class="badge partial">Warning</span>',info:'<span class="badge ok">Info</span>'};
   const trow=(n,x)=>`<tr><td>${n}</td><td class="num mono">${x.count}</td><td class="num mono">${m(x.txval)}</td><td class="num mono">${m(x.iamt)}</td><td class="num mono">${m(x.camt)}</td><td class="num mono">${m(x.samt)}</td></tr>`;
   const invRows=(a,reg)=>a.map(c=>c.inv.map(i=>`<tr style="cursor:pointer" title="Click to open invoice" onclick="gstr1Go('invoice','${i._id}')"><td class="mono">${reg?safeText(c.ctin):safeText(gstr1PosLabel(c.pos))}</td><td class="mono">${safeText(i.inum)}</td><td>${safeText(i.idt)}</td><td class="num mono">${m(i.val)}</td><td>${safeText(gstr1PosLabel(i.pos||c.pos))}</td><td class="num mono">${m(i.itms.reduce((s,x)=>s+x.itm_det.txval,0))}</td><td class="num mono">${m(i.itms.reduce((s,x)=>s+(x.itm_det.iamt||0)+(x.itm_det.camt||0)+(x.itm_det.samt||0),0))}</td></tr>`).join('')).join('');
+  const ntRows=(a,reg)=>a.map(c=>c.nt.map(n=>`<tr style="cursor:pointer" title="Click to open credit note" onclick="gstr1Go('creditnote','${n._id}')"><td class="mono">${reg?safeText(c.ctin):safeText(gstr1PosLabel(n.pos))}</td><td class="mono">${safeText(n.nt_num)}</td><td>${safeText(n.nt_dt)}</td><td class="num mono">${m(n.val)}</td><td>${reg?safeText(gstr1PosLabel(n.pos)):safeText(n._inv)}</td><td class="num mono">${m(n.itms.reduce((s,x)=>s+x.itm_det.txval,0))}</td><td class="num mono">${m(n.itms.reduce((s,x)=>s+(x.itm_det.iamt||0)+(x.itm_det.camt||0)+(x.itm_det.samt||0),0))}</td></tr>`).join('')).join('');
   const hsnRows=a=>a.map(r=>`<tr><td class="mono">${safeText(r.hsn_sc)}</td><td>${safeText(r.desc)}</td><td>${r.uqc}</td><td class="num mono">${r.qty}</td><td class="num mono">${r.rt}%</td><td class="num mono">${m(r.txval)}</td><td class="num mono">${m(r.iamt+r.camt+r.samt)}</td></tr>`).join('');
   const tbl=(title,head,body,cols)=>`<div class="panel" style="margin-bottom:14px"><div class="panel-head"><h3>${title}</h3></div><div class="panel-body table-scroll" style="padding:0"><table><thead><tr>${head}</tr></thead><tbody>${body||`<tr><td colspan="${cols}" class="empty">Nothing in this period.</td></tr>`}</tbody></table></div></div>`;
   document.getElementById('gstr1Out').innerHTML=`
-    <div class="panel" style="margin-bottom:14px"><div class="panel-head" style="align-items:center;flex-wrap:wrap;gap:8px"><div><h3>GSTR-1 · ${safeText(d.period.label)} · return period ${d.period.fp}</h3><span style="font-size:12px;color:var(--text-soft)">${t.invoices} sale invoice(s) · Sale Invoices only (Non-GST vouchers, services and purchases are excluded) · GSTIN ${safeText(d.gstin||'—')}</span></div>
+    <div class="panel" style="margin-bottom:14px"><div class="panel-head" style="align-items:center;flex-wrap:wrap;gap:8px"><div><h3>GSTR-1 · ${safeText(d.period.label)} · return period ${d.period.fp}</h3><span style="font-size:12px;color:var(--text-soft)">${t.invoices} sale invoice(s) · ${t.notes} credit note(s) · Sale Invoices and Credit Notes only (Non-GST vouchers, services and purchases are excluded) · GSTIN ${safeText(d.gstin||'—')}</span></div>
       <div class="row" style="gap:8px;margin:0"><button class="btn amber sm" onclick="gstr1Download('json')">⬇ JSON (for portal upload)</button><button class="btn ghost sm" onclick="gstr1Download('xlsx')">⬇ Excel</button></div></div></div>
     <div class="panel" style="margin-bottom:14px"><div class="panel-head"><h3>Check before filing</h3><span class="badge ${d.errors?'bad':'ok'}">${d.errors?d.errors+' error(s)':'No errors'}</span></div>
       <div class="panel-body table-scroll" style="padding:0"><table><thead><tr><th>Level</th><th>Reference</th><th>Issue</th><th>Open</th></tr></thead><tbody>${d.issues.length?d.issues.map(i=>`<tr><td>${lvl[i.level]}</td><td>${safeText(i.ref)}</td><td>${safeText(i.msg)}</td><td style="white-space:nowrap">${(i.targets||[]).map(x=>`<button class="btn ghost sm" onclick="gstr1Go('${x.t}','${x.id||''}')">${x.label}</button>`).join(' ')}</td></tr>`).join(''):'<tr><td colspan="4" class="empty">All invoices passed the checks.</td></tr>'}</tbody></table></div></div>
     <div class="panel" style="margin-bottom:14px"><div class="panel-head"><h3>Summary</h3></div><div class="panel-body table-scroll" style="padding:0"><table><thead><tr><th>Table</th><th class="num">Invoices / rows</th><th class="num">Taxable</th><th class="num">IGST</th><th class="num">CGST</th><th class="num">SGST</th></tr></thead><tbody>
       ${trow('4 – B2B (registered)',t.b2b)}${trow('5 – B2C Large (inter-state, above ₹1 lakh)',t.b2cl)}${trow('7 – B2C Others (state/rate wise)',t.b2cs)}
-      <tr><td>8 – Nil rated (0% items)</td><td class="num mono">—</td><td class="num mono">${m(t.nil)}</td><td></td><td></td><td></td></tr></tbody></table></div></div>
+      ${trow('9B – Credit notes, registered (CDNR)',t.cdnr)}${trow('9B – Credit notes, unregistered (CDNUR)',t.cdnur)}
+      <tr><td>8 – Nil rated (0% items, net of credit notes)</td><td class="num mono">—</td><td class="num mono">${m(t.nil)}</td><td></td><td></td><td></td></tr></tbody></table></div></div>
     ${tbl('Table 4 – B2B invoices','<th>GSTIN</th><th>Invoice</th><th>Date</th><th class="num">Value</th><th>Place of supply</th><th class="num">Taxable</th><th class="num">Tax</th>',invRows(d.b2b,true),7)}
     ${tbl('Table 5 – B2C Large invoices','<th>Place of supply</th><th>Invoice</th><th>Date</th><th class="num">Value</th><th>Place of supply</th><th class="num">Taxable</th><th class="num">Tax</th>',invRows(d.b2cl,false),7)}
-    ${tbl('Table 7 – B2C Others','<th>Type</th><th>Place of supply</th><th class="num">Rate</th><th class="num">Taxable</th><th class="num">IGST</th><th class="num">CGST</th><th class="num">SGST</th>',d.b2cs.map((r,ix)=>`<tr style="cursor:pointer" title="Click to see the invoices in this row" onclick="gstr1B2csOpen(${ix})"><td>${r.sply_ty}</td><td>${safeText(gstr1PosLabel(r.pos))}</td><td class="num mono">${r.rt}%</td><td class="num mono">${m(r.txval)}</td><td class="num mono">${m(r.iamt)}</td><td class="num mono">${m(r.camt)}</td><td class="num mono">${m(r.samt)}</td></tr>`).join(''),7)}
+    ${tbl('Table 9B – Credit notes (registered)','<th>GSTIN</th><th>Credit note</th><th>Date</th><th class="num">Value</th><th>Place of supply</th><th class="num">Taxable</th><th class="num">Tax</th>',ntRows(d.cdnr,true),7)}
+    ${tbl('Table 9B – Credit notes (unregistered, B2CL type)','<th>Place of supply</th><th>Credit note</th><th>Date</th><th class="num">Value</th><th>Against invoice</th><th class="num">Taxable</th><th class="num">Tax</th>',ntRows([{nt:d.cdnur}],false),7)}
+    ${tbl('Table 7 – B2C Others (net of credit notes to unregistered customers)','<th>Type</th><th>Place of supply</th><th class="num">Rate</th><th class="num">Taxable</th><th class="num">IGST</th><th class="num">CGST</th><th class="num">SGST</th>',d.b2cs.map((r,ix)=>`<tr style="cursor:pointer" title="Click to see the invoices in this row" onclick="gstr1B2csOpen(${ix})"><td>${r.sply_ty}</td><td>${safeText(gstr1PosLabel(r.pos))}</td><td class="num mono">${r.rt}%</td><td class="num mono">${m(r.txval)}</td><td class="num mono">${m(r.iamt)}</td><td class="num mono">${m(r.camt)}</td><td class="num mono">${m(r.samt)}</td></tr>`).join(''),7)}
     ${tbl('Table 12 – HSN summary · B2B','<th>HSN</th><th>Description</th><th>UQC</th><th class="num">Qty</th><th class="num">Rate</th><th class="num">Taxable</th><th class="num">Tax</th>',hsnRows(d.hsn_b2b),7)}
     ${tbl('Table 12 – HSN summary · B2C','<th>HSN</th><th>Description</th><th>UQC</th><th class="num">Qty</th><th class="num">Rate</th><th class="num">Taxable</th><th class="num">Tax</th>',hsnRows(d.hsn_b2c),7)}
-    ${tbl('Table 13 – Documents issued (Invoices)','<th>From</th><th>To</th><th class="num">Total</th><th class="num">Cancelled</th><th class="num">Net issued</th>',d.docs.map(x=>`<tr><td class="mono">${safeText(x.from)}</td><td class="mono">${safeText(x.to)}</td><td class="num mono">${x.totnum}</td><td class="num mono">${x.cancel}</td><td class="num mono">${x.net_issue}</td></tr>`).join(''),5)}`;
+    ${tbl('Table 13 – Documents issued (Invoices and Credit Notes)','<th>From</th><th>To</th><th class="num">Total</th><th class="num">Cancelled</th><th class="num">Net issued</th>',[...d.docs.map(x=>({...x,k:'Invoice'})),...d.ndocs.map(x=>({...x,k:'Credit note'}))].map(x=>`<tr><td class="mono">${safeText(x.k)}: ${safeText(x.from)}</td><td class="mono">${safeText(x.to)}</td><td class="num mono">${x.totnum}</td><td class="num mono">${x.cancel}</td><td class="num mono">${x.net_issue}</td></tr>`).join(''),5)}`;
 }
 function gstr1Download(kind){
   const o=gstr1Opts(),d=gstr1Build(DB,o);
@@ -6076,13 +6260,14 @@ function gstr1Download(kind){
     else{XLSX.writeFile(gstr1Xlsx(d),base+'.xlsx');}
     showToast('GSTR-1 '+(kind==='json'?'JSON':'Excel')+' downloaded');
   };
-  if(!d.totals.invoices){showToast('No sale invoices in this period');return;}
+  if(!d.totals.invoices&&!d.totals.notes){showToast('No sale invoices or credit notes in this period');return;}
   if(d.errors)askConfirm(d.errors+' error(s) found in this return. The file will not be accepted by the GST portal until they are fixed. Download anyway?',go);else go();
 }
 function gstr1Go(t,id){
   try{
     if(t==='sale'){route('sale');renderSale(id);}
     else if(t==='invoice'){printSaleInvoice(id);}
+    else if(t==='creditnote'){printCreditNote(id);}
     else if(t==='product'){route('inventory');openProductModal(id);}
     else if(t==='customer'){route('customers');openCustomerModal(id);}
     else if(t==='settings'){route('settings');}
@@ -6091,7 +6276,7 @@ function gstr1Go(t,id){
 function gstr1B2csOpen(i){
   const r=gstr1Data&&gstr1Data.b2cs[i];if(!r)return;
   openModal('B2C Others — '+gstr1PosLabel(r.pos)+' @ '+r.rt+'% ('+r.sply_ty+')',
-    '<table><thead><tr><th>Invoice</th><th>Date</th><th class="num">Value</th></tr></thead><tbody>'+r._inv.map(x=>`<tr style="cursor:pointer" onclick="closeModal();gstr1Go('invoice','${x.id}')"><td class="mono">${safeText(x.no)}</td><td>${safeText(x.date)}</td><td class="num mono">₹${fmt(x.val)}</td></tr>`).join('')+'</tbody></table><p style="font-size:11.5px;color:var(--text-soft)">Click an invoice to open it.</p>',
+    '<table><thead><tr><th>Invoice</th><th>Date</th><th class="num">Value</th></tr></thead><tbody>'+r._inv.map(x=>`<tr style="cursor:pointer" onclick="closeModal();gstr1Go('${x.cn?'creditnote':'invoice'}','${x.id}')"><td class="mono">${safeText(x.no)}${x.cn?' (credit note)':''}</td><td>${safeText(x.date)}</td><td class="num mono">₹${fmt(x.val)}</td></tr>`).join('')+'</tbody></table><p style="font-size:11.5px;color:var(--text-soft)">Click an invoice to open it.</p>',
     '<button class="btn ghost" onclick="closeModal()">Close</button>');
 }
 function gstr1SaveFile(name,blob){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},800);}

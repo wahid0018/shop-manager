@@ -1432,7 +1432,7 @@ window.APP_ENV = Object.freeze({
 </script>
 <script>
 /* App version. Bumped by tools/release.py (also updates version.json and the ?v= cache stamps in index.html). */
-const APP_VERSION='1.0.74';
+const APP_VERSION='1.0.75';
 document.title='Shop Manager — v'+APP_VERSION;
 
 </script>
@@ -5922,8 +5922,8 @@ function gstr1StateName(code){const x=(typeof GST_STATES!=='undefined'?GST_STATE
 function gstr1Build(db,opts){
   const o=opts||{},per=gstr1Period(o.ym,o.freq),minDig=o.aato5cr?6:4;
   const st=db.settings||{},sellerGstin=String(st.gstin||'').trim().toUpperCase(),sellerOk=gstinValid(sellerGstin),sellerState=sellerOk?sellerGstin.slice(0,2):'';
-  const issues=[],issue=(level,ref,msg)=>issues.push({level,ref:ref||'',msg});
-  if(!sellerOk)issue('error','Shop Settings','Your own GSTIN ("'+(sellerGstin||'blank')+'") is missing or not a valid GSTIN — set it in Shop Settings.');
+  const issues=[],issue=(level,ref,msg,targets)=>issues.push({level,ref:ref||'',msg,targets:targets||[]});
+  if(!sellerOk)issue('error','Shop Settings','Your own GSTIN ("'+(sellerGstin||'blank')+'") is missing or not a valid GSTIN — set it in Shop Settings.',[{t:'settings',label:'Shop Settings'}]);
   const sales=(db.sales||[]).filter(s=>s.date>=per.from&&s.date<=per.to).sort((a,b)=>String(a.date).localeCompare(String(b.date))||String(a.invoiceNo).localeCompare(String(b.invoiceNo),undefined,{numeric:true}));
   const prod=id=>(db.products||[]).find(p=>p.id===id);
   const b2bMap={},b2cl={},b2cs={},nil={INTRB2B:0,INTRB2C:0,INTRAB2B:0,INTRAB2C:0},hsnB2B={},hsnB2C={},seenHsnIssue={};
@@ -5931,38 +5931,39 @@ function gstr1Build(db,opts){
   let invCount=0;
   sales.forEach(s=>{
     const ref=s.invoiceNo||'(no number)';invCount++;
+    const T=[{t:'sale',id:s.id,label:'Edit invoice'}],cuM=(db.customers||[]).find(c=>(s.customer&&c.name===s.customer)||(s.customerGstin&&c.gstin===s.customerGstin)),TP=cuM?[...T,{t:'customer',id:cuM.id,label:'Party'}]:T;
     const inum=String(s.invoiceNo||'');
-    if(!inum||inum.length>16||!/^[A-Za-z0-9\/-]+$/.test(inum)||/^[0\/-]/.test(inum))issue('error',ref,'Invoice number must be 1–16 characters, only letters, digits, "-" or "/", and must not start with 0, "-" or "/".');
+    if(!inum||inum.length>16||!/^[A-Za-z0-9\/-]+$/.test(inum)||/^[0\/-]/.test(inum))issue('error',ref,'Invoice number must be 1–16 characters, only letters, digits, "-" or "/", and must not start with 0, "-" or "/".',T);
     const ctin=String(s.customerGstin||'').trim().toUpperCase();let registered=false;
-    if(ctin){if(!gstinValid(ctin))issue('error',ref,'Customer GSTIN "'+ctin+'" is not valid — treated as unregistered (B2C) until corrected.');else if(ctin===sellerGstin)issue('error',ref,'Customer GSTIN is the same as your own GSTIN.');else registered=true;}
+    if(ctin){if(!gstinValid(ctin))issue('error',ref,'Customer GSTIN "'+ctin+'" is not valid — treated as unregistered (B2C) until corrected.',TP);else if(ctin===sellerGstin)issue('error',ref,'Customer GSTIN is the same as your own GSTIN.',TP);else registered=true;}
     const inter=s.supplyType==='inter';
     const pos=s.placeOfSupply||(registered?ctin.slice(0,2):'')||(!inter?sellerState:'');
-    if(!pos)issue('error',ref,'Place of Supply is missing (required for inter-state sales to unregistered customers) — edit the sale and select it.');
-    else if(!gstr1StateName(pos))issue('error',ref,'Place of Supply code "'+pos+'" is not a valid state code.');
-    if(pos&&sellerState&&((pos!==sellerState)!==inter))issue('error',ref,'Supply type ('+(inter?'Inter-state/IGST':'Intra-state/CGST+SGST')+') does not match Place of Supply '+pos+' vs your state '+sellerState+' — wrong tax heads would be filed.');
+    if(!pos)issue('error',ref,'Place of Supply is missing (required for inter-state sales to unregistered customers) — edit the sale and select it.',TP);
+    else if(!gstr1StateName(pos))issue('error',ref,'Place of Supply code "'+pos+'" is not a valid state code.',T);
+    if(pos&&sellerState&&((pos!==sellerState)!==inter))issue('error',ref,'Supply type ('+(inter?'Inter-state/IGST':'Intra-state/CGST+SGST')+') does not match Place of Supply '+pos+' vs your state '+sellerState+' — wrong tax heads would be filed.',T);
     const val=gstr1R2(s.grandTotal);
-    if(!(val>0))issue('warn',ref,'Invoice value is zero.');
+    if(!(val>0))issue('warn',ref,'Invoice value is zero.',T);
     const brk=Array.isArray(s.breakup)?s.breakup:[];
-    if(!brk.length)issue('error',ref,'Invoice has no tax breakup.');
+    if(!brk.length)issue('error',ref,'Invoice has no tax breakup.',T);
     const itms=[];let n=0;
     brk.forEach(b=>{
       const rate=+b.rate||0;
-      if(!GSTR1_RATES.includes(rate)){issue('error',ref,'GST rate '+rate+'% is not a valid GST slab.');}
+      if(!GSTR1_RATES.includes(rate)){issue('error',ref,'GST rate '+rate+'% is not a valid GST slab.',T);}
       if(rate<=0){const k=(inter?'INTR':'INTRA')+(registered?'B2B':'B2C');nil[k]=gstr1R2(nil[k]+(+b.taxable||0));return;}
       itms.push({num:++n,itm_det:taxRow(rate,b.taxable,b.gstAmt,inter)});
     });
     if(itms.length){
-      if(registered){(b2bMap[ctin]=b2bMap[ctin]||[]).push({inum,idt:gstr1Dmy(s.date),val,pos,rchrg:'N',inv_typ:'R',itms,_name:s.customer||''});}
-      else if(inter&&val>GSTR1_B2CL_LIMIT){(b2cl[pos]=b2cl[pos]||[]).push({inum,idt:gstr1Dmy(s.date),val,itms:itms.map(i=>({num:i.num,itm_det:{txval:i.itm_det.txval,rt:i.itm_det.rt,iamt:i.itm_det.iamt,csamt:0}}))});}
-      else{itms.forEach(i=>{const d=i.itm_det,k=(inter?'INTER':'INTRA')+'|'+pos+'|'+d.rt;const r=b2cs[k]=b2cs[k]||{sply_ty:inter?'INTER':'INTRA',rt:d.rt,typ:'OE',pos,txval:0,iamt:0,camt:0,samt:0,csamt:0};['txval','iamt','camt','samt'].forEach(f=>r[f]=gstr1R2(r[f]+d[f]));});}
+      if(registered){(b2bMap[ctin]=b2bMap[ctin]||[]).push({inum,idt:gstr1Dmy(s.date),val,pos,rchrg:'N',inv_typ:'R',itms,_name:s.customer||'',_id:s.id});}
+      else if(inter&&val>GSTR1_B2CL_LIMIT){(b2cl[pos]=b2cl[pos]||[]).push({_id:s.id,inum,idt:gstr1Dmy(s.date),val,itms:itms.map(i=>({num:i.num,itm_det:{txval:i.itm_det.txval,rt:i.itm_det.rt,iamt:i.itm_det.iamt,csamt:0}}))});}
+      else{itms.forEach(i=>{const d=i.itm_det,k=(inter?'INTER':'INTRA')+'|'+pos+'|'+d.rt;const r=b2cs[k]=b2cs[k]||{sply_ty:inter?'INTER':'INTRA',rt:d.rt,typ:'OE',pos,txval:0,iamt:0,camt:0,samt:0,csamt:0,_inv:[]};if(!r._inv.some(x=>x.id===s.id))r._inv.push({id:s.id,no:inum,date:s.date,val});['txval','iamt','camt','samt'].forEach(f=>r[f]=gstr1R2(r[f]+d[f]));});}
     }
     /* HSN summary (Table 12) from invoice lines, scaled for invoice-level discount */
     const scale=(+s.subtotalBeforeDiscount>0)?1-((+s.discountAmount||0)/(+s.subtotalBeforeDiscount)):1;
     (s.lines||[]).forEach(l=>{
       const p=prod(l.productId)||{},hsn=String(l.hsn||p.hsn||'').trim(),g=+l.gstPercent||0,amt=(+l.qty||0)*(+l.price||0);
       const taxable=(s.priceMode==='inclusive'?(g>0?amt/(1+g/100):amt):amt)*scale,tax=taxable*g/100;
-      if(!hsn){const k='n|'+(l.name||l.productId);if(!seenHsnIssue[k]){seenHsnIssue[k]=1;issue('error',l.name||'Product','No HSN code on this product — HSN is mandatory in Table 12.');}}
-      else if(!/^\d+$/.test(hsn)||hsn.length<minDig||hsn.length>8){const k='h|'+hsn;if(!seenHsnIssue[k]){seenHsnIssue[k]=1;issue('error',(l.name||'Product')+' / HSN '+hsn,'HSN must be numeric with at least '+minDig+' digits (turnover '+(o.aato5cr?'above':'up to')+' ₹5 Cr).');}}
+      if(!hsn){const k='n|'+(l.name||l.productId);if(!seenHsnIssue[k]){seenHsnIssue[k]=1;issue('error',l.name||'Product','No HSN code on this product — HSN is mandatory in Table 12.',[...(p.id?[{t:'product',id:p.id,label:'Item'}]:[]),...T]);}}
+      else if(!/^\d+$/.test(hsn)||hsn.length<minDig||hsn.length>8){const k='h|'+hsn;if(!seenHsnIssue[k]){seenHsnIssue[k]=1;issue('error',(l.name||'Product')+' / HSN '+hsn,'HSN must be numeric with at least '+minDig+' digits (turnover '+(o.aato5cr?'above':'up to')+' ₹5 Cr).',[...(p.id?[{t:'product',id:p.id,label:'Item'}]:[]),...T]);}}
       const uqc=p.uqc||'NOS',tgt=registered?hsnB2B:hsnB2C,key=hsn+'|'+uqc+'|'+g;
       const r=tgt[key]=tgt[key]||{hsn_sc:hsn,desc:String(l.name||p.name||'').slice(0,30),uqc,qty:0,val:0,rt:g,txval:0,iamt:0,camt:0,samt:0,csamt:0};
       r.qty+=(+l.qty||0);r.txval+=taxable;r.val+=taxable+tax;
@@ -5994,8 +5995,8 @@ function gstr1Build(db,opts){
 function gstr1Json(d,opts){
   const o=opts||{},out={gstin:d.gstin,fp:d.period.fp,version:'GST2.2',hash:'hash',gt:+o.gt||0,cur_gt:+o.cgt||0};
   if(d.b2b.length)out.b2b=d.b2b.map(c=>({ctin:c.ctin,inv:c.inv.map(i=>({inum:i.inum,idt:i.idt,val:i.val,pos:i.pos,rchrg:i.rchrg,inv_typ:i.inv_typ,itms:i.itms}))}));
-  if(d.b2cl.length)out.b2cl=d.b2cl.map(c=>({pos:c.pos,inv:c.inv}));
-  if(d.b2cs.length)out.b2cs=d.b2cs;
+  if(d.b2cl.length)out.b2cl=d.b2cl.map(c=>({pos:c.pos,inv:c.inv.map(i=>({inum:i.inum,idt:i.idt,val:i.val,itms:i.itms}))}));
+  if(d.b2cs.length)out.b2cs=d.b2cs.map(r=>({sply_ty:r.sply_ty,rt:r.rt,typ:r.typ,pos:r.pos,txval:r.txval,iamt:r.iamt,camt:r.camt,samt:r.samt,csamt:r.csamt}));
   const nilTotal=Object.values(d.nil).reduce((a,b)=>a+b,0);
   if(nilTotal>0)out.nil={inv:Object.entries(d.nil).filter(e=>e[1]>0).map(([k,v])=>({sply_ty:k,expt_amt:0,nil_amt:gstr1R2(v),ngsup_amt:0}))};
   const hs={};if(d.hsn_b2b.length)hs.hsn_b2b=d.hsn_b2b;if(d.hsn_b2c.length)hs.hsn_b2c=d.hsn_b2c;if(Object.keys(hs).length)out.hsn=hs;
@@ -6049,20 +6050,20 @@ function runGstr1(){
   const d=gstr1Data=gstr1Build(DB,o),t=d.totals,m=n=>'₹'+fmt(n);
   const lvl={error:'<span class="badge bad">Error</span>',warn:'<span class="badge partial">Warning</span>',info:'<span class="badge ok">Info</span>'};
   const trow=(n,x)=>`<tr><td>${n}</td><td class="num mono">${x.count}</td><td class="num mono">${m(x.txval)}</td><td class="num mono">${m(x.iamt)}</td><td class="num mono">${m(x.camt)}</td><td class="num mono">${m(x.samt)}</td></tr>`;
-  const invRows=(a,reg)=>a.map(c=>c.inv.map(i=>`<tr><td class="mono">${reg?safeText(c.ctin):safeText(gstr1PosLabel(c.pos))}</td><td class="mono">${safeText(i.inum)}</td><td>${safeText(i.idt)}</td><td class="num mono">${m(i.val)}</td><td>${safeText(gstr1PosLabel(i.pos||c.pos))}</td><td class="num mono">${m(i.itms.reduce((s,x)=>s+x.itm_det.txval,0))}</td><td class="num mono">${m(i.itms.reduce((s,x)=>s+(x.itm_det.iamt||0)+(x.itm_det.camt||0)+(x.itm_det.samt||0),0))}</td></tr>`).join('')).join('');
+  const invRows=(a,reg)=>a.map(c=>c.inv.map(i=>`<tr style="cursor:pointer" title="Click to open invoice" onclick="gstr1Go('invoice','${i._id}')"><td class="mono">${reg?safeText(c.ctin):safeText(gstr1PosLabel(c.pos))}</td><td class="mono">${safeText(i.inum)}</td><td>${safeText(i.idt)}</td><td class="num mono">${m(i.val)}</td><td>${safeText(gstr1PosLabel(i.pos||c.pos))}</td><td class="num mono">${m(i.itms.reduce((s,x)=>s+x.itm_det.txval,0))}</td><td class="num mono">${m(i.itms.reduce((s,x)=>s+(x.itm_det.iamt||0)+(x.itm_det.camt||0)+(x.itm_det.samt||0),0))}</td></tr>`).join('')).join('');
   const hsnRows=a=>a.map(r=>`<tr><td class="mono">${safeText(r.hsn_sc)}</td><td>${safeText(r.desc)}</td><td>${r.uqc}</td><td class="num mono">${r.qty}</td><td class="num mono">${r.rt}%</td><td class="num mono">${m(r.txval)}</td><td class="num mono">${m(r.iamt+r.camt+r.samt)}</td></tr>`).join('');
   const tbl=(title,head,body,cols)=>`<div class="panel" style="margin-bottom:14px"><div class="panel-head"><h3>${title}</h3></div><div class="panel-body table-scroll" style="padding:0"><table><thead><tr>${head}</tr></thead><tbody>${body||`<tr><td colspan="${cols}" class="empty">Nothing in this period.</td></tr>`}</tbody></table></div></div>`;
   document.getElementById('gstr1Out').innerHTML=`
     <div class="panel" style="margin-bottom:14px"><div class="panel-head" style="align-items:center;flex-wrap:wrap;gap:8px"><div><h3>GSTR-1 · ${safeText(d.period.label)} · return period ${d.period.fp}</h3><span style="font-size:12px;color:var(--text-soft)">${t.invoices} sale invoice(s) · Sale Invoices only (Non-GST vouchers, services and purchases are excluded) · GSTIN ${safeText(d.gstin||'—')}</span></div>
       <div class="row" style="gap:8px;margin:0"><button class="btn amber sm" onclick="gstr1Download('json')">⬇ JSON (for portal upload)</button><button class="btn ghost sm" onclick="gstr1Download('xlsx')">⬇ Excel</button></div></div></div>
     <div class="panel" style="margin-bottom:14px"><div class="panel-head"><h3>Check before filing</h3><span class="badge ${d.errors?'bad':'ok'}">${d.errors?d.errors+' error(s)':'No errors'}</span></div>
-      <div class="panel-body table-scroll" style="padding:0"><table><thead><tr><th>Level</th><th>Reference</th><th>Issue</th></tr></thead><tbody>${d.issues.length?d.issues.map(i=>`<tr><td>${lvl[i.level]}</td><td>${safeText(i.ref)}</td><td>${safeText(i.msg)}</td></tr>`).join(''):'<tr><td colspan="3" class="empty">All invoices passed the checks.</td></tr>'}</tbody></table></div></div>
+      <div class="panel-body table-scroll" style="padding:0"><table><thead><tr><th>Level</th><th>Reference</th><th>Issue</th><th>Open</th></tr></thead><tbody>${d.issues.length?d.issues.map(i=>`<tr><td>${lvl[i.level]}</td><td>${safeText(i.ref)}</td><td>${safeText(i.msg)}</td><td style="white-space:nowrap">${(i.targets||[]).map(x=>`<button class="btn ghost sm" onclick="gstr1Go('${x.t}','${x.id||''}')">${x.label}</button>`).join(' ')}</td></tr>`).join(''):'<tr><td colspan="4" class="empty">All invoices passed the checks.</td></tr>'}</tbody></table></div></div>
     <div class="panel" style="margin-bottom:14px"><div class="panel-head"><h3>Summary</h3></div><div class="panel-body table-scroll" style="padding:0"><table><thead><tr><th>Table</th><th class="num">Invoices / rows</th><th class="num">Taxable</th><th class="num">IGST</th><th class="num">CGST</th><th class="num">SGST</th></tr></thead><tbody>
       ${trow('4 – B2B (registered)',t.b2b)}${trow('5 – B2C Large (inter-state, above ₹1 lakh)',t.b2cl)}${trow('7 – B2C Others (state/rate wise)',t.b2cs)}
       <tr><td>8 – Nil rated (0% items)</td><td class="num mono">—</td><td class="num mono">${m(t.nil)}</td><td></td><td></td><td></td></tr></tbody></table></div></div>
     ${tbl('Table 4 – B2B invoices','<th>GSTIN</th><th>Invoice</th><th>Date</th><th class="num">Value</th><th>Place of supply</th><th class="num">Taxable</th><th class="num">Tax</th>',invRows(d.b2b,true),7)}
     ${tbl('Table 5 – B2C Large invoices','<th>Place of supply</th><th>Invoice</th><th>Date</th><th class="num">Value</th><th>Place of supply</th><th class="num">Taxable</th><th class="num">Tax</th>',invRows(d.b2cl,false),7)}
-    ${tbl('Table 7 – B2C Others','<th>Type</th><th>Place of supply</th><th class="num">Rate</th><th class="num">Taxable</th><th class="num">IGST</th><th class="num">CGST</th><th class="num">SGST</th>',d.b2cs.map(r=>`<tr><td>${r.sply_ty}</td><td>${safeText(gstr1PosLabel(r.pos))}</td><td class="num mono">${r.rt}%</td><td class="num mono">${m(r.txval)}</td><td class="num mono">${m(r.iamt)}</td><td class="num mono">${m(r.camt)}</td><td class="num mono">${m(r.samt)}</td></tr>`).join(''),7)}
+    ${tbl('Table 7 – B2C Others','<th>Type</th><th>Place of supply</th><th class="num">Rate</th><th class="num">Taxable</th><th class="num">IGST</th><th class="num">CGST</th><th class="num">SGST</th>',d.b2cs.map((r,ix)=>`<tr style="cursor:pointer" title="Click to see the invoices in this row" onclick="gstr1B2csOpen(${ix})"><td>${r.sply_ty}</td><td>${safeText(gstr1PosLabel(r.pos))}</td><td class="num mono">${r.rt}%</td><td class="num mono">${m(r.txval)}</td><td class="num mono">${m(r.iamt)}</td><td class="num mono">${m(r.camt)}</td><td class="num mono">${m(r.samt)}</td></tr>`).join(''),7)}
     ${tbl('Table 12 – HSN summary · B2B','<th>HSN</th><th>Description</th><th>UQC</th><th class="num">Qty</th><th class="num">Rate</th><th class="num">Taxable</th><th class="num">Tax</th>',hsnRows(d.hsn_b2b),7)}
     ${tbl('Table 12 – HSN summary · B2C','<th>HSN</th><th>Description</th><th>UQC</th><th class="num">Qty</th><th class="num">Rate</th><th class="num">Taxable</th><th class="num">Tax</th>',hsnRows(d.hsn_b2c),7)}
     ${tbl('Table 13 – Documents issued (Invoices)','<th>From</th><th>To</th><th class="num">Total</th><th class="num">Cancelled</th><th class="num">Net issued</th>',d.docs.map(x=>`<tr><td class="mono">${safeText(x.from)}</td><td class="mono">${safeText(x.to)}</td><td class="num mono">${x.totnum}</td><td class="num mono">${x.cancel}</td><td class="num mono">${x.net_issue}</td></tr>`).join(''),5)}`;
@@ -6077,6 +6078,21 @@ function gstr1Download(kind){
   };
   if(!d.totals.invoices){showToast('No sale invoices in this period');return;}
   if(d.errors)askConfirm(d.errors+' error(s) found in this return. The file will not be accepted by the GST portal until they are fixed. Download anyway?',go);else go();
+}
+function gstr1Go(t,id){
+  try{
+    if(t==='sale'){route('sale');renderSale(id);}
+    else if(t==='invoice'){printSaleInvoice(id);}
+    else if(t==='product'){route('inventory');openProductModal(id);}
+    else if(t==='customer'){route('customers');openCustomerModal(id);}
+    else if(t==='settings'){route('settings');}
+  }catch(e){showToast('Could not open that record');console.error(e);}
+}
+function gstr1B2csOpen(i){
+  const r=gstr1Data&&gstr1Data.b2cs[i];if(!r)return;
+  openModal('B2C Others — '+gstr1PosLabel(r.pos)+' @ '+r.rt+'% ('+r.sply_ty+')',
+    '<table><thead><tr><th>Invoice</th><th>Date</th><th class="num">Value</th></tr></thead><tbody>'+r._inv.map(x=>`<tr style="cursor:pointer" onclick="closeModal();gstr1Go('invoice','${x.id}')"><td class="mono">${safeText(x.no)}</td><td>${safeText(x.date)}</td><td class="num mono">₹${fmt(x.val)}</td></tr>`).join('')+'</tbody></table><p style="font-size:11.5px;color:var(--text-soft)">Click an invoice to open it.</p>',
+    '<button class="btn ghost" onclick="closeModal()">Close</button>');
 }
 function gstr1SaveFile(name,blob){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},800);}
 

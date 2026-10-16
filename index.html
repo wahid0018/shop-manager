@@ -494,6 +494,16 @@ html[data-theme="midnight"] .modal,html[data-theme="graphite"] .modal{background
 .dark-switch{position:relative;width:48px;height:26px;flex:none;}.dark-switch input{opacity:0;width:0;height:0;position:absolute;}.dark-switch-track{position:absolute;inset:0;border-radius:99px;background:#b9bec5;cursor:pointer;transition:.2s;}.dark-switch-track:before{content:'☼';position:absolute;left:3px;top:3px;width:20px;height:20px;border-radius:50%;background:#fff;color:#555;font-size:12px;display:flex;align-items:center;justify-content:center;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.25);}.dark-switch input:checked + .dark-switch-track{background:#374151;}.dark-switch input:checked + .dark-switch-track:before{content:'☾';transform:translateX(22px);background:#111827;color:#f8d477;}
 
 
+/* v1.0.74 light-mode sidebar: dark tone of the theme colour (re-points the sidebar's own colour variables) */
+html:not([data-dark-mode="1"]):not([data-theme="midnight"]):not([data-theme="graphite"]) #sidebar{
+  --md-surface:color-mix(in srgb,var(--theme-accent,var(--amber)) 38%,#080b10);
+  --md-text:#f1f4f9; --md-muted:rgba(241,244,249,.58);
+  --md-line:rgba(255,255,255,.12); --md-hover:rgba(255,255,255,.09);
+  --md-accent-soft:rgba(255,255,255,.16); --md-accent-text:#ffffff;
+  --md-shadow:0 10px 30px -12px rgba(0,0,0,.45);
+}
+html:not([data-dark-mode="1"]):not([data-theme="midnight"]):not([data-theme="graphite"]) #sidebar .navbtn.active .ic{background:var(--theme-accent,var(--amber));}
+html:not([data-dark-mode="1"]):not([data-theme="midnight"]):not([data-theme="graphite"]) #sidebar .logout-contrast:hover{color:#ff8f8f!important;}
 /* v1.0.9 dark-surface/header correction */
 html[data-dark-mode="1"] #sidebar,
 html[data-theme="midnight"] #sidebar,
@@ -1336,6 +1346,7 @@ html[data-dark-mode="1"] button.btn.danger:hover,html[data-theme="midnight"] but
       <button class="navbtn" data-view="purchaseregister"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M4 10h10M4 15h7"/><path d="M18 13v7m0 0l-3-3m3 3l3-3"/></svg></span> <span class="label">Purchase Register</span></button>
       <button class="navbtn" data-view="paymentvoucher"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h10M7 9h10M7 5c6 0 6 8 0 8h-1l7 7"/></svg></span> <span class="label">Purchase Payment Voucher</span></button>
       <button class="navbtn" data-view="salesregister"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M4 10h10M4 15h7"/><path d="M18 20v-7m0 0l-3 3m3-3l3 3"/></svg></span> <span class="label">Sales Register</span></button>
+      <button class="navbtn adminonly" data-view="gstr1"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h7"/></svg></span> <span class="label">GSTR-1 Return</span></button>
       <button class="navbtn" data-view="voucherregister"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M4 10h10M4 15h7"/><path d="M15 18l2 2 4-4"/></svg></span> <span class="label">Non-GST Sale Register</span></button>
       <button class="navbtn" data-view="serviceregister"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M4 10h10M4 15h7"/><circle cx="18" cy="17" r="3"/></svg></span> <span class="label">Service Register</span></button>
       <button class="navbtn" data-view="duesregister"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M4 10h9M4 15h6"/><circle cx="17" cy="16" r="4"/><path d="M17 14v2l1.2 1"/></svg></span> <span class="label">Pending Dues Register</span></button>
@@ -1421,7 +1432,7 @@ window.APP_ENV = Object.freeze({
 </script>
 <script>
 /* App version. Bumped by tools/release.py (also updates version.json and the ?v= cache stamps in index.html). */
-const APP_VERSION='1.0.73';
+const APP_VERSION='1.0.74';
 document.title='Shop Manager — v'+APP_VERSION;
 
 </script>
@@ -1633,7 +1644,7 @@ async function initSuperbaseCloud(showErrors=false,attemptId=0){
     if(attemptId&&attemptId!==dbAttemptId)return false;
     supabaseClient=client;cloudReady=true;cloudSessionConnected=true;cloudAttemptDone=true;
     if(Array.isArray(full.data)&&full.data.length){DB=hydrateFromCloudRows(full.data);DB.settings.supabaseUrl=c.url;DB.settings.supabaseAnonKey=c.key;DB.settings.superbaseUrl=c.url;DB.settings.superbaseKey=c.key;updateBranding();if(currentUserRole)renderCurrentPageAfterCloudChange()}
-    cloudSnapshot=cloudRecordMap(DB);lastSavedDBSnapshot=cloneDB(DB);try{localStorage.setItem(DB_KEY,JSON.stringify(DB))}catch(e){}subscribeSuperbaseRealtime();cloudStatusText();setTopbarSyncStatus('Superbase connected · Realtime active',true);return true;
+    cloudSnapshot=cloudRecordMap(DB);lastSavedDBSnapshot=cloneDB(DB);try{localStorage.setItem(DB_KEY,JSON.stringify(DB))}catch(e){}subscribeSuperbaseRealtime();cloudStatusText();setTopbarSyncStatus('Superbase connected · Realtime active',true);endTempAdminSession();return true;
   }catch(e){
     const noInternet=(typeof navigator!=='undefined'&&navigator.onLine===false)||/Failed to fetch|NetworkError|network request failed|ERR_INTERNET_DISCONNECTED|ERR_NETWORK/i.test(String(e?.message||e));
     if(!attemptId||attemptId===dbAttemptId){cloudReady=false;cloudSessionConnected=false;cloudAttemptDone=true;cloudStatusText();
@@ -2130,6 +2141,7 @@ const titles = {
   customers:['Customers','Save repeat customers to pick them instantly in Sale & Quotation'],
   todos:['To-Do List','Organize tasks across multiple pages'],
   duesregister:['Pending Dues Register','Unpaid sales, Non-GST sales and services by date'],
+  gstr1:['GSTR-1 Return','Sale invoices only — JSON and Excel export for the GST portal'],
   renewaltrack:['Software Renewals','Subscription tracking by financial year'],
   salary:['Salary Register','Monthly salary, advances and payments'],
   myapprovals:['My Approvals','Your requests sent to Admin'],
@@ -2143,7 +2155,7 @@ function route(view){
   document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active', b.dataset.view===view));
   document.getElementById('pageTitle').textContent = titles[view][0];
   document.getElementById('pageCrumb').textContent = titles[view][1];
-  const renderers = {recyclebin:renderRecycleBin, duesregister:renderDuesRegister, renewaltrack:renderRenewals, salary:renderSalary, myapprovals:renderMyApprovals, uisettings:renderUISettings, dashboard:renderDashboardPlus, approvals:renderApprovals, purchase:()=>renderPurchase(), paymentvoucher:()=>renderPaymentVoucher(), sale:()=>renderSale(), voucher:()=>renderVoucher(), voucherregister:renderVoucherRegister, service:()=>renderService(), quotation:()=>renderQuotation(), salesregister:renderSalesRegister, purchaseregister:renderPurchaseRegister, serviceregister:renderServiceRegister, warranty:renderWarranty, inventory:renderInventory, employees:renderEmployees, customers:renderCustomers, todos:renderTodos, settings:renderSettings};
+  const renderers = {gstr1:renderGstr1, recyclebin:renderRecycleBin, duesregister:renderDuesRegister, renewaltrack:renderRenewals, salary:renderSalary, myapprovals:renderMyApprovals, uisettings:renderUISettings, dashboard:renderDashboardPlus, approvals:renderApprovals, purchase:()=>renderPurchase(), paymentvoucher:()=>renderPaymentVoucher(), sale:()=>renderSale(), voucher:()=>renderVoucher(), voucherregister:renderVoucherRegister, service:()=>renderService(), quotation:()=>renderQuotation(), salesregister:renderSalesRegister, purchaseregister:renderPurchaseRegister, serviceregister:renderServiceRegister, warranty:renderWarranty, inventory:renderInventory, employees:renderEmployees, customers:renderCustomers, todos:renderTodos, settings:renderSettings};
   currentPageKey=view;AppStore.set('ui.page',view);
   try{renderers[view]();}
   catch(e){AppErrors.report(e,'route:'+view);document.getElementById('view').innerHTML='<div class="panel"><div class="panel-body"><b>This screen could not be loaded.</b><br><span style="font-size:12px;color:var(--text-soft)">'+safeText(e.message||'Unknown error')+'</span><br><br><button class="btn amber sm" type="button" onclick="route(\''+view+'\')">Try again</button></div></div>';}
@@ -2174,7 +2186,10 @@ function runDashboard(){
   const services = DB.services.filter(s=>inRange(s.date,from,to) && (!emp||s.employee===emp));
   const purchases = DB.purchases.filter(p=>inRange(p.date,from,to));
   const salesTotal = sales.reduce((s,x)=>s+x.grandTotal,0);
-  const dueTotal = sales.reduce((s,x)=>s+Math.max(0,x.grandTotal-(x.paidAmount||0)),0);
+  const vouchersR = (DB.vouchers||[]).filter(s=>inRange(s.date,from,to));
+  const dueSales = sales.reduce((s,x)=>s+Math.max(0,x.grandTotal-(x.paidAmount||0)-(x.deduction||0)),0);
+  const dueVouchers = vouchersR.reduce((s,x)=>s+Math.max(0,x.grandTotal-(x.paidAmount||0)-(x.deduction||0)),0);
+  const dueTotal = dueSales+dueVouchers;
   const serviceTotal = services.reduce((s,x)=>s+x.amount,0);
   const purchaseTotal = purchases.reduce((s,x)=>s+x.grandTotal,0);
   const stockValue = DB.products.reduce((s,p)=>s+p.stock*p.purchasePrice,0);
@@ -2194,7 +2209,7 @@ function runDashboard(){
   document.getElementById('dashboardOut').innerHTML = `
     <div class="grid g4" style="margin-bottom:16px;">
       <div class="card stat"><div class="accent-bar" style="background:var(--amber)"></div><div class="label">Product Sales</div><div class="value mono">₹${fmt(salesTotal)}</div><div class="foot">${sales.length} invoices</div></div>
-      <div class="card stat"><div class="accent-bar" style="background:${dueTotal>0?'var(--red)':'#B7B2A2'}"></div><div class="label">Outstanding Dues</div><div class="value mono">₹${fmt(dueTotal)}</div><div class="foot">in range</div></div>
+      <div class="card stat"><div class="accent-bar" style="background:${dueTotal>0?'var(--red)':'#B7B2A2'}"></div><div class="label">Outstanding Dues</div><div class="value mono">₹${fmt(dueTotal)}</div><div class="foot">GST ₹${fmt(dueSales)} · Non-GST ₹${fmt(dueVouchers)}</div></div>
       <div class="card stat"><div class="accent-bar" style="background:var(--teal)"></div><div class="label">Service Revenue</div><div class="value mono">₹${fmt(serviceTotal)}</div><div class="foot">${services.length} jobs</div></div>
       <div class="card stat"><div class="accent-bar" style="background:#6C7280"></div><div class="label">Purchase</div><div class="value mono">₹${fmt(purchaseTotal)}</div><div class="foot">${purchases.length} entries</div></div>
     </div>
@@ -2401,6 +2416,7 @@ function openProductModal(id){
     <div class="row">
       <div class="field"><label>Current Stock</label><input id="f_stock" type="number" value="${p.stock}"></div>
       <div class="field"><label>Reorder Level</label><input id="f_reorder" type="number" value="${p.reorderLevel}"></div>
+      <div class="field"><label>UQC (for GSTR-1)</label><select id="f_uqc">${GSTR1_UQC.map(u=>`<option value="${u[0]}" ${(p.uqc||'NOS')===u[0]?'selected':''}>${u[1]}</option>`).join('')}</select></div>
     </div>
     ${id?`<p style="font-size:11.5px;color:#8a8578;">Barcodes are managed separately — use the "Barcodes" button on this product's row in the Inventory list.</p>`:''}
     <div class="field">
@@ -2489,6 +2505,7 @@ function saveProduct(id){
     gstPercent: parseFloat(document.getElementById('f_gst').value)||0,
     stock: parseInt(document.getElementById('f_stock').value)||0,
     reorderLevel: parseInt(document.getElementById('f_reorder').value)||0,
+    uqc: document.getElementById('f_uqc').value||'NOS',
     image,
   };
   if(id){ Object.assign(DB.products.find(x=>x.id===id), data); showToast('Product updated'); }
@@ -2810,6 +2827,7 @@ function pickCustomer(kind, custId){
   document.getElementById(prefix+'customer').value = c.name;
   const phoneEl = document.getElementById(prefix+'phone'); if(phoneEl) phoneEl.value = c.phone||'';
   const gstinEl = document.getElementById(prefix+'gstin'); if(gstinEl) gstinEl.value = c.gstin||'';
+  if(kind==='sale'){const pe=document.getElementById('s_pos'); if(pe) pe.value = c.state||'';}
   const box = document.getElementById('suggest-cust-'+kind); if(box) box.style.display='none';
 }
 
@@ -3292,6 +3310,7 @@ function renderSale(editId){
           <div class="row">
             <div class="field"><label>Employee (Salesperson)</label><select id="s_employee">${employeeOptions(editing?DB.employees.find(e=>e.name===editing.employee)?.id:'')}</select></div>
             <div class="field"><label>Date</label><input id="s_date" type="date" value="${editing?editing.date:todayStr()}"></div>
+            <div class="field"><label>Place of Supply (GSTR-1)</label><select id="s_pos"><option value="">Auto — from GSTIN / supply type</option>${GST_STATES.map(x=>`<option value="${x[0]}" ${editing&&editing.placeOfSupply===x[0]?'selected':''}>${x[0]} - ${x[1]}</option>`).join('')}</select></div>
             <div class="field"><label>Prices Entered Are</label>
               <select id="s_pricemode" onchange="renderSaleTotal()">
                 <option value="inclusive" ${priceModeDefault==='inclusive'?'selected':''}>Inclusive of GST</option>
@@ -3588,7 +3607,7 @@ function saveSale(){
   const newLines = lines.map(l=>({...l, name: DB.products.find(p=>p.id===l.productId).name, hsn: DB.products.find(p=>p.id===l.productId).hsn||''}));
 
   if(editingSaleId){
-    const saleChanges={invoiceNo,customer,phone:document.getElementById('s_phone').value.trim(),customerGstin,employee:emp?emp.name:'—',date:document.getElementById('s_date').value||todayStr(),lines:newLines,subtotal:sub,subtotalBeforeDiscount,supplyType:supply,priceMode,gstAmount:gstAmt,breakup,discountAmount,grandTotal,paidAmount,deduction,paymentMode,notes};
+    const saleChanges={invoiceNo,customer,phone:document.getElementById('s_phone').value.trim(),customerGstin,employee:emp?emp.name:'—',date:document.getElementById('s_date').value||todayStr(),lines:newLines,subtotal:sub,subtotalBeforeDiscount,supplyType:supply,placeOfSupply:document.getElementById('s_pos').value,priceMode,gstAmount:gstAmt,breakup,discountAmount,grandTotal,paidAmount,deduction,paymentMode,notes};
     if(currentUserRole!=='admin'){requestRegisterApproval('sale',oldSale.id,'update',saleChanges);showToast('Sale changes sent for Admin approval');renderSalesRegister();return;}
     oldSale.lines.forEach(l=>{ const prod=DB.products.find(p=>p.id===l.productId); if(prod) prod.stock += l.qty; if(l.detail) setBarcodeStatus(l.productId, l.detail, 'available'); });
     Object.assign(oldSale,saleChanges);
@@ -3600,7 +3619,7 @@ function saveSale(){
   }
   const saleObj = { id:cid(), invoiceNo, customer, phone:document.getElementById('s_phone').value.trim(), customerGstin,
     employee: emp?emp.name:'—', date:document.getElementById('s_date').value||todayStr(), lines:newLines,
-    subtotal:sub, subtotalBeforeDiscount, supplyType:supply, priceMode, gstAmount:gstAmt, breakup, discountAmount, grandTotal, paidAmount, deduction, paymentMode, notes };
+    subtotal:sub, subtotalBeforeDiscount, supplyType:supply, placeOfSupply:document.getElementById('s_pos').value, priceMode, gstAmount:gstAmt, breakup, discountAmount, grandTotal, paidAmount, deduction, paymentMode, notes };
   DB.sales.push(saleObj);
   newLines.forEach(l=>{ DB.products.find(p=>p.id===l.productId).stock -= l.qty; if(l.detail) setBarcodeStatus(l.productId, l.detail, 'sold'); });
   DB.settings.nextInvoiceNo=nextAfter(invoiceNo,DB.settings.nextInvoiceNo+1);
@@ -4555,7 +4574,7 @@ function renderMyApprovals(){
   document.getElementById('view').innerHTML=`<div class="panel"><div class="panel-head"><h3>My Approval Requests</h3><span style="font-size:12px;color:var(--text-soft)">In process: ${pend}</span></div><div class="panel-body table-scroll" style="padding:0"><table><thead><tr><th>Requested</th><th>Section</th><th>Record</th><th>Request</th><th>Status</th><th>Reviewed</th></tr></thead><tbody>${rows.length?rows.map(r=>{const rec=r.entity==='warranty'?(DB.warrantyJobs||[]).find(x=>x.id===r.recordId):registerRecords(r.entity).find(x=>x.id===r.recordId);const pv=r.entity==='paymentvoucher'?r.changes?.paymentVoucher:null;const what=r.action==='delete'?'Delete record':r.action==='create'?(pv?'New payment voucher · ₹'+fmt(pv.totalAmount):'New record'):'Edit record';return `<tr><td>${safeText(new Date(r.requestedAt).toLocaleString())}</td><td>${safeText(labels[r.entity]||r.entity)}</td><td>${safeText(registerRef(r.entity,rec))}</td><td>${safeText(what)}</td><td>${badge(r.status)}</td><td>${r.reviewedAt?safeText(new Date(r.reviewedAt).toLocaleString()):'—'}</td></tr>`}).join(''):'<tr><td colspan="6" class="empty">You have not sent any approval requests.</td></tr>'}</tbody></table></div></div>`;
 }
 function toggleAdminVisibility(view,visible){DB.settings.adminHiddenViews=(DB.settings.adminHiddenViews||[]).filter(v=>v!==view);if(!visible)DB.settings.adminHiddenViews.push(view);saveDB();applyRoleRestrictions();}
-const ADMIN_TOGGLE_VIEWS=['duesregister','renewaltrack','salary','dashboard','purchase','sale','voucher','service','quotation','approvals','purchaseregister','paymentvoucher','salesregister','voucherregister','serviceregister','warranty','inventory','employees','customers','todos'];
+const ADMIN_TOGGLE_VIEWS=['gstr1','duesregister','renewaltrack','salary','dashboard','purchase','sale','voucher','service','quotation','approvals','purchaseregister','paymentvoucher','salesregister','voucherregister','serviceregister','warranty','inventory','employees','customers','todos'];
 
 </script>
 <script>
@@ -5417,31 +5436,42 @@ function closeAdminLogin(){
   if(admin)admin.style.display='none'; if(main)main.style.display='block';
   const e=document.getElementById('adminLoginError');if(e)e.style.display='none';
 }
-function submitAdminLogin(){
+async function submitAdminLogin(){
   const uname=(document.getElementById('admin_login_user')?.value||'').trim().toLowerCase();
   const pass=document.getElementById('admin_login_pass')?.value||'';
   const err=document.getElementById('adminLoginError');
-  if(uname!=='admin'||pass!==USER_CREDENTIALS.admin){if(err){err.textContent='Incorrect Admin username or password.';err.style.display='block';}return;}
+  let ok=false;
+  if(uname==='admin'){
+    if(!dbIsConnected()){ok=(pass==='admin');if(ok)window.tempAdminSession=true;}
+    else{const acc=(DB.users||[]).find(u=>u.username==='admin');ok=acc?(acc.enabled!==false&&await verifyManagedPassword(acc,pass)):pass===USER_CREDENTIALS.admin;}
+  }
+  if(!ok){if(err){err.textContent=(uname==='admin'&&!dbIsConnected())?'Database not connected — use the temporary admin password.':'Incorrect Admin username or password.';err.style.display='block';}return;}
   window.databaseConnected=true; currentUserRole='admin'; currentUserId=null; currentUserName='Admin';
   try{sessionStorage.setItem('circuitdesk_role','admin');sessionStorage.removeItem('circuitdesk_user_id');}catch(e){}
   if(err)err.style.display='none';
   closeAdminLogin(); startApp();
   setTimeout(()=>{try{route('settings');}catch(e){}},0);
 }
+function dbIsConnected(){return !!(cloudReady&&supabaseClient);}
+function endTempAdminSession(){if(window.tempAdminSession){window.tempAdminSession=false;setTimeout(()=>{try{logoutUser();showToast('Database connected — sign in again with the admin password stored in the database.');}catch(e){}},400);}}
+function tempAdminLogin(){
+  window.databaseConnected=true;window.tempAdminSession=true;
+  currentUserRole='admin';currentUserId=null;currentUserName='Admin';
+  try{sessionStorage.setItem('circuitdesk_role','admin');sessionStorage.removeItem('circuitdesk_user_id');}catch(e){}
+  const e=document.getElementById('loginError');if(e)e.style.display='none';
+  startApp();netRefresh();
+  showToast('Signed in with the temporary admin password. Connect the database in Shop Settings — after that the admin password stored in the database applies.');
+}
 async function attemptLogin(){
   const uname=document.getElementById('login_user').value.trim().toLowerCase(),pass=document.getElementById('login_pass').value,errEl=document.getElementById('loginError');
+  errEl.textContent='Incorrect username or password.';
   saveLoginPreferences(uname,pass);
-  // CRITICAL: verify the built-in Admin FIRST. This path never waits for or
-  // does not depend on the database connection gate.
-  // Therefore Admin can always enter the app and repair the connection.
-  if(uname==='admin' && Object.prototype.hasOwnProperty.call(USER_CREDENTIALS,'admin') && USER_CREDENTIALS.admin===pass){
-    window.databaseConnected=true;
-    currentUserRole='admin'; currentUserId=null; currentUserName='Admin';
-    sessionStorage.setItem('circuitdesk_role','admin'); sessionStorage.removeItem('circuitdesk_user_id');
-    errEl.style.display='none';
-    startApp();
-    netRefresh();
-    return;
+  /* No database connected: the temporary admin password lets Admin in to set up the connection.
+     Once the database is connected, the admin account stored in the database decides. */
+  if(uname==='admin'&&!dbIsConnected()){
+    if(pass==='admin'){tempAdminLogin();return;}
+    if(netCreds()&&!cloudAttemptDone)await initializeDatabaseGate(true);
+    if(!dbIsConnected()){errEl.textContent='Database not connected — use the temporary admin password.';errEl.style.display='block';return;}
   }
   if(netCreds()&&!(await netRefresh())){netPopup();return;}
   if(!window.databaseConnected){
@@ -5489,7 +5519,7 @@ function applyRoleRestrictions(){
   const userEl = document.getElementById('sidefootUser');
   if(userEl) userEl.textContent = 'Signed in as '+(currentUserName||(isAdmin?'Admin':'Staff'));
 }
-const ADMIN_ONLY_VIEWS = ['recyclebin','dashboard','approvals','purchase','inventory','settings','employees'];
+const ADMIN_ONLY_VIEWS = ['gstr1','recyclebin','dashboard','approvals','purchase','inventory','settings','employees'];
 function startApp(){
   // Admin recovery is deliberately allowed even when every database is down.
   // Normal users/staff still require a connected database.
@@ -5864,6 +5894,191 @@ netStart();
     }
     return orig.apply(this,arguments);
   };})();
+
+</script>
+<script>
+/* ================= GSTR-1 (Sale invoices only) ================= */
+const GSTR1_RATES=[0,0.1,0.25,1,1.5,3,5,6,7.5,12,18,28,40];
+const GSTR1_UQC=[['NOS','NOS - Numbers'],['PCS','PCS - Pieces'],['UNT','UNT - Units'],['SET','SET - Sets'],['PAC','PAC - Packs'],['BOX','BOX - Box'],['PRS','PRS - Pairs'],['KGS','KGS - Kilograms'],['GMS','GMS - Grams'],['MTR','MTR - Meters'],['LTR','LTR - Litres'],['BTL','BTL - Bottles'],['DOZ','DOZ - Dozens'],['OTH','OTH - Others']];
+const GSTR1_B2CL_LIMIT=100000; /* inter-state unregistered invoice value above this goes to B2CL (from 1 Aug 2024) */
+function gstr1R2(n){return Math.round((+n||0)*100)/100;}
+function gstr1Pad(n){return String(n).padStart(2,'0');}
+function gstinValid(g){
+  g=String(g||'').trim().toUpperCase();
+  if(!/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/.test(g))return false;
+  const cs='0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';let sum=0;
+  for(let i=0;i<14;i++){const p=cs.indexOf(g[i])*((i%2)+1);sum+=Math.floor(p/36)+(p%36);}
+  return cs[(36-(sum%36))%36]===g[14];
+}
+function gstr1Period(ym,freq){
+  const parts=String(ym||'').split('-').map(Number),y=parts[0],m=parts[1];
+  if(freq==='Q'){const qe=Math.ceil(m/3)*3,qs=qe-2;return{from:y+'-'+gstr1Pad(qs)+'-01',to:y+'-'+gstr1Pad(qe)+'-31',fp:gstr1Pad(qe)+y,label:'Quarter '+gstr1Pad(qs)+'/'+y+' – '+gstr1Pad(qe)+'/'+y};}
+  return{from:ym+'-01',to:ym+'-31',fp:gstr1Pad(m)+y,label:gstr1Pad(m)+'/'+y};
+}
+function gstr1Dmy(d){const p=String(d||'').split('-');return p.length===3?p[2]+'-'+p[1]+'-'+p[0]:'';}
+const GSTR1_MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function gstr1DmyMon(d){const p=String(d||'').split('-');return p.length===3?p[2]+'-'+GSTR1_MON[+p[1]-1]+'-'+p[0].slice(2):'';}
+function gstr1StateName(code){const x=(typeof GST_STATES!=='undefined'?GST_STATES:[]).find(v=>v[0]===String(code));return x?x[1]:'';}
+function gstr1Build(db,opts){
+  const o=opts||{},per=gstr1Period(o.ym,o.freq),minDig=o.aato5cr?6:4;
+  const st=db.settings||{},sellerGstin=String(st.gstin||'').trim().toUpperCase(),sellerOk=gstinValid(sellerGstin),sellerState=sellerOk?sellerGstin.slice(0,2):'';
+  const issues=[],issue=(level,ref,msg)=>issues.push({level,ref:ref||'',msg});
+  if(!sellerOk)issue('error','Shop Settings','Your own GSTIN ("'+(sellerGstin||'blank')+'") is missing or not a valid GSTIN — set it in Shop Settings.');
+  const sales=(db.sales||[]).filter(s=>s.date>=per.from&&s.date<=per.to).sort((a,b)=>String(a.date).localeCompare(String(b.date))||String(a.invoiceNo).localeCompare(String(b.invoiceNo),undefined,{numeric:true}));
+  const prod=id=>(db.products||[]).find(p=>p.id===id);
+  const b2bMap={},b2cl={},b2cs={},nil={INTRB2B:0,INTRB2C:0,INTRAB2B:0,INTRAB2C:0},hsnB2B={},hsnB2C={},seenHsnIssue={};
+  const taxRow=(rate,tx,tax,inter)=>{const t=gstr1R2(tax),h=gstr1R2(t/2);return{rt:rate,txval:gstr1R2(tx),iamt:inter?t:0,camt:inter?0:h,samt:inter?0:h,csamt:0};};
+  let invCount=0;
+  sales.forEach(s=>{
+    const ref=s.invoiceNo||'(no number)';invCount++;
+    const inum=String(s.invoiceNo||'');
+    if(!inum||inum.length>16||!/^[A-Za-z0-9\/-]+$/.test(inum)||/^[0\/-]/.test(inum))issue('error',ref,'Invoice number must be 1–16 characters, only letters, digits, "-" or "/", and must not start with 0, "-" or "/".');
+    const ctin=String(s.customerGstin||'').trim().toUpperCase();let registered=false;
+    if(ctin){if(!gstinValid(ctin))issue('error',ref,'Customer GSTIN "'+ctin+'" is not valid — treated as unregistered (B2C) until corrected.');else if(ctin===sellerGstin)issue('error',ref,'Customer GSTIN is the same as your own GSTIN.');else registered=true;}
+    const inter=s.supplyType==='inter';
+    const pos=s.placeOfSupply||(registered?ctin.slice(0,2):'')||(!inter?sellerState:'');
+    if(!pos)issue('error',ref,'Place of Supply is missing (required for inter-state sales to unregistered customers) — edit the sale and select it.');
+    else if(!gstr1StateName(pos))issue('error',ref,'Place of Supply code "'+pos+'" is not a valid state code.');
+    if(pos&&sellerState&&((pos!==sellerState)!==inter))issue('error',ref,'Supply type ('+(inter?'Inter-state/IGST':'Intra-state/CGST+SGST')+') does not match Place of Supply '+pos+' vs your state '+sellerState+' — wrong tax heads would be filed.');
+    const val=gstr1R2(s.grandTotal);
+    if(!(val>0))issue('warn',ref,'Invoice value is zero.');
+    const brk=Array.isArray(s.breakup)?s.breakup:[];
+    if(!brk.length)issue('error',ref,'Invoice has no tax breakup.');
+    const itms=[];let n=0;
+    brk.forEach(b=>{
+      const rate=+b.rate||0;
+      if(!GSTR1_RATES.includes(rate)){issue('error',ref,'GST rate '+rate+'% is not a valid GST slab.');}
+      if(rate<=0){const k=(inter?'INTR':'INTRA')+(registered?'B2B':'B2C');nil[k]=gstr1R2(nil[k]+(+b.taxable||0));return;}
+      itms.push({num:++n,itm_det:taxRow(rate,b.taxable,b.gstAmt,inter)});
+    });
+    if(itms.length){
+      if(registered){(b2bMap[ctin]=b2bMap[ctin]||[]).push({inum,idt:gstr1Dmy(s.date),val,pos,rchrg:'N',inv_typ:'R',itms,_name:s.customer||''});}
+      else if(inter&&val>GSTR1_B2CL_LIMIT){(b2cl[pos]=b2cl[pos]||[]).push({inum,idt:gstr1Dmy(s.date),val,itms:itms.map(i=>({num:i.num,itm_det:{txval:i.itm_det.txval,rt:i.itm_det.rt,iamt:i.itm_det.iamt,csamt:0}}))});}
+      else{itms.forEach(i=>{const d=i.itm_det,k=(inter?'INTER':'INTRA')+'|'+pos+'|'+d.rt;const r=b2cs[k]=b2cs[k]||{sply_ty:inter?'INTER':'INTRA',rt:d.rt,typ:'OE',pos,txval:0,iamt:0,camt:0,samt:0,csamt:0};['txval','iamt','camt','samt'].forEach(f=>r[f]=gstr1R2(r[f]+d[f]));});}
+    }
+    /* HSN summary (Table 12) from invoice lines, scaled for invoice-level discount */
+    const scale=(+s.subtotalBeforeDiscount>0)?1-((+s.discountAmount||0)/(+s.subtotalBeforeDiscount)):1;
+    (s.lines||[]).forEach(l=>{
+      const p=prod(l.productId)||{},hsn=String(l.hsn||p.hsn||'').trim(),g=+l.gstPercent||0,amt=(+l.qty||0)*(+l.price||0);
+      const taxable=(s.priceMode==='inclusive'?(g>0?amt/(1+g/100):amt):amt)*scale,tax=taxable*g/100;
+      if(!hsn){const k='n|'+(l.name||l.productId);if(!seenHsnIssue[k]){seenHsnIssue[k]=1;issue('error',l.name||'Product','No HSN code on this product — HSN is mandatory in Table 12.');}}
+      else if(!/^\d+$/.test(hsn)||hsn.length<minDig||hsn.length>8){const k='h|'+hsn;if(!seenHsnIssue[k]){seenHsnIssue[k]=1;issue('error',(l.name||'Product')+' / HSN '+hsn,'HSN must be numeric with at least '+minDig+' digits (turnover '+(o.aato5cr?'above':'up to')+' ₹5 Cr).');}}
+      const uqc=p.uqc||'NOS',tgt=registered?hsnB2B:hsnB2C,key=hsn+'|'+uqc+'|'+g;
+      const r=tgt[key]=tgt[key]||{hsn_sc:hsn,desc:String(l.name||p.name||'').slice(0,30),uqc,qty:0,val:0,rt:g,txval:0,iamt:0,camt:0,samt:0,csamt:0};
+      r.qty+=(+l.qty||0);r.txval+=taxable;r.val+=taxable+tax;
+      if(inter)r.iamt+=tax;else{r.camt+=tax/2;r.samt+=tax/2;}
+    });
+  });
+  const fin=r=>{['qty','val','txval','iamt','camt','samt'].forEach(f=>r[f]=gstr1R2(r[f]));return r;};
+  const hsnList=m=>Object.values(m).map(fin).sort((a,b)=>String(a.hsn_sc).localeCompare(b.hsn_sc)||a.rt-b.rt).map((r,i)=>({num:i+1,...r}));
+  /* documents issued (Table 13) – gaps in a series are reported as cancelled/unused */
+  const series={};
+  sales.forEach(s=>{const inum=String(s.invoiceNo||''),m=inum.match(/^(.*?)(\d+)$/),key=m?m[1]:inum;(series[key]=series[key]||[]).push({inum,n:m?parseInt(m[2],10):0});});
+  const docs=Object.entries(series).map(([k,arr])=>{arr.sort((a,b)=>a.n-b.n);const first=arr[0],last=arr[arr.length-1],span=last.n-first.n+1,tot=Math.max(span,arr.length),canc=tot-arr.length;
+    if(canc>0)issue('info',k||'Invoice series','Series "'+(k||'(none)')+'": '+canc+' number(s) missing between '+first.inum+' and '+last.inum+' — reported as cancelled/unused in Table 13. Check that this is correct.');
+    return{from:first.inum,to:last.inum,totnum:tot,cancel:canc,net_issue:arr.length};});
+  const b2b=Object.entries(b2bMap).map(([ctin,inv])=>({ctin,inv}));
+  const b2clL=Object.entries(b2cl).map(([pos,inv])=>({pos,inv}));
+  const b2csL=Object.values(b2cs).sort((a,b)=>a.pos.localeCompare(b.pos)||a.rt-b.rt);
+  const sum=(arr,f)=>gstr1R2(arr.reduce((t,x)=>t+(x[f]||0),0));
+  const itmSum=(invs,f)=>gstr1R2(invs.reduce((t,v)=>t+v.itms.reduce((u,i)=>u+(i.itm_det[f]||0),0),0));
+  const allB2b=b2b.flatMap(x=>x.inv),allB2cl=b2clL.flatMap(x=>x.inv);
+  const totals={invoices:invCount,
+    b2b:{count:allB2b.length,txval:itmSum(allB2b,'txval'),iamt:itmSum(allB2b,'iamt'),camt:itmSum(allB2b,'camt'),samt:itmSum(allB2b,'samt')},
+    b2cl:{count:allB2cl.length,txval:itmSum(allB2cl,'txval'),iamt:itmSum(allB2cl,'iamt'),camt:0,samt:0},
+    b2cs:{count:b2csL.length,txval:sum(b2csL,'txval'),iamt:sum(b2csL,'iamt'),camt:sum(b2csL,'camt'),samt:sum(b2csL,'samt')},
+    nil:gstr1R2(Object.values(nil).reduce((a,b)=>a+b,0))};
+  const rank={error:0,warn:1,info:2};issues.sort((a,b)=>rank[a.level]-rank[b.level]);
+  return{period:per,gstin:sellerGstin,sellerState,minDig,b2b,b2cl:b2clL,b2cs:b2csL,nil,hsn_b2b:hsnList(hsnB2B),hsn_b2c:hsnList(hsnB2C),docs,totals,issues,errors:issues.filter(i=>i.level==='error').length};
+}
+function gstr1Json(d,opts){
+  const o=opts||{},out={gstin:d.gstin,fp:d.period.fp,version:'GST2.2',hash:'hash',gt:+o.gt||0,cur_gt:+o.cgt||0};
+  if(d.b2b.length)out.b2b=d.b2b.map(c=>({ctin:c.ctin,inv:c.inv.map(i=>({inum:i.inum,idt:i.idt,val:i.val,pos:i.pos,rchrg:i.rchrg,inv_typ:i.inv_typ,itms:i.itms}))}));
+  if(d.b2cl.length)out.b2cl=d.b2cl.map(c=>({pos:c.pos,inv:c.inv}));
+  if(d.b2cs.length)out.b2cs=d.b2cs;
+  const nilTotal=Object.values(d.nil).reduce((a,b)=>a+b,0);
+  if(nilTotal>0)out.nil={inv:Object.entries(d.nil).filter(e=>e[1]>0).map(([k,v])=>({sply_ty:k,expt_amt:0,nil_amt:gstr1R2(v),ngsup_amt:0}))};
+  const hs={};if(d.hsn_b2b.length)hs.hsn_b2b=d.hsn_b2b;if(d.hsn_b2c.length)hs.hsn_b2c=d.hsn_b2c;if(Object.keys(hs).length)out.hsn=hs;
+  if(d.docs.length)out.doc_issue={doc_det:[{doc_num:1,doc_typ:'Invoices for outward supply',docs:d.docs.map((x,i)=>({num:i+1,from:x.from,to:x.to,totnum:x.totnum,cancel:x.cancel,net_issue:x.net_issue}))}]};
+  return out;
+}
+function gstr1PosLabel(c){return c?(c+'-'+gstr1StateName(c)):'';}
+function gstr1Xlsx(d){
+  const wb=XLSX.utils.book_new(),add=(name,rows)=>XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rows),name);
+  const b2b=[['GSTIN/UIN of Recipient','Receiver Name','Invoice Number','Invoice date','Invoice Value','Place Of Supply','Reverse Charge','Applicable % of Tax Rate','Invoice Type','E-Commerce GSTIN','Rate','Taxable Value','Cess Amount']];
+  d.b2b.forEach(c=>c.inv.forEach(i=>i.itms.forEach(t=>b2b.push([c.ctin,i._name,i.inum,gstr1DmyMon(i.idt.split('-').reverse().join('-')),i.val,gstr1PosLabel(i.pos),'N','','Regular','',t.itm_det.rt,t.itm_det.txval,0]))));
+  add('b2b',b2b);
+  const b2cl=[['Invoice Number','Invoice date','Invoice Value','Place Of Supply','Applicable % of Tax Rate','Rate','Taxable Value','Cess Amount','E-Commerce GSTIN']];
+  d.b2cl.forEach(c=>c.inv.forEach(i=>i.itms.forEach(t=>b2cl.push([i.inum,gstr1DmyMon(i.idt.split('-').reverse().join('-')),i.val,gstr1PosLabel(c.pos),'',t.itm_det.rt,t.itm_det.txval,0,'']))));
+  add('b2cl',b2cl);
+  const b2cs=[['Type','Place Of Supply','Applicable % of Tax Rate','Rate','Taxable Value','Cess Amount','E-Commerce GSTIN']];
+  d.b2cs.forEach(r=>b2cs.push(['OE',gstr1PosLabel(r.pos),'',r.rt,r.txval,0,'']));add('b2cs',b2cs);
+  const nl=d.nil,ex=[['Description','Nil Rated Supplies','Exempted(other than nil rated/non GST supply)','Non-GST supplies'],
+    ['Inter-State supplies to registered persons',nl.INTRB2B,0,0],['Intra-State supplies to registered persons',nl.INTRAB2B,0,0],['Inter-State supplies to unregistered persons',nl.INTRB2C,0,0],['Intra-State supplies to unregistered persons',nl.INTRAB2C,0,0]];add('exemp',ex);
+  const hh=['HSN','Description','UQC','Total Quantity','Total Value','Rate','Taxable Value','Integrated Tax Amount','Central Tax Amount','State/UT Tax Amount','Cess Amount'];
+  const hr=a=>[hh,...a.map(r=>[r.hsn_sc,r.desc,r.uqc+'-'+(((GSTR1_UQC.find(u=>u[0]===r.uqc)||[])[1]||(' - '+r.uqc)).split(' - ')[1]).toUpperCase(),r.qty,r.val,r.rt,r.txval,r.iamt,r.camt,r.samt,0])];
+  add('hsn(b2b)',hr(d.hsn_b2b));add('hsn(b2c)',hr(d.hsn_b2c));
+  add('docs',[['Nature of Document','Sr. No. From','Sr. No. To','Total Number','Cancelled'],...d.docs.map(x=>['Invoices for outward supply',x.from,x.to,x.totnum,x.cancel])]);
+  add('Issues (not for upload)',[['Level','Reference','Message'],...d.issues.map(i=>[i.level,i.ref,i.msg])]);
+  return wb;
+}
+/* ---------- screen ---------- */
+let gstr1Data=null;
+function gstr1Cfg(){DB.settings.gstr1=DB.settings.gstr1||{};return DB.settings.gstr1;}
+function gstr1Opts(){
+  const c=gstr1Cfg(),ym=(document.getElementById('g1_month')||{}).value||c.ym,freq=(document.getElementById('g1_freq')||{}).value||c.freq||'M';
+  return{ym,freq,aato5cr:((document.getElementById('g1_aato')||{}).value||c.aato||'4')==='6',gt:(document.getElementById('g1_gt')||{}).value||c.gt||0,cgt:(document.getElementById('g1_cgt')||{}).value||c.cgt||0};
+}
+function renderGstr1(){
+  const c=gstr1Cfg();
+  if(!c.ym){const d=new Date();d.setDate(1);d.setMonth(d.getMonth()-1);c.ym=d.getFullYear()+'-'+gstr1Pad(d.getMonth()+1);}
+  document.getElementById('view').innerHTML=`
+    <div class="row db-filter" style="margin-bottom:10px">
+      <div class="field"><label>Month</label><input type="month" id="g1_month" value="${c.ym}" onchange="gstr1Save()"></div>
+      <div class="field"><label>Filing</label><select id="g1_freq" onchange="gstr1Save()"><option value="M" ${c.freq!=='Q'?'selected':''}>Monthly</option><option value="Q" ${c.freq==='Q'?'selected':''}>Quarterly (QRMP) – whole quarter of this month</option></select></div>
+      <div class="field"><label>HSN digits (annual turnover)</label><select id="g1_aato" onchange="gstr1Save()"><option value="4" ${c.aato!=='6'?'selected':''}>Up to ₹5 Cr – 4 digits</option><option value="6" ${c.aato==='6'?'selected':''}>Above ₹5 Cr – 6 digits</option></select></div>
+      <div class="field"><label>Gross turnover, prev. FY (₹)</label><input type="number" id="g1_gt" value="${c.gt||0}" onchange="gstr1Save()"></div>
+      <div class="field"><label>Gross turnover, Apr–this month (₹)</label><input type="number" id="g1_cgt" value="${c.cgt||0}" onchange="gstr1Save()"></div>
+    </div>
+    <div id="gstr1Out"></div>`;
+  runGstr1();
+}
+function gstr1Save(){const c=gstr1Cfg(),o=gstr1Opts();c.ym=o.ym;c.freq=o.freq;c.aato=o.aato5cr?'6':'4';c.gt=+o.gt||0;c.cgt=+o.cgt||0;saveDB();runGstr1();}
+function runGstr1(){
+  const o=gstr1Opts();if(!o.ym){document.getElementById('gstr1Out').innerHTML='<div class="empty">Pick a month.</div>';return;}
+  const d=gstr1Data=gstr1Build(DB,o),t=d.totals,m=n=>'₹'+fmt(n);
+  const lvl={error:'<span class="badge bad">Error</span>',warn:'<span class="badge partial">Warning</span>',info:'<span class="badge ok">Info</span>'};
+  const trow=(n,x)=>`<tr><td>${n}</td><td class="num mono">${x.count}</td><td class="num mono">${m(x.txval)}</td><td class="num mono">${m(x.iamt)}</td><td class="num mono">${m(x.camt)}</td><td class="num mono">${m(x.samt)}</td></tr>`;
+  const invRows=(a,reg)=>a.map(c=>c.inv.map(i=>`<tr><td class="mono">${reg?safeText(c.ctin):safeText(gstr1PosLabel(c.pos))}</td><td class="mono">${safeText(i.inum)}</td><td>${safeText(i.idt)}</td><td class="num mono">${m(i.val)}</td><td>${safeText(gstr1PosLabel(i.pos||c.pos))}</td><td class="num mono">${m(i.itms.reduce((s,x)=>s+x.itm_det.txval,0))}</td><td class="num mono">${m(i.itms.reduce((s,x)=>s+(x.itm_det.iamt||0)+(x.itm_det.camt||0)+(x.itm_det.samt||0),0))}</td></tr>`).join('')).join('');
+  const hsnRows=a=>a.map(r=>`<tr><td class="mono">${safeText(r.hsn_sc)}</td><td>${safeText(r.desc)}</td><td>${r.uqc}</td><td class="num mono">${r.qty}</td><td class="num mono">${r.rt}%</td><td class="num mono">${m(r.txval)}</td><td class="num mono">${m(r.iamt+r.camt+r.samt)}</td></tr>`).join('');
+  const tbl=(title,head,body,cols)=>`<div class="panel" style="margin-bottom:14px"><div class="panel-head"><h3>${title}</h3></div><div class="panel-body table-scroll" style="padding:0"><table><thead><tr>${head}</tr></thead><tbody>${body||`<tr><td colspan="${cols}" class="empty">Nothing in this period.</td></tr>`}</tbody></table></div></div>`;
+  document.getElementById('gstr1Out').innerHTML=`
+    <div class="panel" style="margin-bottom:14px"><div class="panel-head" style="align-items:center;flex-wrap:wrap;gap:8px"><div><h3>GSTR-1 · ${safeText(d.period.label)} · return period ${d.period.fp}</h3><span style="font-size:12px;color:var(--text-soft)">${t.invoices} sale invoice(s) · Sale Invoices only (Non-GST vouchers, services and purchases are excluded) · GSTIN ${safeText(d.gstin||'—')}</span></div>
+      <div class="row" style="gap:8px;margin:0"><button class="btn amber sm" onclick="gstr1Download('json')">⬇ JSON (for portal upload)</button><button class="btn ghost sm" onclick="gstr1Download('xlsx')">⬇ Excel</button></div></div></div>
+    <div class="panel" style="margin-bottom:14px"><div class="panel-head"><h3>Check before filing</h3><span class="badge ${d.errors?'bad':'ok'}">${d.errors?d.errors+' error(s)':'No errors'}</span></div>
+      <div class="panel-body table-scroll" style="padding:0"><table><thead><tr><th>Level</th><th>Reference</th><th>Issue</th></tr></thead><tbody>${d.issues.length?d.issues.map(i=>`<tr><td>${lvl[i.level]}</td><td>${safeText(i.ref)}</td><td>${safeText(i.msg)}</td></tr>`).join(''):'<tr><td colspan="3" class="empty">All invoices passed the checks.</td></tr>'}</tbody></table></div></div>
+    <div class="panel" style="margin-bottom:14px"><div class="panel-head"><h3>Summary</h3></div><div class="panel-body table-scroll" style="padding:0"><table><thead><tr><th>Table</th><th class="num">Invoices / rows</th><th class="num">Taxable</th><th class="num">IGST</th><th class="num">CGST</th><th class="num">SGST</th></tr></thead><tbody>
+      ${trow('4 – B2B (registered)',t.b2b)}${trow('5 – B2C Large (inter-state, above ₹1 lakh)',t.b2cl)}${trow('7 – B2C Others (state/rate wise)',t.b2cs)}
+      <tr><td>8 – Nil rated (0% items)</td><td class="num mono">—</td><td class="num mono">${m(t.nil)}</td><td></td><td></td><td></td></tr></tbody></table></div></div>
+    ${tbl('Table 4 – B2B invoices','<th>GSTIN</th><th>Invoice</th><th>Date</th><th class="num">Value</th><th>Place of supply</th><th class="num">Taxable</th><th class="num">Tax</th>',invRows(d.b2b,true),7)}
+    ${tbl('Table 5 – B2C Large invoices','<th>Place of supply</th><th>Invoice</th><th>Date</th><th class="num">Value</th><th>Place of supply</th><th class="num">Taxable</th><th class="num">Tax</th>',invRows(d.b2cl,false),7)}
+    ${tbl('Table 7 – B2C Others','<th>Type</th><th>Place of supply</th><th class="num">Rate</th><th class="num">Taxable</th><th class="num">IGST</th><th class="num">CGST</th><th class="num">SGST</th>',d.b2cs.map(r=>`<tr><td>${r.sply_ty}</td><td>${safeText(gstr1PosLabel(r.pos))}</td><td class="num mono">${r.rt}%</td><td class="num mono">${m(r.txval)}</td><td class="num mono">${m(r.iamt)}</td><td class="num mono">${m(r.camt)}</td><td class="num mono">${m(r.samt)}</td></tr>`).join(''),7)}
+    ${tbl('Table 12 – HSN summary · B2B','<th>HSN</th><th>Description</th><th>UQC</th><th class="num">Qty</th><th class="num">Rate</th><th class="num">Taxable</th><th class="num">Tax</th>',hsnRows(d.hsn_b2b),7)}
+    ${tbl('Table 12 – HSN summary · B2C','<th>HSN</th><th>Description</th><th>UQC</th><th class="num">Qty</th><th class="num">Rate</th><th class="num">Taxable</th><th class="num">Tax</th>',hsnRows(d.hsn_b2c),7)}
+    ${tbl('Table 13 – Documents issued (Invoices)','<th>From</th><th>To</th><th class="num">Total</th><th class="num">Cancelled</th><th class="num">Net issued</th>',d.docs.map(x=>`<tr><td class="mono">${safeText(x.from)}</td><td class="mono">${safeText(x.to)}</td><td class="num mono">${x.totnum}</td><td class="num mono">${x.cancel}</td><td class="num mono">${x.net_issue}</td></tr>`).join(''),5)}`;
+}
+function gstr1Download(kind){
+  const o=gstr1Opts(),d=gstr1Build(DB,o);
+  const go=()=>{
+    const base='GSTR1_'+(d.gstin||'NOGSTIN')+'_'+d.period.fp;
+    if(kind==='json'){const blob=new Blob([JSON.stringify(gstr1Json(d,o),null,2)],{type:'application/json'});gstr1SaveFile(base+'.json',blob);}
+    else{XLSX.writeFile(gstr1Xlsx(d),base+'.xlsx');}
+    showToast('GSTR-1 '+(kind==='json'?'JSON':'Excel')+' downloaded');
+  };
+  if(!d.totals.invoices){showToast('No sale invoices in this period');return;}
+  if(d.errors)askConfirm(d.errors+' error(s) found in this return. The file will not be accepted by the GST portal until they are fixed. Download anyway?',go);else go();
+}
+function gstr1SaveFile(name,blob){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},800);}
 
 </script>
 </body>

@@ -504,6 +504,10 @@ html:not([data-dark-mode="1"]):not([data-theme="midnight"]):not([data-theme="gra
 }
 html:not([data-dark-mode="1"]):not([data-theme="midnight"]):not([data-theme="graphite"]) #sidebar .navbtn.active .ic{background:var(--theme-accent,var(--amber));}
 html:not([data-dark-mode="1"]):not([data-theme="midnight"]):not([data-theme="graphite"]) #sidebar .logout-contrast:hover{color:#ff8f8f!important;}
+.bc-chips{display:flex;flex-wrap:wrap;gap:5px;margin:2px 0 6px;align-items:center;}
+.bc-chip{display:inline-flex;align-items:center;gap:6px;background:var(--md-accent-soft,#eee);color:var(--md-text,inherit);border-radius:99px;padding:3px 6px 3px 10px;font-size:11.5px;}
+.bc-chip a{cursor:pointer;opacity:.6;font-size:11px;padding:0 3px;}.bc-chip a:hover{opacity:1;color:var(--red);}
+.bc-count{font-size:11px;color:var(--text-soft);margin-left:4px;}
 /* v1.0.9 dark-surface/header correction */
 html[data-dark-mode="1"] #sidebar,
 html[data-theme="midnight"] #sidebar,
@@ -1338,6 +1342,7 @@ html[data-dark-mode="1"] button.btn.danger:hover,html[data-theme="midnight"] but
       <button class="navbtn adminonly" data-view="purchase"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h3l2.5 11.5h11L21 7H6"/></svg></span> <span class="label">Purchase</span></button>
       <button class="navbtn" data-view="sale"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg></span> <span class="label">Sale (Invoice)</span></button>
       <button class="navbtn" data-view="voucher"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9a2 2 0 0 0 0 6v3h18v-3a2 2 0 0 1 0-6V6H3z"/><path d="M13 7v10" stroke-dasharray="2 2"/></svg></span> <span class="label">Sales Voucher (Non-GST)</span></button>
+      <button class="navbtn" data-view="creditnote"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h4"/></svg></span> <span class="label">Credit Note</span></button>
       <button class="navbtn" data-view="service"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.8-3.8a6 6 0 0 1-7.9 7.9l-6.9 6.9a2.1 2.1 0 0 1-3-3l6.9-6.9a6 6 0 0 1 7.9-7.9z"/></svg></span> <span class="label">Service Sale</span></button>
       <button class="navbtn" data-view="quotation"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg></span> <span class="label">Quotation / Challan</span></button>
       <div class="navlabel adminonly">Approvals</div>
@@ -1346,7 +1351,6 @@ html[data-dark-mode="1"] button.btn.danger:hover,html[data-theme="midnight"] but
       <button class="navbtn" data-view="purchaseregister"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M4 10h10M4 15h7"/><path d="M18 13v7m0 0l-3-3m3 3l3-3"/></svg></span> <span class="label">Purchase Register</span></button>
       <button class="navbtn" data-view="paymentvoucher"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h10M7 9h10M7 5c6 0 6 8 0 8h-1l7 7"/></svg></span> <span class="label">Purchase Payment Voucher</span></button>
       <button class="navbtn" data-view="salesregister"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M4 10h10M4 15h7"/><path d="M18 20v-7m0 0l-3 3m3-3l3 3"/></svg></span> <span class="label">Sales Register</span></button>
-      <button class="navbtn adminonly" data-view="creditnote"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h4"/></svg></span> <span class="label">Credit Note</span></button>
       <button class="navbtn adminonly" data-view="gstr1"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h7"/></svg></span> <span class="label">GSTR-1 Return</span></button>
       <button class="navbtn" data-view="voucherregister"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M4 10h10M4 15h7"/><path d="M15 18l2 2 4-4"/></svg></span> <span class="label">Non-GST Sale Register</span></button>
       <button class="navbtn" data-view="serviceregister"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M4 10h10M4 15h7"/><circle cx="18" cy="17" r="3"/></svg></span> <span class="label">Service Register</span></button>
@@ -1433,7 +1437,7 @@ window.APP_ENV = Object.freeze({
 </script>
 <script>
 /* App version. Bumped by tools/release.py (also updates version.json and the ?v= cache stamps in index.html). */
-const APP_VERSION='1.0.77';
+const APP_VERSION='1.0.79';
 document.title='Shop Manager — v'+APP_VERSION;
 
 </script>
@@ -3414,7 +3418,7 @@ function renderSaleLines(){
         <button class="btn danger sm" style="height:37px;align-self:end;" onclick="saleLines.splice(${i},1); renderSaleLines();">✕</button>
       </div>
       <div class="line-sub-row">
-        <div class="field" style="margin:0;"><label>Serial / Barcode <span style="color:#8a8578;font-weight:400;">(scan or type, Enter to fetch item)</span></label><input value="${l.detail||''}" placeholder="Scan/type barcode or leave blank" autocomplete="off" oninput="saleLines[${i}].detail=this.value;" onkeydown="if(event.key==='Enter'){event.preventDefault(); handleLineBarcodeLookup(${i});}"></div>
+        <div class="field" style="margin:0;"><label>Serial / Barcode <span style="color:#8a8578;font-weight:400;">(scan or type, Enter to add — several allowed per item)</span></label>${lineCodesChipsHTML('sale',i,l)}<input value="" placeholder="Scan/type barcode, press Enter" autocomplete="off" onkeydown="if(event.key==='Enter'){event.preventDefault(); lineBarcodeAdd('sale',${i},this.value);}" onblur="if(this.value.trim())lineBarcodeAdd('sale',${i},this.value,true)"></div>
         <div class="field" style="margin:0;"><label>Line Description</label><input value="${l.description||''}" placeholder="Extra detail about this item (optional)" oninput="saleLines[${i}].description=this.value;"></div>
       </div>
     </div>`;
@@ -3433,10 +3437,10 @@ function onSaleLineChange(i){
   if(prod){
     saleLines[i].price = prod.salePrice;
     saleLines[i].gstPercent = prod.gstPercent!=null?prod.gstPercent:(DB.settings.gstPercent||18);
-    const usedOnThisInvoice = saleLines.map((l,idx)=>idx===i?null:l.detail).filter(Boolean);
+    const usedOnThisInvoice = usedLineCodes(saleLines,i);
     const avail = getAvailableBarcodes(prod).filter(u=>!usedOnThisInvoice.includes(u.code));
     if(avail.length===1){
-      saleLines[i].detail = avail[0].code;
+      setLineCodes(saleLines[i],[avail[0].code]);
     } else if(avail.length>1){
       renderSaleLines();
       openSaleBarcodePicker(i, prod, avail);
@@ -3447,48 +3451,60 @@ function onSaleLineChange(i){
 }
 function openSaleBarcodePicker(lineIdx, prod, avail, kind){
   kind = kind || 'sale';
-  openModal('Select Barcode — '+prod.name, `
-    <p style="font-size:13px;color:#5b5748;margin-top:0;">This item has multiple barcodes in stock. Select which unit is being sold:</p>
-    <div style="display:flex;flex-direction:column;gap:6px;max-height:280px;overflow-y:auto;">
-      ${avail.map(u=>`<button class="btn ghost sm" style="text-align:left;" onclick="assignSaleBarcode(${lineIdx}, '${u.code}', '${kind}')">${u.code}</button>`).join('')}
+  openModal('Select Barcodes — '+prod.name, `
+    <p style="font-size:13px;color:#5b5748;margin-top:0;">This item has several barcodes in stock. Tick every unit being sold on this line:</p>
+    <div style="display:flex;flex-direction:column;gap:4px;max-height:280px;overflow-y:auto;">
+      ${avail.map((u,k)=>`<label style="display:flex;align-items:center;gap:8px;font-weight:500;margin:0;"><input type="checkbox" class="bcpick" style="width:auto;" value="${safeText(u.code)}" ${k===0?'checked':''}> <span class="mono">${safeText(u.code)}</span></label>`).join('')}
     </div>
-  `, `<button class="btn ghost" onclick="closeModal();">Skip — no specific barcode</button>`);
+  `, `<button class="btn ghost" onclick="closeModal();">Skip — no specific barcode</button><button class="btn amber" onclick="assignSaleBarcodes(${lineIdx}, '${kind}')">Use selected</button>`);
 }
-function assignSaleBarcode(lineIdx, code, kind){
-  if(kind==='voucher'){ voucherLines[lineIdx].detail = code; closeModal(); renderVoucherLines(); }
-  else { saleLines[lineIdx].detail = code; closeModal(); renderSaleLines(); }
+function assignSaleBarcodes(lineIdx, kind){
+  const L = kind==='voucher' ? voucherLines : saleLines;
+  const picked = Array.from(document.querySelectorAll('#modalBody .bcpick:checked')).map(x=>x.value);
+  if(picked.length) setLineCodes(L[lineIdx], [...lineCodes(L[lineIdx]), ...picked.filter(c=>!lineCodes(L[lineIdx]).includes(c))]);
+  closeModal();
+  if(kind==='voucher') renderVoucherLines(); else renderSaleLines();
+}
+/* ---- several barcodes / serials per line (stored comma-separated in line.detail) ---- */
+function lineCodes(l){ return String((l&&l.detail)||'').split(/\s*,\s*/).filter(Boolean); }
+function setLineCodes(l,codes){ l.detail = codes.join(', '); if(codes.length > (+l.qty||0)) l.qty = codes.length; }
+function setLineBarcodes(l,status){ lineCodes(l).forEach(c=>setBarcodeStatus(l.productId,c,status)); }
+function usedLineCodes(lines,skipIdx){ const out=[]; (lines||[]).forEach((l,i)=>{ if(i!==skipIdx) out.push(...lineCodes(l)); }); return out; }
+function lineCodesChipsHTML(kind,i,l){
+  const c = lineCodes(l);
+  return c.length ? `<div class="bc-chips">${c.map((x,k)=>`<span class="bc-chip mono">${safeText(x)}<a title="Remove" onclick="removeLineCode('${kind}',${i},${k})">✕</a></span>`).join('')}<span class="bc-count">${c.length} of ${l.qty||0} qty</span></div>` : '';
+}
+function removeLineCode(kind,i,k){
+  const L = kind==='voucher' ? voucherLines : saleLines, c = lineCodes(L[i]); c.splice(k,1); L[i].detail = c.join(', ');
+  if(kind==='voucher') renderVoucherLines(); else renderSaleLines();
+}
+function lineBarcodeAdd(kind,i,raw,fromBlur){
+  const isV = kind==='voucher', L = isV ? voucherLines : saleLines, render = isV ? renderVoucherLines : renderSaleLines, boxId = isV ? 'voucherLines' : 'saleLines';
+  const code = String(raw||'').trim().replace(/,/g,' ');
+  if(!code || !L[i]) return;
+  const l = L[i], codes = lineCodes(l);
+  if(codes.includes(code)){ showToast('Barcode already added on this line'); render(); return; }
+  if(usedLineCodes(L,i).includes(code)){ showToast('This barcode is already used on another line of this '+(isV?'voucher':'invoice')); render(); return; }
+  const found = findAvailableUnit(code);
+  let target = i, manual = false;
+  if(found){
+    const pid = found.product.id;
+    if(l.productId===pid) target = i;
+    else { const j = L.findIndex(x=>x.productId===pid); if(j>=0) target = j; else if(!l.productId) target = i; else { L.push(isV?{productId:'',qty:1,price:0,detail:'',description:''}:{productId:'',qty:1,price:0,gstPercent:DB.settings.gstPercent||18,detail:'',description:''}); target = L.length-1; } }
+    const t = L[target];
+    if(t.productId!==pid){ t.productId = pid; t.price = found.product.salePrice; if(!isV) t.gstPercent = found.product.gstPercent!=null?found.product.gstPercent:(DB.settings.gstPercent||18); }
+    setLineCodes(t,[...lineCodes(t),code]);
+    showToast(found.product.name+' — '+lineCodes(t).length+' barcode(s) on this line');
+  } else {
+    if(findAnyUnitOwner(code)){ showToast('This barcode was already sold — it isn\'t available in stock'); if(!fromBlur) render(); return; }
+    manual = true; setLineCodes(l,[...codes,code]);
+    showToast('Not a stocked barcode — kept as a manual serial number');
+  }
+  render();
+  if(!fromBlur) setTimeout(()=>{ const blocks = document.querySelectorAll('#'+boxId+' .line-block'); const b = blocks[manual?i:target]; const inp = b && b.querySelector('.line-sub-row input'); if(inp) inp.focus(); }, 30);
 }
 function addSaleLine(){ saleLines.push({productId:'', qty:1, price:0, gstPercent:DB.settings.gstPercent||18, detail:'', description:''}); renderSaleLines(); }
-function handleLineBarcodeLookup(idx){
-  const code = (saleLines[idx].detail||'').trim();
-  if(!code) return;
-  const usedElsewhere = saleLines.some((l,i)=>i!==idx && l.detail===code);
-  if(usedElsewhere){ showToast('This barcode is already used on another line of this invoice'); return; }
-  const found = findAvailableUnit(code);
-  if(!found){
-    const soldElsewhere = findAnyUnitOwner(code);
-    if(soldElsewhere){ showToast('This barcode was already sold — it isn\'t available in stock'); }
-    else { showToast('No item matches that barcode — you can still search by name, or keep it as a manual serial number'); }
-    return;
-  }
-  const prod = found.product;
-  saleLines[idx].productId = prod.id;
-  saleLines[idx].price = prod.salePrice;
-  saleLines[idx].gstPercent = prod.gstPercent!=null?prod.gstPercent:(DB.settings.gstPercent||18);
-  saleLines[idx].detail = code;
-  if(idx === saleLines.length-1){
-    saleLines.push({productId:'', qty:1, price:0, gstPercent:DB.settings.gstPercent||18, detail:'', description:''});
-  }
-  renderSaleLines();
-  showToast(prod.name+' fetched — scan next item');
-  setTimeout(()=>{
-    const blocks = document.querySelectorAll('#saleLines .line-block');
-    if(blocks.length){
-      const lastInput = blocks[blocks.length-1].querySelector('.line-sub-row input');
-      if(lastInput) lastInput.focus();
-    }
-  }, 30);
-}
+function handleLineBarcodeLookup(idx){ /* legacy entry point */ }
 function computeGstSplit(lineTotal, gstPct, priceMode){
   // lineTotal = sum(qty*price) as entered. Returns {taxable, gstAmt, grand}
   if(priceMode==='inclusive'){
@@ -3593,6 +3609,7 @@ function saveSale(){
   const empId = document.getElementById('s_employee').value;
   const lines = saleLines.filter(l=>l.productId && l.qty>0);
   if(!lines.length){ showToast('Add at least one valid line item'); return; }
+  { const bad = lines.find(l=>lineCodes(l).length > l.qty); if(bad){ showToast(''+(bad.name||'An item')+' has more barcodes than its quantity — increase Qty or remove a barcode'); return; } }
   // negative stock is allowed (e.g. sold ahead of a pending purchase) — just warn, never block
   const oldSale = editingSaleId ? DB.sales.find(x=>x.id===editingSaleId) : null;
   let willGoNegative = [];
@@ -3629,9 +3646,9 @@ function saveSale(){
   if(editingSaleId){
     const saleChanges={invoiceNo,customer,phone:document.getElementById('s_phone').value.trim(),customerGstin,employee:emp?emp.name:'—',date:document.getElementById('s_date').value||todayStr(),lines:newLines,subtotal:sub,subtotalBeforeDiscount,supplyType:supply,placeOfSupply:document.getElementById('s_pos').value,priceMode,gstAmount:gstAmt,breakup,discountAmount,grandTotal,paidAmount,deduction,paymentMode,notes};
     if(currentUserRole!=='admin'){requestRegisterApproval('sale',oldSale.id,'update',saleChanges);showToast('Sale changes sent for Admin approval');renderSalesRegister();return;}
-    oldSale.lines.forEach(l=>{ const prod=DB.products.find(p=>p.id===l.productId); if(prod) prod.stock += l.qty; if(l.detail) setBarcodeStatus(l.productId, l.detail, 'available'); });
+    oldSale.lines.forEach(l=>{ const prod=DB.products.find(p=>p.id===l.productId); if(prod) prod.stock += l.qty; setLineBarcodes(l,'available'); });
     Object.assign(oldSale,saleChanges);
-    newLines.forEach(l=>{ DB.products.find(p=>p.id===l.productId).stock -= l.qty; if(l.detail) setBarcodeStatus(l.productId, l.detail, 'sold'); });
+    newLines.forEach(l=>{ DB.products.find(p=>p.id===l.productId).stock -= l.qty; setLineBarcodes(l,'sold'); });
     saveDB(); showToast(willGoNegative.length ? ('Sale updated — note: '+willGoNegative.join(', ')+' now below zero stock') : 'Sale updated — stock adjusted');
     renderSale();
     printSaleInvoice(oldSale.id);
@@ -3641,13 +3658,13 @@ function saveSale(){
     employee: emp?emp.name:'—', date:document.getElementById('s_date').value||todayStr(), lines:newLines,
     subtotal:sub, subtotalBeforeDiscount, supplyType:supply, placeOfSupply:document.getElementById('s_pos').value, priceMode, gstAmount:gstAmt, breakup, discountAmount, grandTotal, paidAmount, deduction, paymentMode, notes };
   DB.sales.push(saleObj);
-  newLines.forEach(l=>{ DB.products.find(p=>p.id===l.productId).stock -= l.qty; if(l.detail) setBarcodeStatus(l.productId, l.detail, 'sold'); });
+  newLines.forEach(l=>{ DB.products.find(p=>p.id===l.productId).stock -= l.qty; setLineBarcodes(l,'sold'); });
   DB.settings.nextInvoiceNo=nextAfter(invoiceNo,DB.settings.nextInvoiceNo+1);
   saveDB(); showToast(willGoNegative.length ? ('Sale recorded — note: '+willGoNegative.join(', ')+' now below zero stock') : 'Sale recorded — stock updated');
   renderSale();
   printSaleInvoice(saleObj.id);
 }
-function deleteSale(id,afterFn){if(currentUserRole!=='admin'){requestRegisterApproval('sale',id,'delete',null);return;}requirePassword('delete this sale',()=>askConfirm('Delete this sale? Stock will be added back.',()=>{const r=DB.sales.find(x=>x.id===id);if(!r)return;r.lines.forEach(l=>{const p=DB.products.find(x=>x.id===l.productId);if(p)p.stock+=l.qty;if(l.detail)setBarcodeStatus(l.productId,l.detail,'available');});DB.sales=DB.sales.filter(x=>x.id!==id);saveDB();(afterFn||renderSalesRegister)();}));}
+function deleteSale(id,afterFn){if(currentUserRole!=='admin'){requestRegisterApproval('sale',id,'delete',null);return;}requirePassword('delete this sale',()=>askConfirm('Delete this sale? Stock will be added back.',()=>{const r=DB.sales.find(x=>x.id===id);if(!r)return;r.lines.forEach(l=>{const p=DB.products.find(x=>x.id===l.productId);if(p)p.stock+=l.qty;setLineBarcodes(l,'available');});DB.sales=DB.sales.filter(x=>x.id!==id);saveDB();(afterFn||renderSalesRegister)();}));}
 function printSaleInvoice(id){
   const s = DB.sales.find(x=>x.id===id);
   const st = DB.settings;
@@ -3788,7 +3805,7 @@ function renderVoucherLines(){
         <button class="btn danger sm" style="height:37px;align-self:end;" onclick="voucherLines.splice(${i},1); renderVoucherLines();">✕</button>
       </div>
       <div class="line-sub-row">
-        <div class="field" style="margin:0;"><label>Serial / Barcode</label><input value="${l.detail||''}" placeholder="Optional" autocomplete="off" oninput="voucherLines[${i}].detail=this.value;" onkeydown="if(event.key==='Enter'){event.preventDefault(); handleVoucherLineBarcodeLookup(${i});}"></div>
+        <div class="field" style="margin:0;"><label>Serial / Barcode <span style="color:#8a8578;font-weight:400;">(Enter to add — several allowed per item)</span></label>${lineCodesChipsHTML('voucher',i,l)}<input value="" placeholder="Scan/type barcode, press Enter" autocomplete="off" onkeydown="if(event.key==='Enter'){event.preventDefault(); lineBarcodeAdd('voucher',${i},this.value);}" onblur="if(this.value.trim())lineBarcodeAdd('voucher',${i},this.value,true)"></div>
         <div class="field" style="margin:0;"><label>Line Description</label><input value="${l.description||''}" placeholder="Extra detail about this item (optional)" oninput="voucherLines[${i}].description=this.value;"></div>
       </div>
     </div>`;
@@ -3799,37 +3816,14 @@ function onVoucherLineChange(i){
   const prod = DB.products.find(p=>p.id===voucherLines[i].productId);
   if(prod){
     voucherLines[i].price = prod.salePrice;
-    const usedOnThisInvoice = voucherLines.map((l,idx)=>idx===i?null:l.detail).filter(Boolean);
+    const usedOnThisInvoice = usedLineCodes(voucherLines,i);
     const avail = getAvailableBarcodes(prod).filter(u=>!usedOnThisInvoice.includes(u.code));
-    if(avail.length===1){ voucherLines[i].detail = avail[0].code; }
+    if(avail.length===1){ setLineCodes(voucherLines[i],[avail[0].code]); }
     else if(avail.length>1){ renderVoucherLines(); openSaleBarcodePicker(i, prod, avail, 'voucher'); return; }
   }
   renderVoucherLines();
 }
-function handleVoucherLineBarcodeLookup(idx){
-  const code = (voucherLines[idx].detail||'').trim();
-  if(!code) return;
-  const usedElsewhere = voucherLines.some((l,i)=>i!==idx && l.detail===code);
-  if(usedElsewhere){ showToast('This barcode is already used on another line of this voucher'); return; }
-  const found = findAvailableUnit(code);
-  if(!found){
-    const soldElsewhere = findAnyUnitOwner(code);
-    if(soldElsewhere){ showToast('This barcode was already sold — it isn\'t available in stock'); }
-    else { showToast('No item matches that barcode — you can still search by name, or keep it as a manual serial number'); }
-    return;
-  }
-  const prod = found.product;
-  voucherLines[idx].productId = prod.id;
-  voucherLines[idx].price = prod.salePrice;
-  voucherLines[idx].detail = code;
-  if(idx === voucherLines.length-1){ voucherLines.push({productId:'', qty:1, price:0, detail:'', description:''}); }
-  renderVoucherLines();
-  showToast(prod.name+' fetched — scan next item');
-  setTimeout(()=>{
-    const blocks = document.querySelectorAll('#voucherLines .line-block');
-    if(blocks.length){ const lastInput = blocks[blocks.length-1].querySelector('.line-sub-row input'); if(lastInput) lastInput.focus(); }
-  }, 30);
-}
+function handleVoucherLineBarcodeLookup(idx){ /* legacy entry point */ }
 function addVoucherLine(){ voucherLines.push({productId:'', qty:1, price:0, detail:'', description:''}); renderVoucherLines(); }
 function renderVoucherTotal(){
   const lineTotal = voucherLines.reduce((s,l)=>s+(l.qty||0)*(l.price||0),0);
@@ -3858,6 +3852,7 @@ function saveVoucher(){
   const empId = document.getElementById('v_employee').value;
   const lines = voucherLines.filter(l=>l.productId && l.qty>0);
   if(!lines.length){ showToast('Add at least one valid line item'); return; }
+  { const bad = lines.find(l=>lineCodes(l).length > l.qty); if(bad){ showToast((bad.name||'An item')+' has more barcodes than its quantity — increase Qty or remove a barcode'); return; } }
   const oldVoucher = editingVoucherId ? DB.vouchers.find(x=>x.id===editingVoucherId) : null;
   let willGoNegative = [];
   for(const l of lines){
@@ -3885,9 +3880,9 @@ function saveVoucher(){
   if(editingVoucherId){
     const voucherChanges={voucherNo,customer,phone:document.getElementById('v_phone').value.trim(),employee:emp?emp.name:'—',date:document.getElementById('v_date').value||todayStr(),lines:newLines,subtotal:lineTotal,discountAmount,grandTotal,paidAmount,deduction,paymentMode,notes};
     if(currentUserRole!=='admin'){requestRegisterApproval('voucher',oldVoucher.id,'update',voucherChanges);showToast('Non-GST sale changes sent for Admin approval');renderVoucherRegister();return;}
-    oldVoucher.lines.forEach(l=>{ const prod=DB.products.find(p=>p.id===l.productId); if(prod) prod.stock += l.qty; if(l.detail) setBarcodeStatus(l.productId, l.detail, 'available'); });
+    oldVoucher.lines.forEach(l=>{ const prod=DB.products.find(p=>p.id===l.productId); if(prod) prod.stock += l.qty; setLineBarcodes(l,'available'); });
     Object.assign(oldVoucher,voucherChanges);
-    newLines.forEach(l=>{ DB.products.find(p=>p.id===l.productId).stock -= l.qty; if(l.detail) setBarcodeStatus(l.productId, l.detail, 'sold'); });
+    newLines.forEach(l=>{ DB.products.find(p=>p.id===l.productId).stock -= l.qty; setLineBarcodes(l,'sold'); });
     saveDB(); showToast(willGoNegative.length ? ('Voucher updated — note: '+willGoNegative.join(', ')+' now below zero stock') : 'Voucher updated — stock adjusted');
     renderVoucher();
     printVoucher(oldVoucher.id);
@@ -3897,13 +3892,13 @@ function saveVoucher(){
     employee: emp?emp.name:'—', date:document.getElementById('v_date').value||todayStr(), lines:newLines,
     subtotal:lineTotal, discountAmount, grandTotal, paidAmount, deduction, paymentMode, notes };
   DB.vouchers.push(voucherObj);
-  newLines.forEach(l=>{ DB.products.find(p=>p.id===l.productId).stock -= l.qty; if(l.detail) setBarcodeStatus(l.productId, l.detail, 'sold'); });
+  newLines.forEach(l=>{ DB.products.find(p=>p.id===l.productId).stock -= l.qty; setLineBarcodes(l,'sold'); });
   DB.settings.nextVoucherNo=nextAfter(voucherNo,DB.settings.nextVoucherNo+1);
   saveDB(); showToast(willGoNegative.length ? ('Voucher recorded — note: '+willGoNegative.join(', ')+' now below zero stock') : 'Voucher recorded — stock updated');
   renderVoucher();
   printVoucher(voucherObj.id);
 }
-function deleteVoucher(id){if(currentUserRole!=='admin'){requestRegisterApproval('voucher',id,'delete',null);return;}requirePassword('delete this Non-GST sale',()=>askConfirm('Delete this voucher? Stock will be added back.',()=>{const r=DB.vouchers.find(x=>x.id===id);if(!r)return;r.lines.forEach(l=>{const p=DB.products.find(x=>x.id===l.productId);if(p)p.stock+=l.qty;if(l.detail)setBarcodeStatus(l.productId,l.detail,'available');});DB.vouchers=DB.vouchers.filter(x=>x.id!==id);saveDB();renderVoucher();}));}
+function deleteVoucher(id){if(currentUserRole!=='admin'){requestRegisterApproval('voucher',id,'delete',null);return;}requirePassword('delete this Non-GST sale',()=>askConfirm('Delete this voucher? Stock will be added back.',()=>{const r=DB.vouchers.find(x=>x.id===id);if(!r)return;r.lines.forEach(l=>{const p=DB.products.find(x=>x.id===l.productId);if(p)p.stock+=l.qty;setLineBarcodes(l,'available');});DB.vouchers=DB.vouchers.filter(x=>x.id!==id);saveDB();renderVoucher();}));}
 function printVoucher(id){
   const v = DB.vouchers.find(x=>x.id===id);
   const st = DB.settings;
@@ -4444,7 +4439,7 @@ function renderVoucherRegisterTable(){
       ${voucherRegPaidOpen?`<div style="margin-top:10px;overflow-x:auto;"><table><thead>${headHtml}</thead><tbody>${paid.length?paid.map(rowHtml).join(''):'<tr><td colspan="12" class="empty">No paid vouchers.</td></tr>'}</tbody></table></div>`:''}
     </div>`;
 }
-function deleteVoucherFromRegister(id){if(currentUserRole!=='admin'){requestRegisterApproval('voucher',id,'delete',null);return;}requirePassword('delete this Non-GST sale',()=>askConfirm('Delete this voucher? Stock will be added back.',()=>{const r=DB.vouchers.find(x=>x.id===id);if(!r)return;r.lines.forEach(l=>{const p=DB.products.find(x=>x.id===l.productId);if(p)p.stock+=l.qty;if(l.detail)setBarcodeStatus(l.productId,l.detail,'available');});DB.vouchers=DB.vouchers.filter(x=>x.id!==id);saveDB();renderVoucherRegister();}));}
+function deleteVoucherFromRegister(id){if(currentUserRole!=='admin'){requestRegisterApproval('voucher',id,'delete',null);return;}requirePassword('delete this Non-GST sale',()=>askConfirm('Delete this voucher? Stock will be added back.',()=>{const r=DB.vouchers.find(x=>x.id===id);if(!r)return;r.lines.forEach(l=>{const p=DB.products.find(x=>x.id===l.productId);if(p)p.stock+=l.qty;setLineBarcodes(l,'available');});DB.vouchers=DB.vouchers.filter(x=>x.id!==id);saveDB();renderVoucherRegister();}));}
 function updateVoucherPayment(id,val){updateRegisterField('voucher',id,'paidAmount',val,renderVoucherRegisterTable);}
 function updateVoucherDeduction(id,val){updateRegisterField('voucher',id,'deduction',val,renderVoucherRegisterTable);}
 function exportSelectedVouchers(){
@@ -4788,14 +4783,14 @@ function renderSettings(){
       <div class="panel-head"><h3>Admin Visible Sections</h3></div>
       <div class="panel-body">
         <p style="font-size:12.5px;color:#8a8578;margin-top:0;">Tick the sections shown in the Admin side menu. Untick to hide them from your own view (Shop Settings and UI Settings always stay visible).</p>
-        ${[['duesregister','Pending Dues Register'],['renewaltrack','Software Renewals'],['dashboard','Dashboard'],['purchase','Purchase'],['sale','Sale (Invoice)'],['voucher','Sales Voucher (Non-GST)'],['service','Service Sale'],['quotation','Quotation / Challan'],['approvals','Pending Approvals'],['purchaseregister','Purchase Register'],['paymentvoucher','Purchase Payment Voucher'],['salesregister','Sales Register'],['voucherregister','Non-GST Sale Register'],['serviceregister','Service Register'],['warranty','Warranty / Out Repair'],['inventory','Inventory'],['employees','Employees'],['salary','Salary Register'],['customers','Customers'],['todos','To-Do List']].map(([k,l])=>`<label style="display:flex;align-items:center;gap:8px;padding:5px 0;font-weight:500;"><input type="checkbox" style="width:auto;" ${(DB.settings.adminHiddenViews||[]).includes(k)?'':'checked'} onchange="toggleAdminVisibility('${k}', this.checked)"> ${l}</label>`).join('')}
+        ${[['duesregister','Pending Dues Register'],['renewaltrack','Software Renewals'],['dashboard','Dashboard'],['purchase','Purchase'],['sale','Sale (Invoice)'],['voucher','Sales Voucher (Non-GST)'],['service','Service Sale'],['quotation','Quotation / Challan'],['approvals','Pending Approvals'],['purchaseregister','Purchase Register'],['paymentvoucher','Purchase Payment Voucher'],['salesregister','Sales Register'],['creditnote','Credit Note'],['voucherregister','Non-GST Sale Register'],['serviceregister','Service Register'],['warranty','Warranty / Out Repair'],['inventory','Inventory'],['employees','Employees'],['salary','Salary Register'],['customers','Customers'],['todos','To-Do List']].map(([k,l])=>`<label style="display:flex;align-items:center;gap:8px;padding:5px 0;font-weight:500;"><input type="checkbox" style="width:auto;" ${(DB.settings.adminHiddenViews||[]).includes(k)?'':'checked'} onchange="toggleAdminVisibility('${k}', this.checked)"> ${l}</label>`).join('')}
       </div>
     </div>
     <div class="panel" style="max-width:680px;margin-bottom:16px;">
       <div class="panel-head"><h3>Staff Access Control</h3></div>
       <div class="panel-body">
         <p style="font-size:12.5px;color:#8a8578;margin-top:0;">Tick the sections the Staff login can see. Untick to hide from staff (Admin always sees everything).</p>
-        ${[['duesregister','Pending Dues Register'],['renewaltrack','Software Renewals'],['sale','Sale (Invoice)'],['voucher','Sales Voucher (Non-GST)'],['service','Service Sale'],['quotation','Quotation / Challan'],['customers','Customers'],['todos','To-Do List'],['purchaseregister','Purchase Register'],['paymentvoucher','Purchase Payment Voucher'],['salesregister','Sales Register'],['voucherregister','Non-GST Sale Register'],['serviceregister','Service Register'],['warranty','Warranty / Out Repair']].map(([k,l])=>`<label style="display:flex;align-items:center;gap:8px;padding:5px 0;font-weight:500;"><input type="checkbox" style="width:auto;" ${(DB.settings.userHiddenExtra||[]).includes(k)?'':'checked'} onchange="toggleUserVisibility('${k}', this.checked)"> ${l}</label>`).join('')}
+        ${[['duesregister','Pending Dues Register'],['renewaltrack','Software Renewals'],['sale','Sale (Invoice)'],['voucher','Sales Voucher (Non-GST)'],['service','Service Sale'],['quotation','Quotation / Challan'],['customers','Customers'],['todos','To-Do List'],['purchaseregister','Purchase Register'],['paymentvoucher','Purchase Payment Voucher'],['salesregister','Sales Register'],['creditnote','Credit Note'],['voucherregister','Non-GST Sale Register'],['serviceregister','Service Register'],['warranty','Warranty / Out Repair']].map(([k,l])=>`<label style="display:flex;align-items:center;gap:8px;padding:5px 0;font-weight:500;"><input type="checkbox" style="width:auto;" ${(DB.settings.userHiddenExtra||[]).includes(k)?'':'checked'} onchange="toggleUserVisibility('${k}', this.checked)"> ${l}</label>`).join('')}
       </div>
     </div>
     <div class="panel" style="max-width:900px;margin-bottom:16px;">
@@ -4916,7 +4911,7 @@ function openUserEditor(id=null){
   editingUserAccountId=id;
   const user=id?(DB.users||[]).find(u=>u.id===id):null;if(id&&!user)return;
   const permitted=user&&Array.isArray(user.allowedViews)?user.allowedViews:STAFF_CONFIGURABLE_VIEWS.filter(v=>!(DB.settings.userHiddenExtra||[]).includes(v));
-  const viewLabels={sale:'Sale (Invoice)',voucher:'Sales Voucher (Non-GST)',service:'Service Sale',quotation:'Quotation / Challan',customers:'Customers',todos:'To-Do List',purchaseregister:'Purchase Register',paymentvoucher:'Purchase Payment Voucher',salesregister:'Sales Register',voucherregister:'Non-GST Sale Register',serviceregister:'Service Register',warranty:'Warranty / Out Repair'};
+  const viewLabels={sale:'Sale (Invoice)',voucher:'Sales Voucher (Non-GST)',service:'Service Sale',quotation:'Quotation / Challan',customers:'Customers',todos:'To-Do List',purchaseregister:'Purchase Register',paymentvoucher:'Purchase Payment Voucher',salesregister:'Sales Register',creditnote:'Credit Note',voucherregister:'Non-GST Sale Register',serviceregister:'Service Register',warranty:'Warranty / Out Repair'};
   const body=`<div class="field"><label>Display name</label><input id="ua_name" value="${safeText(user?.name||'')}" maxlength="60" placeholder="Staff name"></div><div class="field"><label>Username</label><input id="ua_username" value="${safeText(user?.username||'')}" maxlength="32" autocomplete="off" placeholder="Sign-in username" ${user?'disabled':''}></div><div class="field"><label>Role</label><select id="ua_role" ${user?.legacyPassword?'disabled':''}><option value="user" ${!user||user.role!=='admin'?'selected':''}>Staff</option><option value="admin" ${user?.role==='admin'?'selected':''}>Admin</option></select></div><div class="field"><label>${user?'New password (leave blank to keep current)':'Password'}</label><input id="ua_password" type="password" autocomplete="new-password" minlength="6" placeholder="At least 6 characters"></div><div id="ua_access_wrap" style="margin-top:12px"><label style="font-weight:700">Staff sections</label><div style="display:grid;grid-template-columns:1fr 1fr;gap:2px 12px;margin-top:6px">${STAFF_CONFIGURABLE_VIEWS.map(v=>`<label style="display:flex;align-items:center;gap:7px;font-weight:400;padding:4px 0"><input type="checkbox" class="ua_view" value="${v}" style="width:auto" ${permitted.includes(v)?'checked':''}>${viewLabels[v]||v}</label>`).join('')}</div></div><p id="ua_error" style="color:var(--red);display:none;margin:10px 0 0;font-size:12px"></p>`;
   openModal(user?(user.builtin?'Manage Staff Account':'Manage User Account'):'Create User',body,`<button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn amber" onclick="saveManagedUser()">Save User</button>`);
   const role=document.getElementById('ua_role'),wrap=document.getElementById('ua_access_wrap');role.onchange=()=>{wrap.style.display=role.value==='user'?'':'none';};wrap.style.display=role.value==='user'?'':'none';
@@ -5139,7 +5134,7 @@ function registerRecords(entity){return ({purchase:DB.purchases,sale:DB.sales,vo
 function registerRef(entity,record){return record?.purchaseNo||record?.invoiceNo||record?.voucherNo||record?.serviceNo||record?.ref||record?.name||'Pending payment voucher';}
 function renderApprovals(){updateApprovalNotifications();const warranty=(DB.warrantyRequests||[]).filter(r=>r.status==='Pending').map(r=>({...r,queue:'warranty',entity:'warranty',recordId:r.jobId}));const rows=[...warranty,...(DB.approvalRequests||[]).filter(r=>r.status==='Pending').map(r=>({...r,queue:'register'}))];document.getElementById('view').innerHTML=`<div class="panel"><div class="panel-head"><h3>Pending Approvals (${rows.length})</h3></div><div class="panel-body table-scroll" style="padding:0"><table><thead><tr><th>Requested</th><th>Register</th><th>Record</th><th>Staff</th><th>Requested Changes</th><th>Actions</th></tr></thead><tbody>${rows.length?rows.map(r=>{const record=r.entity==='warranty'?DB.warrantyJobs.find(x=>x.id===r.recordId):registerRecords(r.entity).find(x=>x.id===r.recordId);const pv=r.entity==='paymentvoucher'?r.changes?.paymentVoucher:null;const changes=r.action==='delete'?'Delete record':pv?('New payment voucher · '+(pv.supplier||'Multiple suppliers')+' · ₹'+fmt(pv.totalAmount)+' · '+(pv.allocations||[]).length+' purchase allocation(s)'):Object.entries(r.changes||{}).map(([k,v])=>k+': '+(typeof v==='object'?'[updated]':v)).join(' · ')||'Open/edit record';return `<tr><td>${safeText(new Date(r.requestedAt).toLocaleString())}</td><td>${safeText(({purchase:'Purchase',sale:'Sale',voucher:'Non-GST Sale',service:'Service',warranty:'Warranty / Out Repair',paymentvoucher:'Purchase Payment Voucher',customer:'Customer'})[r.entity]||r.entity)}</td><td>${safeText(r.entity==='warranty'&&r.action==='create'?'New: '+(r.changes?.product||''):registerRef(r.entity,record))}</td><td>${safeText(r.requestedByName||r.requestedBy)}</td><td>${safeText(changes)}</td><td style="white-space:nowrap"><button class="btn ghost sm" onclick="openApprovalRecord('${r.entity}','${r.recordId}')">Open Record</button> <button class="btn amber sm" onclick="${r.queue==='warranty'?'approveWarrantyRequest':'approveRegisterRequest'}('${r.id}')">Approve</button> <button class="btn danger sm" onclick="${r.queue==='warranty'?'rejectWarrantyRequest':'rejectRegisterRequest'}('${r.id}')">Reject</button></td></tr>`}).join(''):'<tr><td colspan="6" class="empty">No pending approvals.</td></tr>'}</tbody></table></div></div>`;}
 function openApprovalRecord(entity,id){if(entity==='customer'){route('customers');return;}if(entity==='warranty'){route('warranty');editingWarrantyId=id;renderWarranty();return;}if(entity==='paymentvoucher'){const req=(DB.approvalRequests||[]).find(x=>x.entity===entity&&x.recordId===id&&x.status==='Pending'),pv=req?.changes?.paymentVoucher;if(!pv)return;openModal('Pending Purchase Payment Voucher',`<p><b>Supplier:</b> ${safeText(pv.supplier||'Multiple')}</p><p><b>Date:</b> ${safeText(pv.date)}</p><p><b>Requested amount:</b> ₹${fmt(pv.totalAmount)}</p><p><b>Mode:</b> ${safeText(pv.paymentMode)}</p><p><b>Reference:</b> ${safeText(pv.details||'—')}</p><h4>Purchase allocations</h4><ul>${pv.allocations.map(a=>`<li>${safeText(a.purchaseNo)} — ₹${fmt(a.amountApplied)}</li>`).join('')}</ul>`);return;}const routes={purchase:['purchase',()=>renderPurchase(id)],sale:['sale',()=>renderSale(id)],voucher:['voucher',()=>renderVoucher(id)],service:['service',()=>renderService(id)]};const r=routes[entity];if(!r)return;route(r[0]);setTimeout(r[1],0);}
-function applyRegisterApproval(r){if(r.action==='delete'&&r.entity==='customer'){DB.customers=DB.customers.filter(x=>x.id!==r.recordId);return true;}if(r.action==='delete'&&r.entity==='warranty'){DB.warrantyJobs=DB.warrantyJobs.filter(x=>x.id!==r.recordId);return true;}if(r.entity==='paymentvoucher'&&r.action==='create'){const data=r.changes?.paymentVoucher;if(!data||!Array.isArray(data.allocations)||!data.allocations.length||Math.abs(data.allocations.reduce((n,a)=>n+(+a.amountApplied||0),0)-(+data.totalAmount||0))>.004){showToast('Payment voucher request is incomplete or its allocations do not match the total');return false;}for(const a of data.allocations){const p=DB.purchases.find(x=>x.id===a.purchaseId),amt=+a.amountApplied||0;if(!p||amt<=0||amt>(+p.grandTotal||0)-(+p.paidAmount||0)+.004){showToast('Approval failed: a purchase balance changed or is no longer due');return false;}}const pv={...data,voucherNo:buildDocNo(DB.settings.paymentVoucherPrefix,seriesNext(DB.paymentVouchers,'voucherNo',DB.settings.paymentVoucherPrefix))};pv.allocations.forEach(a=>{const p=DB.purchases.find(x=>x.id===a.purchaseId);p.paidAmount=(+p.paidAmount||0)+(+a.amountApplied||0);});DB.paymentVouchers.push(pv);DB.settings.nextPaymentVoucherNo++;return true;}const rows=registerRecords(r.entity),record=rows.find(x=>x.id===r.recordId);if(!record){showToast('Record no longer exists');return false;}if(r.action==='delete'){if(r.entity==='purchase')record.lines.forEach(l=>{const p=DB.products.find(x=>x.id===l.productId);if(p)p.stock-=l.qty;});if(r.entity==='sale'||r.entity==='voucher')record.lines.forEach(l=>{const p=DB.products.find(x=>x.id===l.productId);if(p)p.stock+=l.qty;if(l.detail)setBarcodeStatus(l.productId,l.detail,'available');});rows.splice(rows.indexOf(record),1);return true;}const c=r.changes||{},total=+(Object.prototype.hasOwnProperty.call(c,'grandTotal')?c.grandTotal:(r.entity==='service'?record.amount:record.grandTotal))||0,paid=+(Object.prototype.hasOwnProperty.call(c,'paidAmount')?c.paidAmount:record.paidAmount)||0,deduction=+(Object.prototype.hasOwnProperty.call(c,'deduction')?c.deduction:record.deduction)||0;if(paid<0||deduction<0||paid+deduction>total+.004){showToast('Approval rejected: paid amount and deduction exceed record total');return false;}if(r.entity==='purchase'&&c.lines){record.lines.forEach(l=>{const p=DB.products.find(x=>x.id===l.productId);if(p)p.stock-=l.qty;});c.lines.forEach(l=>{const p=DB.products.find(x=>x.id===l.productId);if(p){p.stock+=l.qty;if(l.cost!=null)p.purchasePrice=l.cost;}});applyPurchaseLineBarcodes(c.lines);}if((r.entity==='sale'||r.entity==='voucher')&&c.lines){record.lines.forEach(l=>{const p=DB.products.find(x=>x.id===l.productId);if(p)p.stock+=l.qty;if(l.detail)setBarcodeStatus(l.productId,l.detail,'available');});c.lines.forEach(l=>{const p=DB.products.find(x=>x.id===l.productId);if(p)p.stock-=l.qty;if(l.detail)setBarcodeStatus(l.productId,l.detail,'sold');});}Object.assign(record,c);return true;}
+function applyRegisterApproval(r){if(r.action==='delete'&&r.entity==='customer'){DB.customers=DB.customers.filter(x=>x.id!==r.recordId);return true;}if(r.action==='delete'&&r.entity==='warranty'){DB.warrantyJobs=DB.warrantyJobs.filter(x=>x.id!==r.recordId);return true;}if(r.entity==='paymentvoucher'&&r.action==='create'){const data=r.changes?.paymentVoucher;if(!data||!Array.isArray(data.allocations)||!data.allocations.length||Math.abs(data.allocations.reduce((n,a)=>n+(+a.amountApplied||0),0)-(+data.totalAmount||0))>.004){showToast('Payment voucher request is incomplete or its allocations do not match the total');return false;}for(const a of data.allocations){const p=DB.purchases.find(x=>x.id===a.purchaseId),amt=+a.amountApplied||0;if(!p||amt<=0||amt>(+p.grandTotal||0)-(+p.paidAmount||0)+.004){showToast('Approval failed: a purchase balance changed or is no longer due');return false;}}const pv={...data,voucherNo:buildDocNo(DB.settings.paymentVoucherPrefix,seriesNext(DB.paymentVouchers,'voucherNo',DB.settings.paymentVoucherPrefix))};pv.allocations.forEach(a=>{const p=DB.purchases.find(x=>x.id===a.purchaseId);p.paidAmount=(+p.paidAmount||0)+(+a.amountApplied||0);});DB.paymentVouchers.push(pv);DB.settings.nextPaymentVoucherNo++;return true;}const rows=registerRecords(r.entity),record=rows.find(x=>x.id===r.recordId);if(!record){showToast('Record no longer exists');return false;}if(r.action==='delete'){if(r.entity==='purchase')record.lines.forEach(l=>{const p=DB.products.find(x=>x.id===l.productId);if(p)p.stock-=l.qty;});if(r.entity==='sale'||r.entity==='voucher')record.lines.forEach(l=>{const p=DB.products.find(x=>x.id===l.productId);if(p)p.stock+=l.qty;setLineBarcodes(l,'available');});rows.splice(rows.indexOf(record),1);return true;}const c=r.changes||{},total=+(Object.prototype.hasOwnProperty.call(c,'grandTotal')?c.grandTotal:(r.entity==='service'?record.amount:record.grandTotal))||0,paid=+(Object.prototype.hasOwnProperty.call(c,'paidAmount')?c.paidAmount:record.paidAmount)||0,deduction=+(Object.prototype.hasOwnProperty.call(c,'deduction')?c.deduction:record.deduction)||0;if(paid<0||deduction<0||paid+deduction>total+.004){showToast('Approval rejected: paid amount and deduction exceed record total');return false;}if(r.entity==='purchase'&&c.lines){record.lines.forEach(l=>{const p=DB.products.find(x=>x.id===l.productId);if(p)p.stock-=l.qty;});c.lines.forEach(l=>{const p=DB.products.find(x=>x.id===l.productId);if(p){p.stock+=l.qty;if(l.cost!=null)p.purchasePrice=l.cost;}});applyPurchaseLineBarcodes(c.lines);}if((r.entity==='sale'||r.entity==='voucher')&&c.lines){record.lines.forEach(l=>{const p=DB.products.find(x=>x.id===l.productId);if(p)p.stock+=l.qty;setLineBarcodes(l,'available');});c.lines.forEach(l=>{const p=DB.products.find(x=>x.id===l.productId);if(p)p.stock-=l.qty;setLineBarcodes(l,'sold');});}Object.assign(record,c);return true;}
 function approveRegisterRequest(id){const r=(DB.approvalRequests||[]).find(x=>x.id===id&&x.status==='Pending');if(!r)return;requirePassword('approve this register change',()=>{if(!applyRegisterApproval(r))return;r.status='Approved';r.reviewedAt=new Date().toISOString();r.reviewedBy=currentUserRole;saveDB();renderApprovals();showToast('Request approved');});}
 function rejectRegisterRequest(id){const r=(DB.approvalRequests||[]).find(x=>x.id===id&&x.status==='Pending');if(!r)return;requirePassword('reject this register change',()=>{r.status='Rejected';r.reviewedAt=new Date().toISOString();r.reviewedBy=currentUserRole;saveDB();renderApprovals();showToast('Request rejected');});}
 
@@ -5200,7 +5195,7 @@ function togglePaidBox(id, btn){
   el.style.display = open ? 'block' : 'none';
   btn.textContent = btn.textContent.replace(open?'▸':'▾', open?'▾':'▸');
 }
-const STAFF_CONFIGURABLE_VIEWS=['duesregister','renewaltrack','sale','voucher','service','quotation','customers','todos','purchaseregister','paymentvoucher','salesregister','voucherregister','serviceregister','warranty'];
+const STAFF_CONFIGURABLE_VIEWS=['duesregister','renewaltrack','sale','voucher','service','quotation','customers','todos','purchaseregister','paymentvoucher','salesregister','creditnote','voucherregister','serviceregister','warranty'];
 function canStaffAccess(view){if(view==='uisettings'||view==='myapprovals')return true;if(currentUserRole==='admin')return true;if(ADMIN_ONLY_VIEWS.includes(view)||!STAFF_CONFIGURABLE_VIEWS.includes(view))return false;const account=(DB.users||[]).find(u=>u.id===currentUserId);const allowed=account&&Array.isArray(account.allowedViews)?account.allowedViews:(STAFF_CONFIGURABLE_VIEWS.filter(v=>!(DB.settings.userHiddenExtra||[]).includes(v)));return allowed.includes(view);}
 function userFallbackView(){return STAFF_CONFIGURABLE_VIEWS.find(v=>canStaffAccess(v))||'todos';}
 function toggleUserVisibility(view, visible){
@@ -5532,6 +5527,7 @@ function logoutUser(){
 function applyRoleRestrictions(){
   const isAdmin = currentUserRole === 'admin';
   document.querySelectorAll('.adminonly').forEach(el=>{ el.style.display = isAdmin ? '' : 'none'; });
+  if(isAdmin&&DB.settings&&!DB.settings.creditNoteDefaultApplied){DB.settings.creditNoteDefaultApplied=true;DB.settings.userHiddenExtra=[...(DB.settings.userHiddenExtra||[]).filter(v=>v!=='creditnote'),'creditnote'];setTimeout(()=>{try{saveDB()}catch(e){}},500);}
   if(isAdmin&&DB.settings&&!DB.settings.renewalDefaultApplied){DB.settings.renewalDefaultApplied=true;DB.settings.userHiddenExtra=[...(DB.settings.userHiddenExtra||[]).filter(v=>v!=='renewaltrack'),'renewaltrack'];setTimeout(()=>{try{saveDB()}catch(e){}},500);}
   document.querySelectorAll('.staffonly').forEach(el=>{ el.style.display = isAdmin ? 'none' : ''; });
   if(isAdmin){ const hid=(DB.settings&&DB.settings.adminHiddenViews)||[]; ADMIN_TOGGLE_VIEWS.forEach(v=>{const b=document.querySelector('.navbtn[data-view="'+v+'"]'); if(b) b.style.display=hid.includes(v)?'none':'';}); }
@@ -5540,7 +5536,7 @@ function applyRoleRestrictions(){
   const userEl = document.getElementById('sidefootUser');
   if(userEl) userEl.textContent = 'Signed in as '+(currentUserName||(isAdmin?'Admin':'Staff'));
 }
-const ADMIN_ONLY_VIEWS = ['creditnote','gstr1','recyclebin','dashboard','approvals','purchase','inventory','settings','employees'];
+const ADMIN_ONLY_VIEWS = ['gstr1','recyclebin','dashboard','approvals','purchase','inventory','settings','employees'];
 function startApp(){
   // Admin recovery is deliberately allowed even when every database is down.
   // Normal users/staff still require a connected database.
@@ -5826,7 +5822,7 @@ function binArmed(fn){return function(){_binSnap=binTake();_binArm=true;try{retu
   if(r&&r.action==='delete'){askConfirm('Approve this delete request? The record will move to the Recycle Bin and can be restored.',function(){w(id);});return;}return w(id);};})();
 function binBadge(){const b=document.getElementById('binBadge');if(!b)return;const n=(DB.recycleBin||[]).length;b.textContent=n;b.style.display=currentUserRole==='admin'&&n>0?'inline-flex':'none';}
 function binRestoreFx(t,r){ /* re-apply the stock / paid-amount effects that deleting had reversed */
-  if(t==='sales'||t==='vouchers')(r.lines||[]).forEach(l=>{const p=DB.products.find(x=>x.id===l.productId);if(p)p.stock-=(+l.qty||0);if(l.detail)setBarcodeStatus(l.productId,l.detail,'sold');});
+  if(t==='sales'||t==='vouchers')(r.lines||[]).forEach(l=>{const p=DB.products.find(x=>x.id===l.productId);if(p)p.stock-=(+l.qty||0);setLineBarcodes(l,'sold');});
   if(t==='purchases')(r.lines||[]).forEach(l=>{const p=DB.products.find(x=>x.id===l.productId);if(p)p.stock+=(+l.qty||0);});
   if(t==='paymentVouchers')(r.allocations||[]).forEach(a=>{const p=DB.purchases.find(x=>x.id===a.purchaseId);if(p)p.paidAmount=(+p.paidAmount||0)+(+a.amountApplied||0);});}
 function binRestoreOne(b){const t=b.table;if(!Array.isArray(DB[t]))DB[t]=[];
@@ -5993,6 +5989,7 @@ function saveCreditNote(){
   renderCreditNote();printCreditNote(note.id);
 }
 function deleteCreditNote(id){
+  if(currentUserRole!=='admin'){showToast('Only Admin can delete a credit note');return;}
   askConfirm('Delete this credit note?'+((DB.creditNotes.find(x=>x.id===id)||{}).returnStock?' Returned stock will be taken out again.':''),()=>{
     const n=DB.creditNotes.find(x=>x.id===id);if(!n)return;
     if(n.returnStock)n.lines.forEach(l=>{const p=DB.products.find(x=>x.id===l.productId);if(p)p.stock-=l.qty;});

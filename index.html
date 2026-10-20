@@ -1239,7 +1239,8 @@ html[data-dark-mode="1"] #sidebar .navbtn.active,html[data-theme="midnight"] #si
 .sb-auto:hover{background:var(--md-hover);color:var(--md-text);}
 .sb-auto .sw{width:32px;height:18px;border-radius:99px;background:var(--md-line);position:relative;flex:none;transition:background .15s;}
 .sb-auto .sw::after{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:left .15s;}
-.sb-auto.on .sw{background:var(--amber);} .sb-auto.on .sw::after{left:16px;}
+.sb-auto .pin{font-size:14px;filter:grayscale(1) opacity(.6);transform:rotate(35deg);transition:.15s;} .sb-auto.on .pin{filter:none;transform:none;} .sb-auto.on{color:var(--md-accent-text);}
+@media (max-width:700px){.sb-auto{display:none!important;}}
 #sidebar.collapsed .sb-auto .t{display:none;} #sidebar.collapsed .sb-auto{justify-content:center;padding:8px 0;}
 #sidebar.collapsed .sidefoot{display:block!important;padding:8px 6px!important;} #sidebar.collapsed .sidefoot>*:not(.sb-auto):not(.logout-contrast){display:none;}
 #sidebar.collapsed .logout-contrast{font-size:0!important;padding:10px 0!important;} #sidebar.collapsed .logout-contrast::before{content:"↪";font-size:15px;}
@@ -1347,6 +1348,7 @@ html[data-dark-mode="1"] button.btn.danger:hover,html[data-theme="midnight"] but
       <button class="navbtn" data-view="quotation"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg></span> <span class="label">Quotation / Challan</span></button>
       <div class="navlabel adminonly">Approvals</div>
       <button class="navbtn adminonly" data-view="approvals"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/></svg></span> <span class="label">Pending Approvals</span><span id="approvalSideBadge" class="approval-badge" style="display:none;margin-left:auto;">0</span></button>
+      <button class="navbtn adminonly" data-view="alerts"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9a6 6 0 0 1 12 0c0 6 2 7 2 7H4s2-1 2-7"/><path d="M10 20a2 2 0 0 0 4 0"/></svg></span> <span class="label">Send Alert</span></button>
       <div class="navlabel">Registers</div>
       <button class="navbtn" data-view="purchaseregister"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M4 10h10M4 15h7"/><path d="M18 13v7m0 0l-3-3m3 3l3-3"/></svg></span> <span class="label">Purchase Register</span></button>
       <button class="navbtn" data-view="paymentvoucher"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h10M7 9h10M7 5c6 0 6 8 0 8h-1l7 7"/></svg></span> <span class="label">Purchase Payment Voucher</span></button>
@@ -1437,7 +1439,7 @@ window.APP_ENV = Object.freeze({
 </script>
 <script>
 /* App version. Bumped by tools/release.py (also updates version.json and the ?v= cache stamps in index.html). */
-const APP_VERSION='1.0.79';
+const APP_VERSION='1.0.86';
 document.title='Shop Manager — v'+APP_VERSION;
 
 </script>
@@ -1501,7 +1503,7 @@ const AppStore=(function(){
 <script>
 /* Global state containers and ID helpers */
 const DB_KEY=APP_ENV.STORAGE.DB_KEY,SUPERBASE_TABLE=APP_ENV.SUPABASE.TABLE,SUPERBASE_CREDENTIALS_KEY=APP_ENV.STORAGE.CREDENTIALS_KEY;
-const DB_ARRAYS=['products','employees','purchases','sales','services','quotations','customers','vouchers','paymentVouchers','creditNotes','todoPages','warrantyJobs','warrantyRequests','approvalRequests','repairProviders','users','renewals','salaryEntries','renewalClients','renewalEntries','recycleBin'];
+const DB_ARRAYS=['products','employees','purchases','sales','services','quotations','customers','vouchers','paymentVouchers','creditNotes','todoPages','warrantyJobs','warrantyRequests','approvalRequests','repairProviders','users','renewals','salaryEntries','renewalClients','renewalEntries','recycleBin','alerts','alertAcks'];
 const USER_CREDENTIALS={[APP_ENV.BOOTSTRAP_ADMIN.username]:APP_ENV.BOOTSTRAP_ADMIN.password};
 let DB,supabaseClient=null,supabaseChannel=null,cloudReady=false,cloudSessionConnected=false,cloudSyncInFlight=false,cloudSnapshot=null,cloudConfig={url:'',key:''},dbInitPromise=null,dbAttemptId=0,cloudAttemptDone=false,lastSavedDBSnapshot=null,lastLocalEditAt=0,localStorageAvailable=true,localRecoveryFileHandle=null,localRecoveryFileName='';
 function cid(){return 'id'+Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4)}
@@ -1529,7 +1531,7 @@ function seedDB(){return ensureManagedUsers({
   purchases:[],sales:[],services:[],salaryEntries:[],renewalClients:[],renewalEntries:[],quotations:[],customers:[],vouchers:[],paymentVouchers:[],users:[],todoPages:[{id:cid(),name:'General',tasks:[]}],warrantyJobs:[],warrantyRequests:[],approvalRequests:[],repairProviders:[],renewals:[]});}
 function normalizeDB(data){
   data=data&&typeof data==='object'?data:{};data.settings=data.settings&&typeof data.settings==='object'?data.settings:{};ensureManagedUsers(data);
-  ['customers','vouchers','paymentVouchers','creditNotes','warrantyJobs','warrantyRequests','approvalRequests','repairProviders','renewals','salaryEntries','renewalClients','renewalEntries','recycleBin'].forEach(k=>{if(!Array.isArray(data[k]))data[k]=[]});
+  ['customers','vouchers','paymentVouchers','creditNotes','warrantyJobs','warrantyRequests','approvalRequests','repairProviders','renewals','salaryEntries','renewalClients','renewalEntries','recycleBin','alerts','alertAcks'].forEach(k=>{if(!Array.isArray(data[k]))data[k]=[]});
   ['products','employees','purchases','sales','services','quotations','todoPages'].forEach(k=>{if(!Array.isArray(data[k]))data[k]=[]});
   const s=data.settings;
   if(!s.paymentVoucherPrefix)s.paymentVoucherPrefix='PV';if(!s.nextPaymentVoucherNo)s.nextPaymentVoucherNo=1;if(!Array.isArray(s.userHiddenExtra))s.userHiddenExtra=[];if(!s.voucherPrefix)s.voucherPrefix='SV';if(!s.nextVoucherNo)s.nextVoucherNo=1;
@@ -2147,6 +2149,7 @@ function tryPrint(printType){
 /* ---------------- NAV ---------------- */
 const titles = {
   dashboard:['Dashboard & Reports','Sales, purchases, service performance and business overview'],
+  alerts:['Send Alert','Send ringing / spoken alerts to particular users'],
   approvals:['Pending Approvals','Review staff requests for transaction and warranty register changes'],
   purchase:['Purchase','Record stock purchased from suppliers'],
   sale:['Sale · Invoice','Sell products and print a customer invoice'],
@@ -2179,7 +2182,7 @@ function route(view){
   document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active', b.dataset.view===view));
   document.getElementById('pageTitle').textContent = titles[view][0];
   document.getElementById('pageCrumb').textContent = titles[view][1];
-  const renderers = {creditnote:renderCreditNote, gstr1:renderGstr1, recyclebin:renderRecycleBin, duesregister:renderDuesRegister, renewaltrack:renderRenewals, salary:renderSalary, myapprovals:renderMyApprovals, uisettings:renderUISettings, dashboard:renderDashboardPlus, approvals:renderApprovals, purchase:()=>renderPurchase(), paymentvoucher:()=>renderPaymentVoucher(), sale:()=>renderSale(), voucher:()=>renderVoucher(), voucherregister:renderVoucherRegister, service:()=>renderService(), quotation:()=>renderQuotation(), salesregister:renderSalesRegister, purchaseregister:renderPurchaseRegister, serviceregister:renderServiceRegister, warranty:renderWarranty, inventory:renderInventory, employees:renderEmployees, customers:renderCustomers, todos:renderTodos, settings:renderSettings};
+  const renderers = {alerts:renderAlertsAdmin,creditnote:renderCreditNote, gstr1:renderGstr1, recyclebin:renderRecycleBin, duesregister:renderDuesRegister, renewaltrack:renderRenewals, salary:renderSalary, myapprovals:renderMyApprovals, uisettings:renderUISettings, dashboard:renderDashboardPlus, approvals:renderApprovals, purchase:()=>renderPurchase(), paymentvoucher:()=>renderPaymentVoucher(), sale:()=>renderSale(), voucher:()=>renderVoucher(), voucherregister:renderVoucherRegister, service:()=>renderService(), quotation:()=>renderQuotation(), salesregister:renderSalesRegister, purchaseregister:renderPurchaseRegister, serviceregister:renderServiceRegister, warranty:renderWarranty, inventory:renderInventory, employees:renderEmployees, customers:renderCustomers, todos:renderTodos, settings:renderSettings};
   currentPageKey=view;AppStore.set('ui.page',view);
   try{renderers[view]();}
   catch(e){AppErrors.report(e,'route:'+view);document.getElementById('view').innerHTML='<div class="panel"><div class="panel-body"><b>This screen could not be loaded.</b><br><span style="font-size:12px;color:var(--text-soft)">'+safeText(e.message||'Unknown error')+'</span><br><br><button class="btn amber sm" type="button" onclick="route(\''+view+'\')">Try again</button></div></div>';}
@@ -2194,7 +2197,7 @@ function route(view){
 function renderDashboard(){
   document.getElementById('view').innerHTML = `
     <div class="row db-filter">
-      <div class="field"><label>From</label><input type="date" id="db_from" value="${todayStr().slice(0,8)+'01'}"></div>
+      <div class="field"><label>From</label><input type="date" id="db_from" value="${DEFAULT_FROM}"></div>
       <div class="field"><label>To</label><input type="date" id="db_to" value="${todayStr()}"></div>
       <div class="field"><button class="btn amber sm" onclick="runDashboard()">Apply</button></div>
     </div>
@@ -2203,6 +2206,9 @@ function renderDashboard(){
 }
 /* newest date first; records on the same date keep newest-entered first */
 function sortRecent(list){return (list||[]).map((r,i)=>[r,i]).sort((a,b)=>String(b[0].date||'').localeCompare(String(a[0].date||''))||b[1]-a[1]).map(x=>x[0]);}
+const DEFAULT_FROM='2026-01-01';
+function regDateHtml(p,fn){return '<div class="field" style="margin:0;"><input type="date" id="'+p+'_from" title="From date" value="'+DEFAULT_FROM+'" onchange="'+fn+'()"></div><div class="field" style="margin:0;"><input type="date" id="'+p+'_to" title="To date" onchange="'+fn+'()"></div>';}
+function regDate(p){const a=document.getElementById(p+'_from'),b=document.getElementById(p+'_to');return{from:a?a.value:'',to:b?b.value:''};}
 function inRange(d, from, to){ return (!from||d>=from) && (!to||d<=to); }
 function runDashboard(){
   const from = document.getElementById('db_from').value, to = document.getElementById('db_to').value, emp = '';
@@ -2297,6 +2303,21 @@ function renderInventory(){
     </div>`;
   renderInventoryTable();
 }
+function openItemHistory(id){
+  const p=DB.products.find(x=>x.id===id);if(!p)return;
+  const rows=[];
+  const add=(list,kind,noF,partyF,sign)=>(list||[]).forEach(d=>(d.lines||[]).forEach(l=>{if(l.productId===id)rows.push({date:d.date||'',kind,no:d[noF]||'',party:d[partyF]||'',qty:+l.qty||0,price:+l.price||+l.purchasePrice||0,code:l.detail||(l.barcodes||[]).join(', '),sign});}));
+  add(DB.sales,'Sale','invoiceNo','customer',-1);add(DB.vouchers,'Non-GST Sale','voucherNo','customer',-1);add(DB.purchases,'Purchase','purchaseNo','supplier',1);
+  (DB.creditNotes||[]).forEach(d=>(d.lines||[]).forEach(l=>{if(l.productId===id)rows.push({date:d.date||'',kind:'Credit Note',no:d.creditNoteNo||d.cnNo||d.no||'',party:d.customer||'',qty:+l.qty||0,price:+l.price||0,code:l.detail||'',sign:1});}));
+  rows.sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+  const sum=k=>rows.filter(r=>r.kind===k).reduce((t,r)=>t+r.qty,0),sold=sum('Sale')+sum('Non-GST Sale'),bought=sum('Purchase');
+  const last=k=>rows.find(r=>r.kind===k);const ls=last('Sale')||last('Non-GST Sale'),lp=last('Purchase');
+  openModal('History — '+p.name,
+   '<div class="muted" style="margin-bottom:8px;">Purchased <b>'+bought+'</b> · Sold <b>'+sold+'</b> · In stock <b>'+p.stock+'</b>'+(lp?' · Last purchase ₹'+fmt(lp.price)+' ('+safeText(lp.date)+')':'')+(ls?' · Last sale ₹'+fmt(ls.price)+' ('+safeText(ls.date)+')':'')+'</div>'+
+   '<div class="table-scroll" style="max-height:60vh;overflow:auto;"><table class="no-ct"><thead><tr><th>Date</th><th>Type</th><th>Ref</th><th>Party</th><th class="num">Qty</th><th class="num">Rate ₹</th><th>Barcodes</th></tr></thead><tbody>'+
+   (rows.length?rows.map(r=>'<tr><td>'+safeText(r.date)+'</td><td><span class="badge '+(r.sign>0?'ok':'partial')+'">'+r.kind+'</span></td><td class="mono">'+safeText(r.no)+'</td><td>'+safeText(r.party)+'</td><td class="num mono">'+(r.sign>0?'+':'−')+r.qty+'</td><td class="num mono">'+fmt(r.price)+'</td><td class="mono">'+safeText(r.code)+'</td></tr>').join(''):'<tr><td colspan="7" class="empty">No sales or purchases recorded for this item.</td></tr>')+
+   '</tbody></table></div>','<button class="btn ghost" onclick="closeModal()">Close</button>');
+}
 function exportInventoryToExcel(){
   const q = (document.getElementById('inv_search')?.value||'').toLowerCase();
   const rows = DB.products.filter(p=>{
@@ -2327,7 +2348,7 @@ function renderInventoryTable(){
   const mode=invMode(),W=document.getElementById('inv_tableWrap');
   const img=(p,sz)=>p.image?`<img src="${p.image}" style="width:${sz}px;height:${sz}px;object-fit:cover;border-radius:8px;display:block;cursor:pointer;" onclick="openImageLightbox('${p.image}','${(p.name||'').replace(/'/g,"\\'")}')">`:`<div style="width:${sz}px;height:${sz}px;border-radius:8px;background:#F0EDE5;"></div>`;
   const gst=p=>p.gstPercent!=null?p.gstPercent:(DB.settings.gstPercent||18);
-  if(mode==='cards'){W.classList.remove('table-scroll');W.innerHTML=rows.length?'<div class="inv-cards">'+rows.map(p=>`<div class="inv-card"><div class="ic-top">${img(p,52)}<div class="ic-title"><b>${safeText(p.name)}</b><span class="ic-sub">${safeText(p.brand||'—')} · ${safeText(p.category||'—')}</span><span class="ic-sub mono">${safeText(p.sku)}${p.hsn?' · HSN '+safeText(p.hsn):''}</span></div>${stockBadge(p)}</div><div class="ic-info"><div><span>Sale ₹</span><b class="mono">${fmt(p.salePrice)}</b></div><div><span>Purchase ₹</span><b class="mono">${fmt(p.purchasePrice)}</b></div><div><span>Stock</span><b class="mono">${p.stock}</b></div><div><span>GST</span><b class="mono">${gst(p)}%</b></div></div><div class="ic-act"><button class="btn ghost sm" onclick="openProductModal('${p.id}')">Edit</button><button class="btn ghost sm" onclick="openBarcodeManager('${p.id}')">Barcodes (${(p.barcodeUnits||[]).length})</button><button class="btn danger sm" onclick="deleteProduct('${p.id}')">Del</button></div></div>`).join('')+'</div>':'<div class="empty" style="padding:20px">No matching products.</div>';return;}
+  if(mode==='cards'){W.classList.remove('table-scroll');W.innerHTML=rows.length?'<div class="inv-cards">'+rows.map(p=>`<div class="inv-card"><div class="ic-top">${img(p,52)}<div class="ic-title"><b>${safeText(p.name)}</b><span class="ic-sub">${safeText(p.brand||'—')} · ${safeText(p.category||'—')}</span><span class="ic-sub mono">${safeText(p.sku)}${p.hsn?' · HSN '+safeText(p.hsn):''}</span></div>${stockBadge(p)}</div><div class="ic-info"><div><span>Sale ₹</span><b class="mono">${fmt(p.salePrice)}</b></div><div><span>Purchase ₹</span><b class="mono">${fmt(p.purchasePrice)}</b></div><div><span>Stock</span><b class="mono">${p.stock}</b></div><div><span>GST</span><b class="mono">${gst(p)}%</b></div></div><div class="ic-act"><button class="btn ghost sm" onclick="openProductModal('${p.id}')">Edit</button><button class="btn ghost sm" onclick="openItemHistory('${p.id}')">History</button> <button class="btn ghost sm" onclick="openBarcodeManager('${p.id}')">Barcodes (${(p.barcodeUnits||[]).length})</button><button class="btn danger sm" onclick="deleteProduct('${p.id}')">Del</button></div></div>`).join('')+'</div>':'<div class="empty" style="padding:20px">No matching products.</div>';return;}
   if(mode==='grid'){W.classList.remove('table-scroll');W.innerHTML=rows.length?'<div class="inv-grid">'+rows.map(p=>`<div class="inv-tile" onclick="openProductModal('${p.id}')"><div class="it-img">${img(p,64)}</div><div class="it-name">${safeText(p.name)}</div><div class="it-sub">${safeText(p.brand||p.category||'')}</div><div class="it-price mono">₹${fmt(p.salePrice)}</div><div class="it-stock">${stockBadge(p)} <span class="mono">${p.stock}</span></div></div>`).join('')+'</div>':'<div class="empty" style="padding:20px">No matching products.</div>';return;}
   W.classList.add('table-scroll');
   W.innerHTML = `
@@ -2341,7 +2362,7 @@ function renderInventoryTable(){
         <td class="num mono">${p.gstPercent!=null?p.gstPercent:(DB.settings.gstPercent||18)}%</td>
         <td class="num mono">${fmt(p.purchasePrice)}</td><td class="num mono">${fmt(p.salePrice)}</td>
         <td class="num mono">${p.stock}</td><td>${stockBadge(p)}</td>
-        <td style="white-space:nowrap;"><button class="btn ghost sm" onclick="openProductModal('${p.id}')">Edit</button> <button class="btn ghost sm" onclick="openBarcodeManager('${p.id}')">Barcodes (${(p.barcodeUnits||[]).length})</button> <button class="btn danger sm" onclick="deleteProduct('${p.id}')">Del</button></td>
+        <td style="white-space:nowrap;"><button class="btn ghost sm" onclick="openProductModal('${p.id}')">Edit</button> <button class="btn ghost sm" onclick="openItemHistory('${p.id}')">History</button> <button class="btn ghost sm" onclick="openBarcodeManager('${p.id}')">Barcodes (${(p.barcodeUnits||[]).length})</button> <button class="btn danger sm" onclick="deleteProduct('${p.id}')">Del</button></td>
       </tr>`).join('') : '<tr><td colspan="12" class="empty">No matching products.</td></tr>'}
     </tbody></table>`;
 }
@@ -3249,6 +3270,7 @@ function renderPurchaseRegister(){
         <h3>Purchase Register</h3>
         <div class="row" style="gap:8px;margin:0;">
           <div class="field" style="margin:0;min-width:160px;"><input id="pr_search" placeholder="Search ref or supplier…" oninput="renderPurchaseRegisterTable()"></div>
+          ${regDateHtml('pr','renderPurchaseRegisterTable')}
           <div class="field" style="margin:0;min-width:150px;">
             <select id="pr_status" onchange="renderPurchaseRegisterTable()">
               <option value="">All Payment Status</option>
@@ -3267,8 +3289,9 @@ function renderPurchaseRegister(){
 let purchaseRegPaidOpen = false;
 function renderPurchaseRegisterTable(){
   const search = (document.getElementById('pr_search').value||'').toLowerCase();
-  const statusFilter = document.getElementById('pr_status').value;
+  const statusFilter = document.getElementById('pr_status').value,_dr=regDate('pr');
   let rows = sortRecent(DB.purchases).filter(p=>{
+    if(!inRange(p.date,_dr.from,_dr.to)) return false;
     if(search && !(p.purchaseNo.toLowerCase().includes(search) || p.supplier.toLowerCase().includes(search))) return false;
     if(statusFilter && purchasePaymentStatus(p)!==statusFilter) return false;
     return true;
@@ -3899,6 +3922,35 @@ function saveVoucher(){
   printVoucher(voucherObj.id);
 }
 function deleteVoucher(id){if(currentUserRole!=='admin'){requestRegisterApproval('voucher',id,'delete',null);return;}requirePassword('delete this Non-GST sale',()=>askConfirm('Delete this voucher? Stock will be added back.',()=>{const r=DB.vouchers.find(x=>x.id===id);if(!r)return;r.lines.forEach(l=>{const p=DB.products.find(x=>x.id===l.productId);if(p)p.stock+=l.qty;setLineBarcodes(l,'available');});DB.vouchers=DB.vouchers.filter(x=>x.id!==id);saveDB();renderVoucher();}));}
+/* ===== Transfer a Non-GST sale voucher to a GST sale invoice ===== */
+function transferVoucherToSale(id){
+  if(currentUserRole!=='admin'){showToast('Only Admin can transfer a voucher to a GST invoice');return;}
+  const v=DB.vouchers.find(x=>x.id===id);if(!v)return;
+  const bad=(v.lines||[]).find(l=>!DB.products.find(p=>p.id===l.productId));
+  if(bad){showToast('Cannot transfer — "'+(bad.name||'an item')+'" no longer exists in the product list');return;}
+  const pre=DB.settings.invoicePrefix,newNo=buildDocNo(pre,seriesNext(DB.sales,'invoiceNo',pre));
+  askConfirm('Transfer Non-GST voucher <b>'+safeText(v.voucherNo)+'</b> ('+safeText(v.customer)+', ₹'+fmt(v.grandTotal)+') to a <b>GST sale invoice</b> numbered <b>'+safeText(newNo)+'</b>?<br><br><span style="font-size:12.5px">The voucher prices are treated as <b>inclusive of GST</b> (each item\'s GST % from the product master), so the invoice total stays ₹'+fmt(v.grandTotal)+'. Stock is not changed. The voucher is removed from the Non-GST register and the invoice appears in Sales Register and GSTR-1.</span>',function(){
+    const cur=DB.vouchers.find(x=>x.id===id);if(!cur)return;
+    const lines=(cur.lines||[]).map(l=>{const p=DB.products.find(x=>x.id===l.productId);return{productId:l.productId,qty:+l.qty||0,price:+l.price||0,gstPercent:p.gstPercent!=null?p.gstPercent:(DB.settings.gstPercent||18),detail:l.detail||'',description:l.description||'',name:p.name,hsn:p.hsn||''};});
+    const raw=computeItemwiseTotals(lines,'inclusive'),D=+cur.discountAmount||0;
+    const res=applyDiscountBeforeTax(raw,raw.grandTotal>0?raw.subtotal*D/raw.grandTotal:0);
+    const cu=(DB.customers||[]).find(c=>c.name===cur.customer),sellerState=String(DB.settings.gstin||'').slice(0,2);
+    const inter=!!(cu&&cu.state&&sellerState&&cu.state!==sellerState);
+    const no=buildDocNo(pre,seriesNext(DB.sales,'invoiceNo',pre));
+    const sale={id:cid(),invoiceNo:no,customer:cur.customer,phone:cur.phone||'',customerGstin:(cu&&cu.gstin)||'',employee:cur.employee||'—',date:cur.date||todayStr(),lines,
+      subtotal:res.subtotal,subtotalBeforeDiscount:res.subtotalBeforeDiscount,supplyType:inter?'inter':'intra',placeOfSupply:(cu&&cu.state)||'',priceMode:'inclusive',gstAmount:res.gstAmount,breakup:res.breakup,
+      discountAmount:res.discountAmount,grandTotal:res.grandTotal,paidAmount:+cur.paidAmount||0,deduction:+cur.deduction||0,paymentMode:cur.paymentMode||'Cash',notes:cur.notes||'',transferredFrom:cur.voucherNo};
+    DB.sales.push(sale);
+    DB.vouchers=DB.vouchers.filter(x=>x.id!==id);
+    DB.settings.nextInvoiceNo=nextAfter(no,DB.settings.nextInvoiceNo+1);
+    _binArm=false; /* a transfer is not a deletion: nothing goes to the Recycle Bin and stock stays as it is */
+    saveDB();
+    showToast('Transferred '+cur.voucherNo+' → GST invoice '+no);
+    if(typeof renderVoucherRegister==='function'&&currentPageKey==='voucherregister')renderVoucherRegister();
+    else document.querySelectorAll('#invoiceWrap').forEach(e=>e.remove());
+    printSaleInvoice(sale.id);
+  });
+}
 function printVoucher(id){
   const v = DB.vouchers.find(x=>x.id===id);
   const st = DB.settings;
@@ -3910,6 +3962,7 @@ function printVoucher(id){
       ${pageSizeSelectHTML()}
       <button class="btn ghost sm" onclick="document.getElementById('invoiceWrap').remove()">Close</button>
       <button class="btn ghost sm" onclick="openInvoiceNewTab()">↗ Open in New Tab</button>
+      ${currentUserRole==='admin'?`<button class="btn ghost sm" onclick="transferVoucherToSale('${v.id}')">⇄ Transfer to GST Invoice</button>`:''}
       <button class="btn amber sm" onclick="tryPrint('voucher')">🖨 Print Voucher</button>
       <button class="btn ghost sm" onclick="downloadInvoicePdf()">📄 PDF</button>
       <button class="btn ghost sm js-share-btn" onclick="shareInvoicePdf()">📤 Share PDF</button>
@@ -4316,6 +4369,7 @@ function renderSalesRegister(){
         <h3>Sales Register</h3>
         <div class="row" style="gap:8px;margin:0;">
           <div class="field" style="margin:0;min-width:160px;"><input id="sr_search" placeholder="Search invoice or customer…" oninput="renderSalesRegisterTable()"></div>
+          ${regDateHtml('sr','renderSalesRegisterTable')}
           <div class="field" style="margin:0;min-width:150px;">
             <select id="sr_status" onchange="renderSalesRegisterTable()">
               <option value="">All Payment Status</option>
@@ -4334,8 +4388,9 @@ function renderSalesRegister(){
 let salesRegPaidOpen = false;
 function renderSalesRegisterTable(){
   const search = (document.getElementById('sr_search').value||'').toLowerCase();
-  const statusFilter = document.getElementById('sr_status').value;
+  const statusFilter = document.getElementById('sr_status').value,_dr=regDate('sr');
   let rows = sortRecent(DB.sales).filter(s=>{
+    if(!inRange(s.date,_dr.from,_dr.to)) return false;
     if(search && !(s.invoiceNo.toLowerCase().includes(search) || s.customer.toLowerCase().includes(search))) return false;
     if(statusFilter && paymentStatus(s)!==statusFilter) return false;
     return true;
@@ -4388,6 +4443,7 @@ function renderVoucherRegister(){
         <h3>Non-GST Sale Register</h3>
         <div class="row" style="gap:8px;margin:0;">
           <div class="field" style="margin:0;min-width:160px;"><input id="vor_search" placeholder="Search voucher or customer…" oninput="renderVoucherRegisterTable()"></div>
+          ${regDateHtml('vor','renderVoucherRegisterTable')}
           <div class="field" style="margin:0;min-width:150px;">
             <select id="vor_status" onchange="renderVoucherRegisterTable()">
               <option value="">All Payment Status</option>
@@ -4406,8 +4462,9 @@ function renderVoucherRegister(){
 let voucherRegPaidOpen = false;
 function renderVoucherRegisterTable(){
   const search = (document.getElementById('vor_search').value||'').toLowerCase();
-  const statusFilter = document.getElementById('vor_status').value;
+  const statusFilter = document.getElementById('vor_status').value,_dr=regDate('vor');
   let rows = sortRecent(DB.vouchers).filter(v=>{
+    if(!inRange(v.date,_dr.from,_dr.to)) return false;
     if(search && !(v.voucherNo.toLowerCase().includes(search) || v.customer.toLowerCase().includes(search))) return false;
     if(statusFilter && voucherPaymentStatus(v)!==statusFilter) return false;
     return true;
@@ -4425,7 +4482,7 @@ function renderVoucherRegisterTable(){
       <td class="num"><input type="number" step="0.01" value="${v.deduction||0}" style="width:90px;text-align:right;" class="mono" onchange="updateVoucherDeduction('${v.id}', this.value)"></td>
       <td class="num mono">₹${fmt(due)}</td>
       <td><span class="badge ${badgeClass}">${status}</span></td>
-      <td style="white-space:nowrap;"><button class="btn ghost sm" onclick="printVoucher('${v.id}')">Print</button> ${due>0.004?`<button class="btn ghost sm" onclick="sendPaymentReminder('voucher','${v.id}')">Remind</button> `:''}<button class="btn ghost sm" onclick="route('voucher'); setTimeout(()=>renderVoucher('${v.id}'),0)">Edit</button> <button class="btn danger sm" onclick="deleteVoucherFromRegister('${v.id}')">Del</button></td>
+      <td style="white-space:nowrap;"><button class="btn ghost sm" onclick="printVoucher('${v.id}')">Print</button> ${due>0.004?`<button class="btn ghost sm" onclick="sendPaymentReminder('voucher','${v.id}')">Remind</button> `:''}<button class="btn ghost sm" onclick="route('voucher'); setTimeout(()=>renderVoucher('${v.id}'),0)">Edit</button> ${currentUserRole==='admin'?`<button class="btn ghost sm" title="Convert this Non-GST voucher into a GST sale invoice" onclick="transferVoucherToSale('${v.id}')">⇄ GST</button> `:''}<button class="btn danger sm" onclick="deleteVoucherFromRegister('${v.id}')">Del</button></td>
     </tr>`;
   };
   const notPaid = rows.filter(v=>voucherPaymentStatus(v)!=='Paid');
@@ -4462,6 +4519,7 @@ function renderServiceRegister(){
         <h3>Service Register</h3>
         <div class="row" style="gap:8px;margin:0;">
           <div class="field" style="margin:0;min-width:160px;"><input id="vr_search" placeholder="Search ref or customer…" oninput="renderServiceRegisterTable()"></div>
+          ${regDateHtml('vr','renderServiceRegisterTable')}
           <div class="field" style="margin:0;min-width:150px;">
             <select id="vr_status" onchange="renderServiceRegisterTable()">
               <option value="">All Payment Status</option>
@@ -4480,8 +4538,9 @@ function renderServiceRegister(){
 let serviceRegPaidOpen = false;
 function renderServiceRegisterTable(){
   const search = (document.getElementById('vr_search').value||'').toLowerCase();
-  const statusFilter = document.getElementById('vr_status').value;
+  const statusFilter = document.getElementById('vr_status').value,_dr=regDate('vr');
   let rows = sortRecent(DB.services).filter(s=>{
+    if(!inRange(s.date,_dr.from,_dr.to)) return false;
     if(search && !(s.serviceNo.toLowerCase().includes(search) || s.customer.toLowerCase().includes(search))) return false;
     if(statusFilter && servicePaymentStatus(s)!==statusFilter) return false;
     return true;
@@ -4720,7 +4779,7 @@ function printRenewalVoucher(id,asPdf=false){
 </script>
 <script>
 /* Pending dues register */
-let duesFrom='',duesTo='',duesSearch='',duesType='',duesOrder='asc';
+let duesFrom=DEFAULT_FROM,duesTo='',duesSearch='',duesType='',duesOrder='asc';
 function duesRows(){
   const out=[],add=(type,key,arr,tot)=>(arr||[]).forEach(x=>{const total=+tot(x)||0,paid=+x.paidAmount||0,ded=+x.deduction||0,due=Math.round((total-paid-ded)*100)/100;if(due>0.004)out.push({type,key,id:x.id,date:x.date||'',ref:registerRef(key,x),party:x.customer||x.name||'',phone:x.phone||x.customerPhone||'',total,paid:paid+ded,rawPaid:paid,ded,due});});
   add('Sale','sale',DB.sales,x=>x.grandTotal);add('Non-GST','voucher',DB.vouchers,x=>x.grandTotal);add('Service','service',DB.services,x=>x.amount);
@@ -5536,7 +5595,7 @@ function applyRoleRestrictions(){
   const userEl = document.getElementById('sidefootUser');
   if(userEl) userEl.textContent = 'Signed in as '+(currentUserName||(isAdmin?'Admin':'Staff'));
 }
-const ADMIN_ONLY_VIEWS = ['gstr1','recyclebin','dashboard','approvals','purchase','inventory','settings','employees'];
+const ADMIN_ONLY_VIEWS = ['alerts','gstr1','recyclebin','dashboard','approvals','purchase','inventory','settings','employees'];
 function startApp(){
   // Admin recovery is deliberately allowed even when every database is down.
   // Normal users/staff still require a connected database.
@@ -5677,19 +5736,27 @@ async function runUpdateCheck(){const st=document.getElementById('updStatus'),ap
   if(!sb)return;
   function on(){try{return localStorage.getItem(KEY)!=='0';}catch(e){return true;}}
   function desktop(){try{return !isMobileLayout();}catch(e){return true;}}
+  /* pin is desktop-only; on phones the menu always closes after choosing a section */
   function sync(){var tg=document.getElementById('sidebarToggle');if(!tg)return;var c=sb.classList.contains('collapsed');tg.textContent=c?'▸':'◂';tg.title=c?'Expand side panel':'Collapse side panel';}
   function fold(){if(!on()||!desktop())return;
     if(sb.classList.contains('peek')){window.sbEndPeek&&window.sbEndPeek();}
     else if(!sb.classList.contains('collapsed')){sb.classList.add('collapsed');}
     sync();}
   var btn=document.createElement('button');btn.type='button';btn.className='sb-auto';
-  btn.innerHTML='<span class="t">Auto-collapse</span><span class="sw"></span>';
-  function paint(){btn.classList.toggle('on',on());btn.title='Auto-collapse side panel: '+(on()?'On':'Off');}
-  btn.onclick=function(){try{localStorage.setItem(KEY,on()?'0':'1');}catch(e){}paint();};
+  btn.innerHTML='<span class="t"></span><span class="pin">📌</span>';
+  function paint(){var pinned=!on();btn.classList.toggle('on',pinned);btn.querySelector('.t').textContent=pinned?'Unpin sidebar':'Pin sidebar';btn.title=pinned?'Pinned: stays open. Click to unpin (folds automatically)':'Unpinned: folds automatically. Click to pin it open';}
+  btn.onclick=function(){var wasOn=on();try{localStorage.setItem(KEY,wasOn?'0':'1');}catch(e){}paint();clearTimeout(t);if(wasOn)openIfPinned();};
   var lo=sb.querySelector('.logout-contrast');if(lo&&lo.parentNode)lo.parentNode.insertBefore(btn,lo);paint();
   document.getElementById('nav').addEventListener('click',function(e){if(e.target.closest('.navbtn')){clearTimeout(t);t=setTimeout(fold,120);}});
   sb.addEventListener('mouseleave',function(){clearTimeout(t);t=setTimeout(fold,1400);});
   sb.addEventListener('mouseenter',function(){clearTimeout(t);});
+  /* pinned = stays open: restore it expanded on every start, and a manual collapse un-pins it */
+  function openIfPinned(){if(on()||!desktop())return;sb.classList.remove('peek');document.body.classList.remove('sb-peek');if(sb.classList.contains('collapsed')){sb.classList.remove('collapsed');try{localStorage.setItem('circuitdesk_sidebar_collapsed','0');}catch(e){}}sync();}
+  var _endPeek=window.sbEndPeek;window.sbEndPeek=function(){if(!on()&&desktop()){openIfPinned();return;}if(_endPeek)_endPeek();};
+  var tg0=document.getElementById('sidebarToggle');
+  if(tg0)tg0.addEventListener('click',function(){if(!on()&&desktop()&&!sb.classList.contains('collapsed')){try{localStorage.setItem(KEY,'1');}catch(e){}paint();}},true);
+  var _st=window.startApp;if(typeof _st==='function'){window.startApp=function(){var r=_st.apply(this,arguments);setTimeout(openIfPinned,50);setTimeout(openIfPinned,600);return r;};}
+  window.addEventListener('resize',function(){clearTimeout(t);t=setTimeout(openIfPinned,200);});
   sync();
 })();
 
@@ -5710,7 +5777,10 @@ async function invMakePdf(){
 function safeFile(x){return String(x||'').replace(/[\\/:*?"<>|\r\n]+/g,' ').replace(/\s+/g,' ').trim();}
 function pdfName(info){return [safeFile(info.party),safeFile(info.ref||info.title)].filter(Boolean).join('_')||'document';}
 function saveBlob(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1500);}
-async function downloadInvoicePdf(){if(!document.getElementById('invoiceSheet')){showToast('Open a document first');return;}showToast('Creating PDF…');
+/* phones: ask the browser for persistent storage access once, the first time a PDF is saved or shared */
+function ensureStorageAccess(){try{if(!isMobileLayout()||localStorage.getItem('sm_storage_asked'))return;localStorage.setItem('sm_storage_asked','1');
+  if(navigator.storage&&navigator.storage.persist){navigator.storage.persist().then(function(ok){if(!ok)showToast('If your phone asks for storage / files access, allow it so PDFs can be saved and shared');}).catch(function(){});}}catch(e){}}
+async function downloadInvoicePdf(){ensureStorageAccess();if(!document.getElementById('invoiceSheet')){showToast('Open a document first');return;}showToast('Creating PDF…');
   try{const info=invDocInfo(),blob=await invMakePdf();saveBlob(blob,pdfName(info)+'.pdf');showToast('PDF saved: '+pdfName(info)+'.pdf');}catch(e){console.error(e);showToast('Could not create the PDF (check your internet)');}}
 async function tryShare(file){
   const base=(file.name.replace(/\.pdf$/i,'').replace(/[^\x20-\x7E]/g,'').replace(/\s+/g,'_').replace(/^[_\W]+|[_\W]+$/g,'')||'document')+'.pdf',
@@ -5735,7 +5805,7 @@ function prepareSharePdf(){const sig=_invSig();if(!sig)return null;if(_shareCach
   setShareBtn('busy');const info=invDocInfo(),p=invMakePdf().then(blob=>new File([blob],pdfName(info)+'.pdf',{type:'application/pdf'}));
   _shareCache={sig,p,file:null,failed:false};
   p.then(f=>{if(_shareCache.sig===sig){_shareCache.file=f;setShareBtn('idle');}}).catch(()=>{if(_shareCache.sig===sig){_shareCache={sig,p:null,file:null,failed:true};setShareBtn('idle');}});return p;}
-async function shareInvoicePdf(){if(!document.getElementById('invoiceSheet')){showToast('Open a document first');return;}
+async function shareInvoicePdf(){ensureStorageAccess();if(!document.getElementById('invoiceSheet')){showToast('Open a document first');return;}
   const file=_shareCache.sig===_invSig()?_shareCache.file:null;
   if(!file){/* not ready: finish building, then ask for a fresh tap (the share sheet must open straight after a tap) */
     setShareBtn('busy');_shareCache={sig:'',p:null,file:null,failed:false};
@@ -6279,5 +6349,107 @@ function gstr1B2csOpen(i){
 function gstr1SaveFile(name,blob){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},800);}
 
 </script>
+<script>
+/* ===== v1.0.82 — alerts to particular users: ring + read aloud, desktop and mobile ===== */
+(function(){
+  var css=document.createElement('style');css.textContent=
+  '#alertBell{position:relative;background:var(--md-hover,#eee);border:1px solid var(--md-line,#ddd);border-radius:12px;padding:4px 10px;cursor:pointer;font-size:15px;line-height:1.4;color:inherit;}'+
+  '#alertBell .cnt{position:absolute;top:-6px;right:-6px;min-width:17px;height:17px;border-radius:99px;background:#d93025;color:#fff;font:700 10px/17px Inter,sans-serif;text-align:center;padding:0 4px;display:none;}'+
+  '#alertBell.has{animation:alBell 1.1s ease-in-out infinite;} #alertBell.has .cnt{display:block;}'+
+  '@keyframes alBell{0%,100%{transform:rotate(0)}20%{transform:rotate(-14deg)}40%{transform:rotate(12deg)}60%{transform:rotate(-8deg)}80%{transform:rotate(5deg)}}'+
+  '#alertPop{position:fixed;left:0;right:0;top:0;z-index:100000;display:flex;justify-content:center;padding:12px;pointer-events:none;}'+
+  '#alertPop .ap{pointer-events:auto;width:min(560px,100%);background:var(--md-surface,#fff);color:var(--md-text,#1b1b1f);border:2px solid #d93025;border-radius:18px;box-shadow:0 20px 50px -10px rgba(0,0,0,.45);padding:16px 18px;animation:alPulse 1.4s ease-in-out infinite;cursor:pointer;}'+
+  '#alertPop .ap.normal{border-color:var(--amber,#e0a030);}'+
+  '@keyframes alPulse{0%,100%{box-shadow:0 20px 50px -10px rgba(0,0,0,.45),0 0 0 0 rgba(217,48,37,.45)}50%{box-shadow:0 20px 50px -10px rgba(0,0,0,.45),0 0 0 10px rgba(217,48,37,0)}}'+
+  '#alertPop h4{margin:0 0 4px;font-size:16px;} #alertPop .am{font-size:14px;white-space:pre-wrap;margin:4px 0 8px;} #alertPop .as{font-size:11.5px;opacity:.7;margin-bottom:10px;}'+
+  '#alertPop .ab{display:flex;flex-wrap:wrap;gap:8px;}'+
+  '.al-chip{display:inline-block;font-size:11px;padding:2px 8px;border-radius:99px;margin:2px 3px 0 0;background:#fde8e6;color:#a1271d;} .al-chip.ok{background:#e1f4e7;color:#1d6b3a;}';
+  document.head.appendChild(css);
+
+  var audioCtx=null,unlocked=false,ringTimer=null,ringUntil=0,lastRing={},dismissed={},prevIds=null;
+  function ctx(){try{if(!audioCtx){var C=window.AudioContext||window.webkitAudioContext;if(C)audioCtx=new C();}return audioCtx;}catch(e){return null;}}
+  function unlock(){var c=ctx();if(c&&c.state==='suspended'){try{c.resume();}catch(e){}}if(!unlocked){unlocked=true;try{if('speechSynthesis' in window){var u=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u);}}catch(e){}if(pending().length)ringStart();}}
+  ['pointerdown','touchstart','keydown','click'].forEach(function(ev){document.addEventListener(ev,unlock,{passive:true});});
+  function beep(t,f,d){var c=ctx();if(!c)return;var o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.35,t+.02);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g);g.connect(c.destination);o.start(t);o.stop(t+d+.05);}
+  function ringOnce(){var c=ctx();if(!c)return false;if(c.state==='suspended'){try{c.resume();}catch(e){}}var t=c.currentTime+.05;for(var i=0;i<3;i++){beep(t+i*.5,880,.22);beep(t+i*.5+.22,660,.22);}try{if(navigator.vibrate)navigator.vibrate([300,150,300,150,300]);}catch(e){}return true;}
+  function ringStart(){stopRing();ringUntil=Date.now()+30000;ringOnce();ringTimer=setInterval(function(){if(Date.now()>ringUntil||!pending().length){stopRing();return;}ringOnce();},2200);}
+  function stopRing(){clearInterval(ringTimer);ringTimer=null;try{if(navigator.vibrate)navigator.vibrate(0);}catch(e){}}
+  function speak(a){try{if(!('speechSynthesis' in window))return false;speechSynthesis.cancel();var u=new SpeechSynthesisUtterance((a.urgent?'Urgent alert. ':'Alert. ')+(a.title||'')+'. '+(a.message||''));u.rate=.95;speechSynthesis.speak(u);return true;}catch(e){return false;}}
+  function stopSpeak(){try{speechSynthesis.cancel();}catch(e){}}
+
+  window.alertMyKey=function(){if(currentUserId)return currentUserId;var a=(DB.users||[]).find(function(u){return u.username==='admin';});return a?a.id:'admin';};
+  function mine(a){var k=alertMyKey();return Array.isArray(a.to)&&(a.to.indexOf('*')>=0||a.to.indexOf(k)>=0);}
+  function acked(a,k){return (DB.alertAcks||[]).some(function(x){return x.alertId===a.id&&x.userKey===(k||alertMyKey());});}
+  function myAlerts(){return (DB.alerts||[]).filter(mine).sort(function(a,b){return String(b.createdAt).localeCompare(String(a.createdAt));});}
+  function pending(){return myAlerts().filter(function(a){return !acked(a);});}
+  window.alertAck=function(id){var k=alertMyKey();if(acked({id:id},k))return;DB.alertAcks=DB.alertAcks||[];DB.alertAcks.push({id:'ack_'+id+'_'+k,alertId:id,userKey:k,by:currentUserName||'',at:new Date().toISOString()});stopSpeak();saveDB();alertCheck(true);refreshModal();};
+  function refreshModal(){if(document.getElementById('alertListWrap'))alertOpenList();if(document.getElementById('alertAdminList'))alertAdminListPaint();}
+
+  function ensureBell(){if(document.getElementById('alertBell'))return;var host=document.getElementById('approvalTopNotification');if(!host||!host.parentNode)return;var b=document.createElement('button');b.id='alertBell';b.type='button';b.title='My alerts';b.innerHTML='🔔<span class="cnt">0</span>';b.onclick=alertOpenList;host.parentNode.insertBefore(b,host);}
+  function paintBell(n){ensureBell();var b=document.getElementById('alertBell');if(!b)return;b.classList.toggle('has',n>0);b.querySelector('.cnt').textContent=n;}
+  function sysNotify(a){try{if(!('Notification' in window)||Notification.permission!=='granted'||!document.hidden)return;var o={body:a.message||'',tag:'alert-'+a.id,requireInteraction:true,vibrate:[300,150,300]};if(navigator.serviceWorker&&navigator.serviceWorker.getRegistration){navigator.serviceWorker.getRegistration().then(function(r){if(r)r.showNotification('🔔 '+a.title,o);else new Notification('🔔 '+a.title,o);}).catch(function(){new Notification('🔔 '+a.title,o);});}else new Notification('🔔 '+a.title,o);}catch(e){}}
+  window.alertEnableSystem=function(){try{if(!('Notification' in window)){showToast('This browser does not support system notifications');return;}Notification.requestPermission().then(function(p){showToast(p==='granted'?'Phone/desktop notifications enabled':'Notifications not allowed');refreshModal();});}catch(e){}};
+
+  function showPop(list){var old=document.getElementById('alertPop');if(!list.length){if(old)old.remove();return;}
+    var a=list[0];if(!old){old=document.createElement('div');old.id='alertPop';document.body.appendChild(old);}
+    var more=list.length>1?' · +'+(list.length-1)+' more':'';
+    old.innerHTML='<div class="ap '+(a.urgent?'':'normal')+'" onclick="alertPlay(\''+a.id+'\')"><h4>'+(a.urgent?'🚨 ':'🔔 ')+safeText(a.title)+'</h4><div class="am">'+safeText(a.message)+'</div><div class="as">From '+safeText(a.from||'Admin')+' · '+new Date(a.createdAt).toLocaleString()+more+' · tap to hear</div><div class="ab" onclick="event.stopPropagation()"><button class="btn amber sm" onclick="alertAck(\''+a.id+'\')">✓ Done</button><button class="btn ghost sm" onclick="alertPlay(\''+a.id+'\')">🔊 Ring &amp; read</button><button class="btn ghost sm" onclick="alertSilence()">🔕 Mute</button><button class="btn ghost sm" onclick="alertLater(\''+a.id+'\')">Later</button></div></div>';}
+  window.alertPlay=function(id){var a=(DB.alerts||[]).find(function(x){return x.id===id;});if(!a)return;unlock();ringOnce();setTimeout(function(){speak(a);},1700);};
+  window.alertSilence=function(){stopRing();stopSpeak();};
+  window.alertLater=function(id){dismissed[id]=1;alertSilence();alertCheck(true);};
+
+  window.alertCheck=function(force){
+    if(typeof currentUserRole==='undefined'||!currentUserRole||!DB)return;
+    var p=pending(),show=p.filter(function(a){return !dismissed[a.id];});
+    paintBell(p.length);
+    var ids=p.map(function(a){return a.id;});
+    var fresh=prevIds===null?ids.filter(function(){return true;}):ids.filter(function(i){return prevIds.indexOf(i)<0;});
+    prevIds=ids;
+    show=show.sort(function(a,b){return (b.urgent?1:0)-(a.urgent?1:0)||String(b.createdAt).localeCompare(String(a.createdAt));});
+    showPop(show);
+    var now=Date.now(),ring=false;
+    p.forEach(function(a){if(fresh.indexOf(a.id)>=0){ring=true;lastRing[a.id]=now;sysNotify(a);}else if(+a.repeatMin>0&&!dismissed[a.id]&&now-(lastRing[a.id]||0)>=a.repeatMin*60000){ring=true;lastRing[a.id]=now;sysNotify(a);}});
+    if(ring&&show.length){if(unlocked)ringStart();var top=show[0];setTimeout(function(){if(unlocked)speak(top);},1800);}
+  };
+  setInterval(function(){try{alertCheck();}catch(e){}},15000);
+  document.addEventListener('visibilitychange',function(){if(!document.hidden)try{alertCheck();}catch(e){}});
+  var _orig=window.renderCurrentPageAfterCloudChange;if(typeof _orig==='function'){window.renderCurrentPageAfterCloudChange=function(){var r=_orig.apply(this,arguments);setTimeout(function(){try{alertCheck();}catch(e){}},600);return r;};}
+  var _start=window.startApp;if(typeof _start==='function'){window.startApp=function(){var r=_start.apply(this,arguments);prevIds=null;dismissed={};setTimeout(function(){try{alertCheck();}catch(e){}},700);return r;};}
+
+  /* my alerts list (everyone) */
+  window.alertOpenList=function(){
+    var list=myAlerts(),perm=('Notification' in window)?Notification.permission:'unsupported';
+    var rows=list.length?list.map(function(a){var d=acked(a);return '<div style="border:1px solid var(--md-line,#ddd);border-radius:12px;padding:10px 12px;margin-bottom:8px;"><b>'+(a.urgent?'🚨 ':'')+safeText(a.title)+'</b> <span class="al-chip '+(d?'ok':'')+'">'+(d?'Done':'Pending')+'</span><div style="white-space:pre-wrap;margin:4px 0;font-size:13.5px;">'+safeText(a.message)+'</div><div style="font-size:11.5px;opacity:.7;">From '+safeText(a.from||'Admin')+' · '+new Date(a.createdAt).toLocaleString()+'</div><div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;"><button class="btn ghost sm" onclick="alertPlay(\''+a.id+'\')">🔊 Ring &amp; read</button>'+(d?'':'<button class="btn amber sm" onclick="alertAck(\''+a.id+'\')">✓ Done</button>')+'</div></div>';}).join(''):'<div class="empty">No alerts for you.</div>';
+    openModal('My Alerts','<div id="alertListWrap">'+(perm==='default'?'<div style="margin-bottom:10px;"><button class="btn ghost sm" onclick="alertEnableSystem()">🔔 Enable notifications on this device</button></div>':'')+rows+'</div>','<button class="btn ghost" onclick="closeModal()">Close</button>');
+  };
+
+  /* admin: compose + sent list */
+  var sel={};
+  window.renderAlertsAdmin=function(){
+    var users=(DB.users||[]).filter(function(u){return u.enabled!==false;});
+    document.getElementById('view').innerHTML='<div class="panel"><div class="panel-head"><h3>Send Alert</h3></div><div class="panel-body">'+
+     '<div class="field"><label>Send to</label><div id="al_users" style="display:flex;flex-wrap:wrap;gap:8px;"><label style="display:flex;gap:5px;align-items:center;"><input type="checkbox" id="al_all"> Everyone</label>'+users.map(function(u){return '<label style="display:flex;gap:5px;align-items:center;"><input type="checkbox" class="al-u" value="'+u.id+'"> '+safeText(u.name||u.username)+'</label>';}).join('')+'</div></div>'+
+     '<div class="row"><div class="field"><label>Title</label><input id="al_title" placeholder="e.g. Call customer about pending bill"></div></div>'+
+     '<div class="field"><label>Message (read aloud to the user)</label><textarea id="al_msg" rows="3" placeholder="Details of the task to be done"></textarea></div>'+
+     '<div class="row"><div class="field"><label>Priority</label><select id="al_pri"><option value="0">Normal</option><option value="1">Urgent (louder banner)</option></select></div><div class="field"><label>Repeat ring until done</label><select id="al_rep"><option value="0">Do not repeat</option><option value="5">Every 5 minutes</option><option value="15">Every 15 minutes</option><option value="30">Every 30 minutes</option><option value="60">Every hour</option></select></div></div>'+
+     '<button class="btn amber" onclick="alertSend()">🔔 Send Alert</button></div></div>'+
+     '<div class="panel"><div class="panel-head"><h3>Sent Alerts</h3></div><div class="panel-body" id="alertAdminList"></div></div>';
+    alertAdminListPaint();
+  };
+  function nameOf(k){var u=(DB.users||[]).find(function(x){return x.id===k;});return u?(u.name||u.username):k;}
+  window.alertAdminListPaint=function(){var el=document.getElementById('alertAdminList');if(!el)return;var list=(DB.alerts||[]).slice().sort(function(a,b){return String(b.createdAt).localeCompare(String(a.createdAt));});
+    el.innerHTML=list.length?list.map(function(a){var to=a.to.indexOf('*')>=0?(DB.users||[]).filter(function(u){return u.enabled!==false;}).map(function(u){return u.id;}):a.to;
+      return '<div style="border:1px solid var(--md-line,#ddd);border-radius:12px;padding:10px 12px;margin-bottom:8px;"><b>'+(a.urgent?'🚨 ':'')+safeText(a.title)+'</b> <span style="font-size:11.5px;opacity:.7;">'+new Date(a.createdAt).toLocaleString()+(+a.repeatMin>0?' · repeats every '+a.repeatMin+' min':'')+'</span><div style="white-space:pre-wrap;font-size:13px;margin:4px 0;">'+safeText(a.message)+'</div><div>'+to.map(function(k){var d=acked(a,k);return '<span class="al-chip '+(d?'ok':'')+'">'+safeText(nameOf(k))+': '+(d?'Done':'Pending')+'</span>';}).join('')+'</div><div style="margin-top:6px;"><button class="btn ghost sm" onclick="alertDelete(\''+a.id+'\')">Delete</button></div></div>';}).join(''):'<div class="empty">No alerts sent yet.</div>';};
+  window.alertSend=function(){
+    var title=document.getElementById('al_title').value.trim(),msg=document.getElementById('al_msg').value.trim(),all=document.getElementById('al_all').checked,
+      ids=[].slice.call(document.querySelectorAll('.al-u:checked')).map(function(c){return c.value;});
+    if(!title&&!msg){showToast('Enter a title or message');return;}
+    if(!all&&!ids.length){showToast('Choose who should receive it');return;}
+    DB.alerts=DB.alerts||[];DB.alerts.push({id:cid(),title:title||msg.slice(0,40),message:msg,to:all?['*']:ids,from:currentUserName||'Admin',createdAt:new Date().toISOString(),urgent:document.getElementById('al_pri').value==='1',repeatMin:+document.getElementById('al_rep').value||0});
+    saveDB();showToast('Alert sent');['al_title','al_msg'].forEach(function(i){document.getElementById(i).value='';});alertAdminListPaint();alertCheck(true);};
+  window.alertDelete=function(id){askConfirm('Delete this alert for everyone?',function(){DB.alerts=(DB.alerts||[]).filter(function(a){return a.id!==id;});DB.alertAcks=(DB.alertAcks||[]).filter(function(x){return x.alertId!==id;});_binArm=false;saveDB();alertAdminListPaint();alertCheck(true);});};
+})();
+</script>
+
 </body>
 </html>

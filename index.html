@@ -508,6 +508,10 @@ html:not([data-dark-mode="1"]):not([data-theme="midnight"]):not([data-theme="gra
 .bc-chip{display:inline-flex;align-items:center;gap:6px;background:var(--md-accent-soft,#eee);color:var(--md-text,inherit);border-radius:99px;padding:3px 6px 3px 10px;font-size:11.5px;}
 .bc-chip a{cursor:pointer;opacity:.6;font-size:11px;padding:0 3px;}.bc-chip a:hover{opacity:1;color:var(--red);}
 .bc-count{font-size:11px;color:var(--text-soft);margin-left:4px;}
+/* staff with Inventory access see it read-only, without purchase prices */
+body.is-staff .inv-sum .card:nth-child(2),body.is-staff:not(.inv-edit) #inv_tableWrap [onclick^="openProductModal"],body.is-staff:not(.inv-edit) #inv_tableWrap [onclick^="deleteProduct"],body.is-staff #inv_tableWrap [onclick^="openItemHistory"],body.is-staff:not(.inv-edit) #view [onclick="openProductModal()"],body.is-staff #view [onclick="exportInventoryToExcel()"],body.is-staff #inv_tableWrap .ic-info>div:nth-child(2),body.is-staff #inv_tableWrap th:nth-child(8),body.is-staff #inv_tableWrap td:nth-child(8){display:none!important;}
+#refreshDataBtn{flex:none;white-space:nowrap;margin-left:auto;} #refreshDataBtn.busy .ri{display:inline-block;animation:rdSpin .8s linear infinite;} @keyframes rdSpin{to{transform:rotate(360deg)}}
+@media (max-width:700px){#refreshDataBtn .rl{display:none;} #refreshDataBtn{width:40px;height:40px;padding:0;font-size:18px;}}
 /* v1.0.9 dark-surface/header correction */
 html[data-dark-mode="1"] #sidebar,
 html[data-theme="midnight"] #sidebar,
@@ -1287,6 +1291,102 @@ html[data-dark-mode="1"] button.btn.danger:hover,html[data-theme="midnight"] but
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="apple-touch-icon" href="icon-192.png">
+<style id="clean-ui">
+/* ===== v1.0.89 — Clean UI: one token set, flat surfaces, consistent radius/spacing/focus =====
+   Loaded last. Redefines the shared --md-* tokens, then tidies the components that used ad-hoc styles. */
+:root{
+  --md-bg:#F8FAFC; --md-surface:#FFFFFF; --md-text:#0F172A; --md-muted:#5B6778;
+  --md-line:#E2E8F0; --md-hover:rgba(15,23,42,.045);
+  --md-shadow:0 1px 2px rgba(15,23,42,.05); --md-r:12px; --md-r-sm:8px;
+  --cl-ring:color-mix(in srgb,var(--theme-accent,var(--amber)) 55%,transparent);
+  --cl-head:#F1F5F9; --cl-sb:color-mix(in srgb,var(--theme-accent,var(--amber)) 16%,#0B1220);
+}
+html[data-theme]:not([data-theme="classic"]){--md-bg:color-mix(in srgb,var(--paper) 60%,#F8FAFC);}
+html[data-dark-mode="1"],html[data-theme="midnight"]{
+  --md-bg:#0D1117; --md-surface:#151B23; --md-text:#E6EDF3; --md-muted:#9AA7B5; --md-line:#27303A;
+  --md-hover:rgba(255,255,255,.06); --md-shadow:none; --cl-head:#1B222B;
+  --cl-sb:color-mix(in srgb,var(--theme-accent,var(--amber)) 12%,#070A0F);
+}
+@media screen{
+html body{font-family:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums;}
+html body :is(h1,h2,h3,h4,.disp):not(#invoiceSheet *),html body .stat .value{font-family:'Inter',system-ui,sans-serif!important;letter-spacing:-.01em;}
+html body .mono:not(#invoiceSheet *){font-family:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;font-variant-numeric:tabular-nums;}
+
+/* sidebar — flat dark slate tinted by the theme colour */
+html body #sidebar{border-radius:0!important;background:var(--cl-sb)!important;border-right:1px solid rgba(255,255,255,.06)!important;box-shadow:none!important;}
+html body #sidebar .navbtn{border-radius:8px!important;color:#C3CCD9!important;background:transparent!important;position:relative;}
+html body #sidebar .navbtn:hover{background:rgba(255,255,255,.07)!important;color:#fff!important;}
+html body #sidebar .navbtn.active{background:rgba(255,255,255,.1)!important;color:#fff!important;font-weight:600;box-shadow:inset 3px 0 0 var(--theme-accent,var(--amber))!important;}
+html body #sidebar .navbtn .ic{background:transparent!important;box-shadow:none!important;border-radius:0!important;width:18px!important;min-width:18px!important;height:auto!important;padding:0!important;}
+html body #sidebar .navbtn.active .ic{color:var(--theme-accent,var(--amber))!important;}
+html body #sidebar .navlabel,html body #sidebar .nav-section-header{color:#7F8CA0!important;letter-spacing:.08em;font-weight:600;}
+html body #sidebar .brand{border-bottom:1px solid rgba(255,255,255,.07)!important;}
+html body #sidebar .sidefoot{border-top:1px solid rgba(255,255,255,.07)!important;color:#8C97A8!important;}
+html body #sidebar .logout-contrast{border-radius:8px!important;background:rgba(255,255,255,.08)!important;box-shadow:none!important;}
+.sb-auto{color:#C3CCD9!important;} .sb-auto:hover{background:rgba(255,255,255,.07)!important;color:#fff!important;}
+.sb-auto .pin{display:inline-flex;width:16px;height:16px;filter:none!important;transform:none!important;opacity:.7;color:inherit;} .sb-auto .pin svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
+.sb-auto.on .pin{opacity:1;color:var(--theme-accent,var(--amber));} .sb-auto.on .pin svg{fill:currentColor;fill-opacity:.25;}
+
+/* top bar, panels, cards */
+html body header.topbar{background:var(--md-surface)!important;border-bottom:1px solid var(--md-line)!important;box-shadow:none!important;}
+html body .panel,html body .card,html body .modal{background:var(--md-surface)!important;border:1px solid var(--md-line)!important;border-radius:var(--md-r)!important;box-shadow:var(--md-shadow)!important;}
+html body .panel-head{border-bottom:1px solid var(--md-line)!important;background:transparent!important;}
+html body .panel-head h3{font-size:14.5px;font-weight:600;}
+html body .card.stat{padding:16px 18px!important;}
+html body .stat .accent-bar,html body #dashboardOut .stat .accent-bar{width:24px!important;height:3px!important;border-radius:2px!important;margin-bottom:12px!important;box-shadow:none!important;}
+html body .stat .accent-bar::before,html body .stat .accent-bar::after{display:none!important;}
+html body .stat .label{font-size:11.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--md-muted)!important;}
+html body .stat .value{font-size:24px!important;font-weight:650;}
+html body .stat .foot{background:transparent!important;padding:0!important;border-radius:0!important;color:var(--md-muted)!important;font-size:12px!important;}
+
+/* buttons */
+html body .btn{border-radius:8px!important;font-weight:600;font-size:13px;min-height:34px;box-shadow:none!important;transition:background .15s,border-color .15s,color .15s;}
+html body .btn.sm{min-height:30px;font-size:12.5px;padding:5px 11px;}
+html body .btn.amber{background:color-mix(in srgb,var(--theme-accent,var(--amber)) 62%,#1E293B)!important;color:#fff!important;border:1px solid transparent!important;}
+html body .btn.amber:hover{filter:brightness(.92);}
+html body .btn.ghost{background:var(--md-surface)!important;color:var(--md-text)!important;border:1px solid var(--md-line)!important;}
+html body .btn.ghost:hover{background:var(--cl-head)!important;}
+html body .btn.danger{background:#FEF2F2!important;color:#B91C1C!important;border:1px solid #FECACA!important;}
+html[data-dark-mode="1"] .btn.danger,html[data-theme="midnight"] .btn.danger{background:rgba(248,81,73,.12)!important;color:#FF8B84!important;border-color:rgba(248,81,73,.3)!important;}
+
+/* forms */
+html body .field label,html body .line-block .field>label{background:transparent!important;border:0!important;padding:0!important;margin-bottom:5px!important;font-size:12px!important;font-weight:600!important;color:var(--md-muted)!important;text-transform:none!important;letter-spacing:0!important;border-radius:0!important;}
+html body .field label span,html body .line-block .field>label span{font-weight:400!important;color:var(--md-muted)!important;opacity:.85;}
+html body input:not([type=checkbox]):not([type=radio]),html body select,html body textarea{border:1px solid var(--md-line)!important;border-radius:8px!important;background:var(--md-surface);min-height:36px;font-size:13.5px;transition:border-color .15s,box-shadow .15s;}
+html body input:disabled,html body select:disabled{background:var(--cl-head)!important;color:var(--md-muted);}
+html body .line-block{background:var(--cl-head)!important;border:1px solid var(--md-line)!important;border-radius:10px!important;}
+html body :is(input,select,textarea):focus,html body :is(button,a,[tabindex]):focus-visible{outline:none!important;border-color:var(--theme-accent,var(--amber))!important;box-shadow:0 0 0 3px var(--cl-ring)!important;}
+
+/* tables */
+html body table:not(#invoiceSheet table){border-collapse:separate;border-spacing:0;}
+html body th:not(#invoiceSheet th){background:var(--cl-head)!important;color:var(--md-muted)!important;font-size:11.5px!important;font-weight:600!important;letter-spacing:.05em;text-transform:uppercase;border-bottom:1px solid var(--md-line)!important;}
+html body td:not(#invoiceSheet td){border-bottom:1px solid var(--md-line)!important;}
+html body td:not(#invoiceSheet td) .btn.sm{padding:4px 8px;min-height:28px;font-size:12px;}
+html body td:not(#invoiceSheet td),html body th:not(#invoiceSheet th){padding-left:8px!important;padding-right:8px!important;}
+html body td input:not([type=checkbox]){min-height:30px;}
+html body tbody tr:hover td:not(#invoiceSheet td){background:color-mix(in srgb,var(--theme-accent,var(--amber)) 5%,transparent);}
+html body td.num:not(#invoiceSheet td),html body th:not(#invoiceSheet th){font-family:'Inter',system-ui,sans-serif!important;font-variant-numeric:tabular-nums;}
+html body .badge:not(#invoiceSheet .badge){filter:none;border-radius:6px;font-weight:600;font-size:11px;padding:2px 8px;}
+html body .empty{color:var(--md-muted)!important;}
+
+/* segmented controls / modal / toast */
+html body .seg{border-radius:8px!important;border:1px solid var(--md-line)!important;background:var(--cl-head)!important;padding:2px!important;}
+html body .seg button{border-radius:6px!important;}
+html body .seg button.active{background:var(--md-surface)!important;color:var(--md-text)!important;box-shadow:0 1px 2px rgba(15,23,42,.1)!important;}
+html body .modal-bg{backdrop-filter:blur(2px);}
+
+/* alert bell */
+#alertBell{width:34px;height:34px;padding:0!important;display:inline-flex;align-items:center;justify-content:center;border-radius:8px!important;background:var(--md-surface)!important;color:var(--md-text)!important;}
+#alertBell svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
+}
+@media screen and (max-width:700px){
+  html body .btn,html body input:not([type=checkbox]):not([type=radio]),html body select{min-height:44px;}
+  html body .btn.sm{min-height:40px;}
+  html body #sidebar .navbtn{min-height:44px;}
+}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;}}
+</style>
+
 </head>
 <body>
 <div id="loginScreen" style="position:fixed;inset:0;background:var(--ink);display:flex;align-items:center;justify-content:center;z-index:2000;">
@@ -1342,8 +1442,8 @@ html[data-dark-mode="1"] button.btn.danger:hover,html[data-theme="midnight"] but
       <div class="navlabel">Transactions</div>
       <button class="navbtn adminonly" data-view="purchase"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h3l2.5 11.5h11L21 7H6"/></svg></span> <span class="label">Purchase</span></button>
       <button class="navbtn" data-view="sale"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg></span> <span class="label">Sale (Invoice)</span></button>
-      <button class="navbtn" data-view="voucher"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9a2 2 0 0 0 0 6v3h18v-3a2 2 0 0 1 0-6V6H3z"/><path d="M13 7v10" stroke-dasharray="2 2"/></svg></span> <span class="label">Sales Voucher (Non-GST)</span></button>
-      <button class="navbtn" data-view="creditnote"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h4"/></svg></span> <span class="label">Credit Note</span></button>
+      <button class="navbtn" data-view="voucher"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9a2 2 0 0 0 0 6v3h18v-3a2 2 0 0 1 0-6V6H3z"/><path d="M13 7v10" stroke-dasharray="2 2"/></svg></span> <span class="label">Challan</span></button>
+      <button class="navbtn" data-view="creditnote"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h4"/></svg></span> <span class="label">Credit / Debit Note</span></button>
       <button class="navbtn" data-view="service"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.8-3.8a6 6 0 0 1-7.9 7.9l-6.9 6.9a2.1 2.1 0 0 1-3-3l6.9-6.9a6 6 0 0 1 7.9-7.9z"/></svg></span> <span class="label">Service Sale</span></button>
       <button class="navbtn" data-view="quotation"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/></svg></span> <span class="label">Quotation / Challan</span></button>
       <div class="navlabel adminonly">Approvals</div>
@@ -1354,12 +1454,12 @@ html[data-dark-mode="1"] button.btn.danger:hover,html[data-theme="midnight"] but
       <button class="navbtn" data-view="paymentvoucher"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h10M7 9h10M7 5c6 0 6 8 0 8h-1l7 7"/></svg></span> <span class="label">Purchase Payment Voucher</span></button>
       <button class="navbtn" data-view="salesregister"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M4 10h10M4 15h7"/><path d="M18 20v-7m0 0l-3 3m3-3l3 3"/></svg></span> <span class="label">Sales Register</span></button>
       <button class="navbtn adminonly" data-view="gstr1"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h7"/></svg></span> <span class="label">GSTR-1 Return</span></button>
-      <button class="navbtn" data-view="voucherregister"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M4 10h10M4 15h7"/><path d="M15 18l2 2 4-4"/></svg></span> <span class="label">Non-GST Sale Register</span></button>
+      <button class="navbtn" data-view="voucherregister"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M4 10h10M4 15h7"/><path d="M15 18l2 2 4-4"/></svg></span> <span class="label">Challan Register</span></button>
       <button class="navbtn" data-view="serviceregister"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M4 10h10M4 15h7"/><circle cx="18" cy="17" r="3"/></svg></span> <span class="label">Service Register</span></button>
       <button class="navbtn" data-view="duesregister"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M4 10h9M4 15h6"/><circle cx="17" cy="16" r="4"/><path d="M17 14v2l1.2 1"/></svg></span> <span class="label">Pending Dues Register</span></button>
       <button class="navbtn" data-view="warranty"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg></span> <span class="label">Warranty / Out Repair</span></button>
       <div class="navlabel">Records</div>
-      <button class="navbtn adminonly" data-view="inventory"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg></span> <span class="label">Inventory</span></button>
+      <button class="navbtn" data-view="inventory"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg></span> <span class="label">Inventory</span></button>
       <button class="navbtn adminonly" data-view="employees"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 14a6.5 6.5 0 0 1 3.5 6"/></svg></span> <span class="label">Employees</span></button>
       <button class="navbtn adminonly" data-view="salary"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="6" width="19" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 9.5v.01M18 14.5v.01"/></svg></span> <span class="label">Salary Register</span></button>
       <button class="navbtn" data-view="customers"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span> <span class="label">Customers</span></button>
@@ -1382,7 +1482,7 @@ html[data-dark-mode="1"] button.btn.danger:hover,html[data-theme="midnight"] but
     <header class="topbar">
       <button id="mobileMenuButton" class="mobile-menu-btn no-print" type="button" onclick="toggleMobileSidebar()" aria-label="Open navigation" title="Open navigation">☰</button>
       <div class="topbar-title"><h1 id="pageTitle">Dashboard</h1><div class="crumb" id="pageCrumb">Overview of shop activity</div></div>
-      <div class="no-print" id="topbarStatus" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end;font-size:11.5px;color:#6b6659;"><div id="databaseTopStatus" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"></div><div id="approvalTopNotification"></div></div>
+      <button type="button" id="refreshDataBtn" class="btn ghost sm no-print" title="Reload the latest data from the database" onclick="refreshData()"><span class="ri">⟳</span><span class="rl"> Refresh</span></button><div class="no-print" id="topbarStatus" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end;font-size:11.5px;color:#6b6659;"><div id="databaseTopStatus" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"></div><div id="approvalTopNotification"></div></div>
     </header>
         <div class="content" id="view"></div>
   </div>
@@ -1439,7 +1539,7 @@ window.APP_ENV = Object.freeze({
 </script>
 <script>
 /* App version. Bumped by tools/release.py (also updates version.json and the ?v= cache stamps in index.html). */
-const APP_VERSION='1.0.86';
+const APP_VERSION='1.0.101';
 document.title='Shop Manager — v'+APP_VERSION;
 
 </script>
@@ -1722,6 +1822,15 @@ async function pushLocalDataToSupabase(){
   if(!cloudReady||!supabaseClient){showToast('Connect Superbase first');return}
   const map=cloudRecordMap(DB),rows=[...map.values()].map(v=>{const o=JSON.parse(v);return {id:o.id,table_name:o.table_name,data:o.data,deleted:false,updated_at:new Date().toISOString()}});
   try{const {error}=await supabaseClient.from(SUPERBASE_TABLE).upsert(rows,{onConflict:'id'});if(error)throw error;cloudSnapshot=map;showToast(rows.length+' records uploaded to Superbase');setTopbarSyncStatus('Superbase synced · '+rows.length+' records',true)}catch(e){showToast('Superbase upload failed: '+(e.message||e))}
+}
+async function refreshData(){
+  const b=document.getElementById('refreshDataBtn');if(b){if(b.disabled)return;b.disabled=true;b.classList.add('busy');}
+  try{
+    if(typeof _syncP!=='undefined'&&_syncP)await _syncP.catch(()=>{});
+    if(cloudReady&&supabaseClient){const ok=await pullCloudDataToLocal(true);if(!ok){showToast('Could not refresh — showing the data already loaded');return;}try{applyRoleRestrictions();updateApprovalNotifications();alertCheck(true);}catch(e){}showToast('Data refreshed');}
+    else{if(currentPageKey)route(currentPageKey);showToast('Database not connected — screen refreshed');}
+  }catch(e){showToast('Refresh failed: '+(e.message||e));}
+  finally{if(b){b.disabled=false;b.classList.remove('busy');}}
 }
 async function pullCloudDataToLocal(silent=false){
   if(!cloudReady||!supabaseClient){if(!silent)showToast('Superbase is not connected');return false}
@@ -2153,21 +2262,21 @@ const titles = {
   approvals:['Pending Approvals','Review staff requests for transaction and warranty register changes'],
   purchase:['Purchase','Record stock purchased from suppliers'],
   sale:['Sale · Invoice','Sell products and print a customer invoice'],
-  voucher:['Sales Voucher (Non-GST)','A plain sales voucher without GST — for exempt sales or non-GST customers'],
+  voucher:['Challan','A plain sales voucher without GST — for exempt sales or non-GST customers'],
   service:['Service Sale','Bill a repair or service job to a customer'],
   quotation:['Quotation / Challan','Create a quotation, estimate or delivery challan'],
   purchaseregister:['Purchase Register','All purchases with payment status, editable paid amount and auto-calculated due'],
   paymentvoucher:['Purchase Payment Voucher','Pay a supplier once and adjust it across multiple outstanding purchase bills'],
   salesregister:['Sales Register','All invoices with payment status, editable paid amount and auto-calculated due'],
-  voucherregister:['Non-GST Sale Register','All sales vouchers with payment status, editable paid amount and auto-calculated due'],
+  voucherregister:['Challan Register','All sales vouchers with payment status, editable paid amount and auto-calculated due'],
   serviceregister:['Service Register','All service jobs with payment status, editable paid amount and auto-calculated due'],
   warranty:['Warranty / Out Repair','Track items sent to warranty or outside repair, receipts, and provider balances'],
   inventory:['Inventory','Manage products and stock levels'],
   employees:['Employees','Staff who can be assigned to sales & service'],
   customers:['Customers','Save repeat customers to pick them instantly in Sale & Quotation'],
   todos:['To-Do List','Organize tasks across multiple pages'],
-  duesregister:['Pending Dues Register','Unpaid sales, Non-GST sales and services by date'],
-  creditnote:['Credit Note','Sales return / post-sale discount against a sale invoice — included in GSTR-1'],
+  duesregister:['Pending Dues Register','Unpaid sales, challans and services by date'],
+  creditnote:['Credit / Debit Note','Credit note (return / discount) or debit note (extra charge) against a sale invoice — included in GSTR-1'],
   gstr1:['GSTR-1 Return','Sale invoices only — JSON and Excel export for the GST portal'],
   renewaltrack:['Software Renewals','Subscription tracking by financial year'],
   salary:['Salary Register','Monthly salary, advances and payments'],
@@ -2197,7 +2306,7 @@ function route(view){
 function renderDashboard(){
   document.getElementById('view').innerHTML = `
     <div class="row db-filter">
-      <div class="field"><label>From</label><input type="date" id="db_from" value="${DEFAULT_FROM}"></div>
+      <div class="field"><label>From</label><input type="date" id="db_from" value="${defaultFromDate()}"></div>
       <div class="field"><label>To</label><input type="date" id="db_to" value="${todayStr()}"></div>
       <div class="field"><button class="btn amber sm" onclick="runDashboard()">Apply</button></div>
     </div>
@@ -2205,20 +2314,22 @@ function renderDashboard(){
   runDashboard();
 }
 /* newest date first; records on the same date keep newest-entered first */
+/* newest date first; on the same date the highest document number first (INV-0010 before INV-0009) */
+function byNoDesc(list,f){var num=function(x){var m=String(x[f]||'').match(/(\d+)\D*$/);return m?+m[1]:0;};return (list||[]).slice().sort(function(a,b){return String(b.date||'').localeCompare(String(a.date||''))||num(b)-num(a)||String(b[f]||'').localeCompare(String(a[f]||''));});}
 function sortRecent(list){return (list||[]).map((r,i)=>[r,i]).sort((a,b)=>String(b[0].date||'').localeCompare(String(a[0].date||''))||b[1]-a[1]).map(x=>x[0]);}
-const DEFAULT_FROM='2026-01-01';
-function regDateHtml(p,fn){return '<div class="field" style="margin:0;"><input type="date" id="'+p+'_from" title="From date" value="'+DEFAULT_FROM+'" onchange="'+fn+'()"></div><div class="field" style="margin:0;"><input type="date" id="'+p+'_to" title="To date" onchange="'+fn+'()"></div>';}
+/* default start date of registers and the dashboard: Settings value, else 1 Jan of the current year */
+function defaultFromDate(){return (DB&&DB.settings&&DB.settings.defaultFromDate)||(new Date().getFullYear()+'-01-01');}
+function regDateHtml(p,fn){return '<div class="field" style="margin:0;"><input type="date" id="'+p+'_from" title="From date" value="'+defaultFromDate()+'" onchange="'+fn+'()"></div><div class="field" style="margin:0;"><input type="date" id="'+p+'_to" title="To date" onchange="'+fn+'()"></div>';}
 function regDate(p){const a=document.getElementById(p+'_from'),b=document.getElementById(p+'_to');return{from:a?a.value:'',to:b?b.value:''};}
-function inRange(d, from, to){ return (!from||d>=from) && (!to||d<=to); }
+function inRange(d, from, to){ return !d || ((!from||d>=from) && (!to||d<=to)); } /* undated legacy records are never hidden */
 function runDashboard(){
   const from = document.getElementById('db_from').value, to = document.getElementById('db_to').value, emp = '';
   const sales = DB.sales.filter(s=>inRange(s.date,from,to) && (!emp||s.employee===emp));
   const services = DB.services.filter(s=>inRange(s.date,from,to) && (!emp||s.employee===emp));
   const purchases = DB.purchases.filter(p=>inRange(p.date,from,to));
   const salesTotal = sales.reduce((s,x)=>s+x.grandTotal,0);
-  const vouchersR = (DB.vouchers||[]).filter(s=>inRange(s.date,from,to));
-  const dueSales = sales.reduce((s,x)=>s+Math.max(0,x.grandTotal-(x.paidAmount||0)-(x.deduction||0)),0);
-  const dueVouchers = vouchersR.reduce((s,x)=>s+Math.max(0,x.grandTotal-(x.paidAmount||0)-(x.deduction||0)),0);
+  const dueSales = DB.sales.reduce((s,x)=>s+Math.max(0,x.grandTotal-(x.paidAmount||0)-(x.deduction||0)),0);
+  const dueVouchers = (DB.vouchers||[]).reduce((s,x)=>s+Math.max(0,x.grandTotal-(x.paidAmount||0)-(x.deduction||0)),0);
   const dueTotal = dueSales+dueVouchers;
   const serviceTotal = services.reduce((s,x)=>s+x.amount,0);
   const purchaseTotal = purchases.reduce((s,x)=>s+x.grandTotal,0);
@@ -2239,7 +2350,7 @@ function runDashboard(){
   document.getElementById('dashboardOut').innerHTML = `
     <div class="grid g4" style="margin-bottom:16px;">
       <div class="card stat"><div class="accent-bar" style="background:var(--amber)"></div><div class="label">Product Sales</div><div class="value mono">₹${fmt(salesTotal)}</div><div class="foot">${sales.length} invoices</div></div>
-      <div class="card stat"><div class="accent-bar" style="background:${dueTotal>0?'var(--red)':'#B7B2A2'}"></div><div class="label">Outstanding Dues</div><div class="value mono">₹${fmt(dueTotal)}</div><div class="foot">GST ₹${fmt(dueSales)} · Non-GST ₹${fmt(dueVouchers)}</div></div>
+      <div class="card stat"><div class="accent-bar" style="background:${dueTotal>0?'var(--red)':'#B7B2A2'}"></div><div class="label">Outstanding Dues (all dates)</div><div class="value mono">₹${fmt(dueTotal)}</div><div class="foot">GST ₹${fmt(dueSales)} · Non-GST ₹${fmt(dueVouchers)}</div></div>
       <div class="card stat"><div class="accent-bar" style="background:var(--teal)"></div><div class="label">Service Revenue</div><div class="value mono">₹${fmt(serviceTotal)}</div><div class="foot">${services.length} jobs</div></div>
       <div class="card stat"><div class="accent-bar" style="background:#6C7280"></div><div class="label">Purchase</div><div class="value mono">₹${fmt(purchaseTotal)}</div><div class="foot">${purchases.length} entries</div></div>
     </div>
@@ -2304,16 +2415,17 @@ function renderInventory(){
   renderInventoryTable();
 }
 function openItemHistory(id){
+  if(currentUserRole!=='admin'){showToast('Item history is available to Admin only');return;}
   const p=DB.products.find(x=>x.id===id);if(!p)return;
   const rows=[];
   const add=(list,kind,noF,partyF,sign)=>(list||[]).forEach(d=>(d.lines||[]).forEach(l=>{if(l.productId===id)rows.push({date:d.date||'',kind,no:d[noF]||'',party:d[partyF]||'',qty:+l.qty||0,price:+l.price||+l.purchasePrice||0,code:l.detail||(l.barcodes||[]).join(', '),sign});}));
-  add(DB.sales,'Sale','invoiceNo','customer',-1);add(DB.vouchers,'Non-GST Sale','voucherNo','customer',-1);add(DB.purchases,'Purchase','purchaseNo','supplier',1);
-  (DB.creditNotes||[]).forEach(d=>(d.lines||[]).forEach(l=>{if(l.productId===id)rows.push({date:d.date||'',kind:'Credit Note',no:d.creditNoteNo||d.cnNo||d.no||'',party:d.customer||'',qty:+l.qty||0,price:+l.price||0,code:l.detail||'',sign:1});}));
+  add(DB.sales,'Sale','invoiceNo','customer',-1);add(DB.vouchers,'Challan','voucherNo','customer',-1);if(currentUserRole==='admin')add(DB.purchases,'Purchase','purchaseNo','supplier',1);
+  (DB.creditNotes||[]).forEach(d=>(d.lines||[]).forEach(l=>{if(l.productId===id)rows.push({date:d.date||'',kind:d.kind==='debit'?'Debit Note':'Credit Note',no:d.noteNo||'',party:d.customer||'',qty:+l.qty||0,price:+l.price||0,code:l.detail||'',sign:1});}));
   rows.sort((a,b)=>String(b.date).localeCompare(String(a.date)));
-  const sum=k=>rows.filter(r=>r.kind===k).reduce((t,r)=>t+r.qty,0),sold=sum('Sale')+sum('Non-GST Sale'),bought=sum('Purchase');
-  const last=k=>rows.find(r=>r.kind===k);const ls=last('Sale')||last('Non-GST Sale'),lp=last('Purchase');
+  const sum=k=>rows.filter(r=>r.kind===k).reduce((t,r)=>t+r.qty,0),sold=sum('Sale')+sum('Challan'),bought=sum('Purchase');
+  const last=k=>rows.find(r=>r.kind===k);const ls=last('Sale')||last('Challan'),lp=last('Purchase');
   openModal('History — '+p.name,
-   '<div class="muted" style="margin-bottom:8px;">Purchased <b>'+bought+'</b> · Sold <b>'+sold+'</b> · In stock <b>'+p.stock+'</b>'+(lp?' · Last purchase ₹'+fmt(lp.price)+' ('+safeText(lp.date)+')':'')+(ls?' · Last sale ₹'+fmt(ls.price)+' ('+safeText(ls.date)+')':'')+'</div>'+
+   '<div class="muted" style="margin-bottom:8px;">'+(currentUserRole==='admin'?'Purchased <b>'+bought+'</b> · ':'')+'Sold <b>'+sold+'</b> · In stock <b>'+p.stock+'</b>'+(lp?' · Last purchase ₹'+fmt(lp.price)+' ('+safeText(lp.date)+')':'')+(ls?' · Last sale ₹'+fmt(ls.price)+' ('+safeText(ls.date)+')':'')+'</div>'+
    '<div class="table-scroll" style="max-height:60vh;overflow:auto;"><table class="no-ct"><thead><tr><th>Date</th><th>Type</th><th>Ref</th><th>Party</th><th class="num">Qty</th><th class="num">Rate ₹</th><th>Barcodes</th></tr></thead><tbody>'+
    (rows.length?rows.map(r=>'<tr><td>'+safeText(r.date)+'</td><td><span class="badge '+(r.sign>0?'ok':'partial')+'">'+r.kind+'</span></td><td class="mono">'+safeText(r.no)+'</td><td>'+safeText(r.party)+'</td><td class="num mono">'+(r.sign>0?'+':'−')+r.qty+'</td><td class="num mono">'+fmt(r.price)+'</td><td class="mono">'+safeText(r.code)+'</td></tr>').join(''):'<tr><td colspan="7" class="empty">No sales or purchases recorded for this item.</td></tr>')+
    '</tbody></table></div>','<button class="btn ghost" onclick="closeModal()">Close</button>');
@@ -2330,7 +2442,7 @@ function exportInventoryToExcel(){
     'SKU': p.sku, 'Brand': p.brand||'', 'HSN': p.hsn||'', 'Name': p.name, 'Category': p.category||'',
     'GST %': p.gstPercent!=null?p.gstPercent:(DB.settings.gstPercent||18),
     'Purchase Price': p.purchasePrice, 'Sale Price': p.salePrice, 'Stock': p.stock, 'Reorder Level': p.reorderLevel,
-    'Barcodes': (p.barcodeUnits||[]).length, 'Status': p.stock<0?'Negative':(p.stock===0?'Out of Stock':(p.stock<=p.reorderLevel?'Low Stock':'In Stock'))
+    'Barcodes': (p.barcodeUnits||[]).filter(u=>u.status==='available').length, 'Status': p.stock<0?'Negative':(p.stock===0?'Out of Stock':(p.stock<=p.reorderLevel?'Low Stock':'In Stock'))
   }));
   const ws = XLSX.utils.json_to_sheet(data);
   ws['!cols'] = [{wch:12},{wch:14},{wch:10},{wch:28},{wch:14},{wch:8},{wch:14},{wch:12},{wch:8},{wch:12},{wch:10},{wch:12}];
@@ -2348,7 +2460,7 @@ function renderInventoryTable(){
   const mode=invMode(),W=document.getElementById('inv_tableWrap');
   const img=(p,sz)=>p.image?`<img src="${p.image}" style="width:${sz}px;height:${sz}px;object-fit:cover;border-radius:8px;display:block;cursor:pointer;" onclick="openImageLightbox('${p.image}','${(p.name||'').replace(/'/g,"\\'")}')">`:`<div style="width:${sz}px;height:${sz}px;border-radius:8px;background:#F0EDE5;"></div>`;
   const gst=p=>p.gstPercent!=null?p.gstPercent:(DB.settings.gstPercent||18);
-  if(mode==='cards'){W.classList.remove('table-scroll');W.innerHTML=rows.length?'<div class="inv-cards">'+rows.map(p=>`<div class="inv-card"><div class="ic-top">${img(p,52)}<div class="ic-title"><b>${safeText(p.name)}</b><span class="ic-sub">${safeText(p.brand||'—')} · ${safeText(p.category||'—')}</span><span class="ic-sub mono">${safeText(p.sku)}${p.hsn?' · HSN '+safeText(p.hsn):''}</span></div>${stockBadge(p)}</div><div class="ic-info"><div><span>Sale ₹</span><b class="mono">${fmt(p.salePrice)}</b></div><div><span>Purchase ₹</span><b class="mono">${fmt(p.purchasePrice)}</b></div><div><span>Stock</span><b class="mono">${p.stock}</b></div><div><span>GST</span><b class="mono">${gst(p)}%</b></div></div><div class="ic-act"><button class="btn ghost sm" onclick="openProductModal('${p.id}')">Edit</button><button class="btn ghost sm" onclick="openItemHistory('${p.id}')">History</button> <button class="btn ghost sm" onclick="openBarcodeManager('${p.id}')">Barcodes (${(p.barcodeUnits||[]).length})</button><button class="btn danger sm" onclick="deleteProduct('${p.id}')">Del</button></div></div>`).join('')+'</div>':'<div class="empty" style="padding:20px">No matching products.</div>';return;}
+  if(mode==='cards'){W.classList.remove('table-scroll');W.innerHTML=rows.length?'<div class="inv-cards">'+rows.map(p=>`<div class="inv-card"><div class="ic-top">${img(p,52)}<div class="ic-title"><b>${safeText(p.name)}</b><span class="ic-sub">${safeText(p.brand||'—')} · ${safeText(p.category||'—')}</span><span class="ic-sub mono">${safeText(p.sku)}${p.hsn?' · HSN '+safeText(p.hsn):''}</span></div>${stockBadge(p)}</div><div class="ic-info"><div><span>Sale ₹</span><b class="mono">${fmt(p.salePrice)}</b></div><div><span>Purchase ₹</span><b class="mono">${fmt(p.purchasePrice)}</b></div><div><span>Stock</span><b class="mono">${p.stock}</b></div><div><span>GST</span><b class="mono">${gst(p)}%</b></div></div><div class="ic-act"><button class="btn ghost sm" onclick="openProductModal('${p.id}')">Edit</button><button class="btn ghost sm" onclick="openItemHistory('${p.id}')">History</button> <button class="btn ghost sm" onclick="openBarcodeManager('${p.id}')">Barcodes (${(p.barcodeUnits||[]).filter(u=>u.status==='available').length})</button><button class="btn danger sm" onclick="deleteProduct('${p.id}')">Del</button></div></div>`).join('')+'</div>':'<div class="empty" style="padding:20px">No matching products.</div>';return;}
   if(mode==='grid'){W.classList.remove('table-scroll');W.innerHTML=rows.length?'<div class="inv-grid">'+rows.map(p=>`<div class="inv-tile" onclick="openProductModal('${p.id}')"><div class="it-img">${img(p,64)}</div><div class="it-name">${safeText(p.name)}</div><div class="it-sub">${safeText(p.brand||p.category||'')}</div><div class="it-price mono">₹${fmt(p.salePrice)}</div><div class="it-stock">${stockBadge(p)} <span class="mono">${p.stock}</span></div></div>`).join('')+'</div>':'<div class="empty" style="padding:20px">No matching products.</div>';return;}
   W.classList.add('table-scroll');
   W.innerHTML = `
@@ -2362,7 +2474,7 @@ function renderInventoryTable(){
         <td class="num mono">${p.gstPercent!=null?p.gstPercent:(DB.settings.gstPercent||18)}%</td>
         <td class="num mono">${fmt(p.purchasePrice)}</td><td class="num mono">${fmt(p.salePrice)}</td>
         <td class="num mono">${p.stock}</td><td>${stockBadge(p)}</td>
-        <td style="white-space:nowrap;"><button class="btn ghost sm" onclick="openProductModal('${p.id}')">Edit</button> <button class="btn ghost sm" onclick="openItemHistory('${p.id}')">History</button> <button class="btn ghost sm" onclick="openBarcodeManager('${p.id}')">Barcodes (${(p.barcodeUnits||[]).length})</button> <button class="btn danger sm" onclick="deleteProduct('${p.id}')">Del</button></td>
+        <td style="white-space:nowrap;"><button class="btn ghost sm" onclick="openProductModal('${p.id}')">Edit</button> <button class="btn ghost sm" onclick="openItemHistory('${p.id}')">History</button> <button class="btn ghost sm" onclick="openBarcodeManager('${p.id}')">Barcodes (${(p.barcodeUnits||[]).filter(u=>u.status==='available').length})</button> <button class="btn danger sm" onclick="deleteProduct('${p.id}')">Del</button></td>
       </tr>`).join('') : '<tr><td colspan="12" class="empty">No matching products.</td></tr>'}
     </tbody></table>`;
 }
@@ -2414,11 +2526,10 @@ function renderBarcodeUnitList(productId){
   const p = DB.products.find(x=>x.id===productId);
   const box = document.getElementById('bc_unit_list');
   if(!box || !p) return;
-  const units = p.barcodeUnits||[];
-  box.innerHTML = units.length ? `<table><thead><tr><th>Barcode</th><th>Status</th><th></th></tr></thead><tbody>
-    ${units.map((u,i)=>`<tr><td class="mono">${u.code}</td><td><span class="badge ${u.status==='available'?'ok':'bad'}">${u.status==='available'?'Available':'Sold'}</span></td>
-    <td>${u.status==='available'?`<button class="btn danger sm" onclick="removeBarcodeUnit('${productId}',${i})">Remove</button>`:''}</td></tr>`).join('')}
-    </tbody></table>` : '<div class="empty">No barcodes recorded yet for this item.</div>';
+  const units = p.barcodeUnits||[],sold=units.filter(u=>u.status!=='available').length; /* sold barcodes stay on file (they never repeat) but are not listed */
+  box.innerHTML = units.length-sold ? `<table><thead><tr><th>Barcode</th><th></th></tr></thead><tbody>
+    ${units.map((u,i)=>u.status!=='available'?'':`<tr><td class="mono">${u.code}</td><td><button class="btn danger sm" onclick="removeBarcodeUnit('${productId}',${i})">${currentUserRole==='admin'?'Remove':'Request removal'}</button></td></tr>`).join('')}
+    </tbody></table>` : '<div class="empty">No available barcodes for this item.</div>';
 }
 function addBarcodeUnit(productId){
   const input = document.getElementById('bc_new_code');
@@ -2435,6 +2546,7 @@ function addBarcodeUnit(productId){
   renderBarcodeUnitList(productId);
 }
 function removeBarcodeUnit(productId, idx){
+  if(currentUserRole!=='admin'){const u=((DB.products.find(x=>x.id===productId)||{}).barcodeUnits||[])[idx];if(!u)return;askConfirm('Send a request to the Admin to remove barcode '+u.code+'?',()=>requestRegisterApproval('product',productId,'barcode-remove',{code:u.code}));return;}
   askConfirm('Remove this barcode record?', ()=>{
     const p = DB.products.find(x=>x.id===productId);
     p.barcodeUnits.splice(idx,1);
@@ -2443,6 +2555,7 @@ function removeBarcodeUnit(productId, idx){
   });
 }
 function openProductModal(id){
+  if(currentUserRole!=='admin'&&!document.body.classList.contains('inv-edit')){showToast('You do not have permission to edit products');return;}
   const p = id ? DB.products.find(x=>x.id===id) : {sku:'',hsn:'',brand:'',name:'',category:'',purchasePrice:'',salePrice:'',stock:0,reorderLevel:3,image:''};
   productImageDraft = null;
   const urlVal = p.image && !p.image.startsWith('data:') ? p.image : '';
@@ -2454,7 +2567,7 @@ function openProductModal(id){
     <div class="row"><div class="field"><label>Category</label><input id="f_cat" value="${p.category}" placeholder="Laptop, Accessory..."></div>
     <div class="field"><label>Product Name</label><input id="f_name" value="${p.name}"></div></div>
     <div class="row">
-      <div class="field"><label>Purchase Price (₹)</label><input id="f_pp" type="number" step="0.01" value="${p.purchasePrice}"></div>
+      ${currentUserRole==='admin'?`<div class="field"><label>Purchase Price (₹)</label><input id="f_pp" type="number" step="0.01" value="${p.purchasePrice}"></div>`:''}
       <div class="field"><label>Sale Price (₹)</label><input id="f_sp" type="number" step="0.01" value="${p.salePrice}"></div>
       <div class="field"><label>GST % (this item)</label><input id="f_gst" type="number" step="0.01" value="${p.gstPercent!=null?p.gstPercent:(DB.settings.gstPercent||18)}"></div>
     </div>
@@ -2545,7 +2658,7 @@ function saveProduct(id){
     brand: document.getElementById('f_brand').value.trim(),
     hsn: document.getElementById('f_hsn').value.trim(),
     name, category: document.getElementById('f_cat').value.trim()||'General',
-    purchasePrice: parseFloat(document.getElementById('f_pp').value)||0,
+    purchasePrice: document.getElementById('f_pp')?(parseFloat(document.getElementById('f_pp').value)||0):(id?(DB.products.find(x=>x.id===id)||{}).purchasePrice||0:0),
     salePrice: parseFloat(document.getElementById('f_sp').value)||0,
     gstPercent: parseFloat(document.getElementById('f_gst').value)||0,
     stock: parseInt(document.getElementById('f_stock').value)||0,
@@ -2553,12 +2666,20 @@ function saveProduct(id){
     uqc: document.getElementById('f_uqc').value||'NOS',
     image,
   };
+  if(currentUserRole!=='admin'){
+    productImageDraft=null;
+    if(id){const cur=DB.products.find(x=>x.id===id)||{},ch={};Object.keys(data).forEach(k=>{if(k!=='purchasePrice'&&data[k]!==cur[k]&&!(cur[k]==null&&(data[k]===''||data[k]==='NOS')))ch[k]=data[k];});
+      if(!Object.keys(ch).length){showToast('No changes to send');closeModal();return;}
+      requestRegisterApproval('product',id,'update',ch);}
+    else{DB.products.push({id:cid(),...data,purchasePrice:0});saveDB();showToast('Product added');}
+    closeModal();renderInventoryTable();return;}
   if(id){ Object.assign(DB.products.find(x=>x.id===id), data); showToast('Product updated'); }
   else { DB.products.push({id:cid(), ...data}); showToast('Product added'); }
   productImageDraft = null;
   saveDB(); closeModal(); renderInventoryTable();
 }
 function deleteProduct(id){
+  if(currentUserRole!=='admin'){if(!document.body.classList.contains('inv-edit')){showToast('You do not have permission to delete products');return;}askConfirm('Send a request to the Admin to delete this product?',()=>requestRegisterApproval('product',id,'delete',{name:(DB.products.find(x=>x.id===id)||{}).name||'',sku:(DB.products.find(x=>x.id===id)||{}).sku||''}));return;}
   askConfirm('Delete this product? This cannot be undone.', ()=>{
     DB.products = DB.products.filter(x=>x.id!==id); saveDB(); renderInventoryTable();
   });
@@ -2817,6 +2938,7 @@ function saveCustomer(id){
   const name=document.getElementById('c_name').value.trim();
   if(!name){ showToast('Customer name is required'); return; }
   const data={name, phone:document.getElementById('c_phone').value.trim(), gstin:document.getElementById('c_gstin').value.trim(), address:document.getElementById('c_address').value.trim(), state:document.getElementById('c_state').value, partyRef:document.getElementById('c_partyref').value.trim()};
+  if(id&&currentUserRole!=='admin'){const cur=DB.customers.find(x=>x.id===id)||{},ch={};Object.keys(data).forEach(k=>{if(String(data[k]||'')!==String(cur[k]||''))ch[k]=data[k];});if(!Object.keys(ch).length){showToast('No changes to send');closeModal();return;}requestRegisterApproval('customer',id,'update',ch);closeModal();return;}
   if(id){ Object.assign(DB.customers.find(x=>x.id===id), data); showToast('Customer updated'); }
   else { DB.customers.push({id:cid(), ...data}); showToast('Customer added'); }
   saveDB(); closeModal(); renderCustomers();
@@ -3095,7 +3217,7 @@ function renderPurchase(editId){
         <div class="panel-head"><h3>Recent Purchases</h3><button class="btn ghost sm" onclick="route('purchaseregister')">Open Full Register →</button></div>
         <div class="panel-body table-scroll" style="padding:0;">
           <table><thead><tr><th>Ref</th><th>Supplier</th><th class="num">Total</th><th>Status</th><th></th></tr></thead><tbody>
-          ${DB.purchases.length? [...DB.purchases].reverse().slice(0,8).map(p=>{
+          ${DB.purchases.length? byNoDesc(DB.purchases,'purchaseNo').slice(0,8).map(p=>{
             const due = p.grandTotal-(p.paidAmount!=null?p.paidAmount:p.grandTotal);
             const status = due<=0.004?'<span class="badge ok">Paid</span>':((p.paidAmount||0)<=0.004?'<span class="badge bad">Unpaid</span>':'<span class="badge partial">Partial</span>');
             return `<tr><td class="mono">${p.purchaseNo}</td><td>${p.supplier}</td><td class="num mono">₹${fmt(p.grandTotal)}</td><td>${status}</td>
@@ -3406,7 +3528,7 @@ function renderSale(editId){
           ${(()=>{
             const recentRowHtml = s=>`<tr><td class="mono">${s.invoiceNo}</td><td>${s.customer}</td><td class="num mono">₹${fmt(s.grandTotal)}</td><td><span class="badge ${paymentStatus(s)==='Paid'?'ok':(paymentStatus(s)==='Unpaid'?'bad':'partial')}">${paymentStatus(s)}</span></td>
             <td style="white-space:nowrap;"><button class="btn ghost sm" onclick="printSaleInvoice('${s.id}')">Print</button> <button class="btn ghost sm" onclick="guardedEdit('edit this sale', ()=>renderSale('${s.id}'))">Edit</button></td></tr>`;
-            const notPaid = DB.sales.filter(s=>paymentStatus(s)!=='Paid').slice(-8).reverse();
+            const notPaid = byNoDesc(DB.sales.filter(s=>paymentStatus(s)!=='Paid'),'invoiceNo').slice(0,8);
             return notPaid.length? notPaid.map(recentRowHtml).join('') : '<tr><td colspan="5" class="empty">No unpaid or partial sales.</td></tr>';
           })()}
           </tbody></table>
@@ -3415,7 +3537,7 @@ function renderSale(editId){
           <button class="btn ghost sm" onclick="togglePaidBox('paidRecentSales', this)">▸ Paid Sales (${DB.sales.filter(s=>paymentStatus(s)==='Paid').length})</button>
           <div id="paidRecentSales" style="display:none;margin-top:10px;overflow-x:auto;"><table><thead><tr><th>Invoice</th><th>Customer</th><th class="num">Total</th><th>Status</th><th></th></tr></thead><tbody>
             ${(()=>{
-              const paid = DB.sales.filter(s=>paymentStatus(s)==='Paid').slice(-8).reverse();
+              const paid = byNoDesc(DB.sales.filter(s=>paymentStatus(s)==='Paid'),'invoiceNo').slice(0,8);
               return paid.length? paid.map(s=>`<tr><td class="mono">${s.invoiceNo}</td><td>${s.customer}</td><td class="num mono">₹${fmt(s.grandTotal)}</td><td><span class="badge ok">Paid</span></td>
                 <td style="white-space:nowrap;"><button class="btn ghost sm" onclick="printSaleInvoice('${s.id}')">Print</button> <button class="btn ghost sm" onclick="guardedEdit('edit this sale', ()=>renderSale('${s.id}'))">Edit</button></td></tr>`).join('') : '<tr><td colspan="5" class="empty">No paid sales yet.</td></tr>';
             })()}
@@ -3700,6 +3822,7 @@ function printSaleInvoice(id){
       ${pageSizeSelectHTML()}
       <button class="btn ghost sm" onclick="document.getElementById('invoiceWrap').remove()">Close</button>
       <button class="btn ghost sm" onclick="openInvoiceNewTab()">↗ Open in New Tab</button>
+      ${currentUserRole==='admin'&&s.transferredVoucher?`<button class="btn ghost sm" onclick="revertSaleToChallan('${s.id}')">⇄ Revert to Challan</button>`:''}
       <button class="btn amber sm" onclick="tryPrint()">🖨 Print Invoice</button>
       <button class="btn ghost sm" onclick="downloadInvoicePdf()">📄 PDF</button>
       <button class="btn ghost sm js-share-btn" onclick="shareInvoicePdf()">📤 Share PDF</button>
@@ -3758,7 +3881,7 @@ function renderVoucher(editId){
   document.getElementById('view').innerHTML = `
     <div class="grid g2-form" style="align-items:start;">
       <div class="panel">
-        <div class="panel-head"><h3>${editing?`Edit Voucher — ${editing.voucherNo}`:'New Sales Voucher (Non-GST)'}</h3>${editing?`<button class="btn ghost sm" onclick="renderVoucher()">Cancel Edit</button>`:''}<button class="btn ghost sm" onclick="printBlankForm('voucher')">🖶 Print Blank Form</button></div>
+        <div class="panel-head"><h3>${editing?`Edit Voucher — ${editing.voucherNo}`:'New Challan'}</h3>${editing?`<button class="btn ghost sm" onclick="renderVoucher()">Cancel Edit</button>`:''}<button class="btn ghost sm" onclick="printBlankForm('voucher')">🖶 Print Blank Form</button></div>
         <div class="panel-body">
           <div class="row">
             <div class="field"><label>Voucher No</label><input id="v_voucherno" value="${suggestedVoucherNo}"></div>
@@ -3796,7 +3919,7 @@ function renderVoucher(editId){
         <div class="panel-head"><h3>Recent Vouchers</h3><button class="btn ghost sm" onclick="route('voucherregister')">Open Full Register →</button></div>
         <div class="panel-body table-scroll" style="padding:0;">
           <table><thead><tr><th>Voucher</th><th>Customer</th><th class="num">Total</th><th>Status</th><th></th></tr></thead><tbody>
-          ${DB.vouchers.filter(v=>voucherPaymentStatus(v)!=='Paid').length? [...DB.vouchers].filter(v=>voucherPaymentStatus(v)!=='Paid').reverse().slice(0,8).map(v=>{
+          ${DB.vouchers.filter(v=>voucherPaymentStatus(v)!=='Paid').length? byNoDesc(DB.vouchers.filter(v=>voucherPaymentStatus(v)!=='Paid'),'voucherNo').slice(0,8).map(v=>{
             const due = v.grandTotal-(v.paidAmount||0)-(v.deduction||0);
             const status = due<=0.004?'<span class="badge ok">Paid</span>':((v.paidAmount||0)<=0.004&&!(v.deduction>0)?'<span class="badge bad">Unpaid</span>':'<span class="badge partial">Partial</span>');
             return `<tr><td class="mono">${v.voucherNo}</td><td>${v.customer}</td><td class="num mono">₹${fmt(v.grandTotal)}</td><td>${status}</td>
@@ -3807,7 +3930,7 @@ function renderVoucher(editId){
         <div style="padding:10px 16px;border-top:1px solid var(--line-light);">
           <button class="btn ghost sm" onclick="togglePaidBox('paidRecentVouchers', this)">▸ Paid Vouchers (${DB.vouchers.filter(v=>voucherPaymentStatus(v)==='Paid').length})</button>
           <div id="paidRecentVouchers" style="display:none;margin-top:10px;overflow-x:auto;"><table><tbody>
-          ${[...DB.vouchers].filter(v=>voucherPaymentStatus(v)==='Paid').reverse().slice(0,8).map(v=>`<tr><td class="mono">${v.voucherNo}</td><td>${v.customer}</td><td class="num mono">₹${fmt(v.grandTotal)}</td><td style="white-space:nowrap;"><button class="btn ghost sm" onclick="printVoucher('${v.id}')">Print</button> <button class="btn ghost sm" onclick="guardedEdit('edit this voucher', ()=>renderVoucher('${v.id}'))">Edit</button></td></tr>`).join('') || '<tr><td class="empty">No paid vouchers yet.</td></tr>'}
+          ${byNoDesc(DB.vouchers.filter(v=>voucherPaymentStatus(v)==='Paid'),'voucherNo').slice(0,8).map(v=>`<tr><td class="mono">${v.voucherNo}</td><td>${v.customer}</td><td class="num mono">₹${fmt(v.grandTotal)}</td><td style="white-space:nowrap;"><button class="btn ghost sm" onclick="printVoucher('${v.id}')">Print</button> <button class="btn ghost sm" onclick="guardedEdit('edit this voucher', ()=>renderVoucher('${v.id}'))">Edit</button></td></tr>`).join('') || '<tr><td class="empty">No paid vouchers yet.</td></tr>'}
           </tbody></table></div>
         </div>
       </div>
@@ -3902,7 +4025,7 @@ function saveVoucher(){
 
   if(editingVoucherId){
     const voucherChanges={voucherNo,customer,phone:document.getElementById('v_phone').value.trim(),employee:emp?emp.name:'—',date:document.getElementById('v_date').value||todayStr(),lines:newLines,subtotal:lineTotal,discountAmount,grandTotal,paidAmount,deduction,paymentMode,notes};
-    if(currentUserRole!=='admin'){requestRegisterApproval('voucher',oldVoucher.id,'update',voucherChanges);showToast('Non-GST sale changes sent for Admin approval');renderVoucherRegister();return;}
+    if(currentUserRole!=='admin'){requestRegisterApproval('voucher',oldVoucher.id,'update',voucherChanges);showToast('Challan changes sent for Admin approval');renderVoucherRegister();return;}
     oldVoucher.lines.forEach(l=>{ const prod=DB.products.find(p=>p.id===l.productId); if(prod) prod.stock += l.qty; setLineBarcodes(l,'available'); });
     Object.assign(oldVoucher,voucherChanges);
     newLines.forEach(l=>{ DB.products.find(p=>p.id===l.productId).stock -= l.qty; setLineBarcodes(l,'sold'); });
@@ -3921,16 +4044,17 @@ function saveVoucher(){
   renderVoucher();
   printVoucher(voucherObj.id);
 }
-function deleteVoucher(id){if(currentUserRole!=='admin'){requestRegisterApproval('voucher',id,'delete',null);return;}requirePassword('delete this Non-GST sale',()=>askConfirm('Delete this voucher? Stock will be added back.',()=>{const r=DB.vouchers.find(x=>x.id===id);if(!r)return;r.lines.forEach(l=>{const p=DB.products.find(x=>x.id===l.productId);if(p)p.stock+=l.qty;setLineBarcodes(l,'available');});DB.vouchers=DB.vouchers.filter(x=>x.id!==id);saveDB();renderVoucher();}));}
+function deleteVoucher(id){if(currentUserRole!=='admin'){requestRegisterApproval('voucher',id,'delete',null);return;}requirePassword('delete this challan',()=>askConfirm('Delete this voucher? Stock will be added back.',()=>{const r=DB.vouchers.find(x=>x.id===id);if(!r)return;r.lines.forEach(l=>{const p=DB.products.find(x=>x.id===l.productId);if(p)p.stock+=l.qty;setLineBarcodes(l,'available');});DB.vouchers=DB.vouchers.filter(x=>x.id!==id);saveDB();renderVoucher();}));}
 /* ===== Transfer a Non-GST sale voucher to a GST sale invoice ===== */
 function transferVoucherToSale(id){
   if(currentUserRole!=='admin'){showToast('Only Admin can transfer a voucher to a GST invoice');return;}
   const v=DB.vouchers.find(x=>x.id===id);if(!v)return;
+  if(DB.sales.some(x=>x.transferredFrom===v.voucherNo)){showToast('This voucher was already transferred to a GST invoice');return;}
   const bad=(v.lines||[]).find(l=>!DB.products.find(p=>p.id===l.productId));
   if(bad){showToast('Cannot transfer — "'+(bad.name||'an item')+'" no longer exists in the product list');return;}
   const pre=DB.settings.invoicePrefix,newNo=buildDocNo(pre,seriesNext(DB.sales,'invoiceNo',pre));
-  askConfirm('Transfer Non-GST voucher <b>'+safeText(v.voucherNo)+'</b> ('+safeText(v.customer)+', ₹'+fmt(v.grandTotal)+') to a <b>GST sale invoice</b> numbered <b>'+safeText(newNo)+'</b>?<br><br><span style="font-size:12.5px">The voucher prices are treated as <b>inclusive of GST</b> (each item\'s GST % from the product master), so the invoice total stays ₹'+fmt(v.grandTotal)+'. Stock is not changed. The voucher is removed from the Non-GST register and the invoice appears in Sales Register and GSTR-1.</span>',function(){
-    const cur=DB.vouchers.find(x=>x.id===id);if(!cur)return;
+  askConfirm('Transfer challan <b>'+safeText(v.voucherNo)+'</b> ('+safeText(v.customer)+', ₹'+fmt(v.grandTotal)+') to a <b>GST sale invoice</b> numbered <b>'+safeText(newNo)+'</b>?<br><br><span style="font-size:12.5px">The voucher prices are treated as <b>inclusive of GST</b> (each item\'s GST % from the product master), so the invoice total stays ₹'+fmt(v.grandTotal)+'. Stock is not changed. The voucher is removed from the Non-GST register and the invoice appears in Sales Register and GSTR-1.</span>',function(){
+    const cur=DB.vouchers.find(x=>x.id===id);if(!cur||DB.sales.some(x=>x.transferredFrom===cur.voucherNo))return;
     const lines=(cur.lines||[]).map(l=>{const p=DB.products.find(x=>x.id===l.productId);return{productId:l.productId,qty:+l.qty||0,price:+l.price||0,gstPercent:p.gstPercent!=null?p.gstPercent:(DB.settings.gstPercent||18),detail:l.detail||'',description:l.description||'',name:p.name,hsn:p.hsn||''};});
     const raw=computeItemwiseTotals(lines,'inclusive'),D=+cur.discountAmount||0;
     const res=applyDiscountBeforeTax(raw,raw.grandTotal>0?raw.subtotal*D/raw.grandTotal:0);
@@ -3939,7 +4063,7 @@ function transferVoucherToSale(id){
     const no=buildDocNo(pre,seriesNext(DB.sales,'invoiceNo',pre));
     const sale={id:cid(),invoiceNo:no,customer:cur.customer,phone:cur.phone||'',customerGstin:(cu&&cu.gstin)||'',employee:cur.employee||'—',date:cur.date||todayStr(),lines,
       subtotal:res.subtotal,subtotalBeforeDiscount:res.subtotalBeforeDiscount,supplyType:inter?'inter':'intra',placeOfSupply:(cu&&cu.state)||'',priceMode:'inclusive',gstAmount:res.gstAmount,breakup:res.breakup,
-      discountAmount:res.discountAmount,grandTotal:res.grandTotal,paidAmount:+cur.paidAmount||0,deduction:+cur.deduction||0,paymentMode:cur.paymentMode||'Cash',notes:cur.notes||'',transferredFrom:cur.voucherNo};
+      discountAmount:res.discountAmount,grandTotal:res.grandTotal,paidAmount:+cur.paidAmount||0,deduction:+cur.deduction||0,paymentMode:cur.paymentMode||'Cash',notes:cur.notes||'',transferredFrom:cur.voucherNo,transferredVoucher:JSON.parse(JSON.stringify(cur))};
     DB.sales.push(sale);
     DB.vouchers=DB.vouchers.filter(x=>x.id!==id);
     DB.settings.nextInvoiceNo=nextAfter(no,DB.settings.nextInvoiceNo+1);
@@ -3950,6 +4074,17 @@ function transferVoucherToSale(id){
     else document.querySelectorAll('#invoiceWrap').forEach(e=>e.remove());
     printSaleInvoice(sale.id);
   });
+}
+function revertSaleToChallan(id){
+  if(currentUserRole!=='admin'){showToast('Only Admin can revert an invoice to a challan');return;}
+  const s=DB.sales.find(x=>x.id===id);if(!s||!s.transferredVoucher)return;
+  const v0=s.transferredVoucher;
+  if(DB.vouchers.some(x=>x.id===v0.id||x.voucherNo===v0.voucherNo)){showToast('Challan '+v0.voucherNo+' already exists');return;}
+  askConfirm('Revert invoice <b>'+safeText(s.invoiceNo)+'</b> back to challan <b>'+safeText(v0.voucherNo)+'</b>?<br><br>The GST invoice is deleted (it will no longer appear in GSTR-1) and the challan returns to the register with the payments recorded on the invoice. Stock is not changed.',function(){
+    const cur=DB.sales.find(x=>x.id===id);if(!cur)return;
+    const v=JSON.parse(JSON.stringify(v0));v.paidAmount=+cur.paidAmount||0;v.deduction=+cur.deduction||0;v.paymentMode=cur.paymentMode||v.paymentMode;
+    DB.sales=DB.sales.filter(x=>x.id!==id);DB.vouchers.push(v);_binArm=false;saveDB();
+    document.querySelectorAll('#invoiceWrap').forEach(n=>n.remove());showToast('Reverted to challan '+v.voucherNo);route('voucherregister');});
 }
 function printVoucher(id){
   const v = DB.vouchers.find(x=>x.id===id);
@@ -3973,7 +4108,7 @@ function printVoucher(id){
           ${st.logo?`<img src="${st.logo}" style="width:88px;height:88px;object-fit:contain;flex:none;">`:''}
           <div><div class="co">${st.shopName}</div><div class="co-sub">${st.address}<br>${st.phone}</div></div>
         </div>
-        <div class="tag"><div class="t1">SALES VOUCHER</div><div class="co-sub mono">${v.voucherNo}</div><div class="co-sub" style="margin-top:2px;">(Non-GST)</div></div>
+        <div class="tag"><div class="t1">CHALLAN</div><div class="co-sub mono">${v.voucherNo}</div></div>
       </div>
       <div class="inv-meta">
         <div><strong>Bill To:</strong><br>${v.customer}${v.phone?`<br>${v.phone}`:''}</div>
@@ -3997,7 +4132,7 @@ function printVoucher(id){
             ${v.deduction>0?`<div class="trow"><span>Deduction</span><span class="mono">-₹${fmt(v.deduction)}</span></div><div class="trow" style="font-weight:700;"><span>Net Payable</span><span class="mono">₹${fmt(v.grandTotal-v.deduction)}</span></div>`:''}
           </div>
         </div>
-        <div class="perf">This is a Non-GST sales voucher — ${st.shopName}</div>
+        <div class="perf">This is a challan — ${st.shopName}</div>
       </div>
     </div>
   </div>`);
@@ -4302,6 +4437,7 @@ function saveQuotation(){
   printQuotation(obj.id);
 }
 function deleteQuotation(id){
+  if(currentUserRole!=='admin'){requestRegisterApproval('quotation',id,'delete',null);return;}
   askConfirm('Delete this document?', ()=>{
     DB.quotations = DB.quotations.filter(x=>x.id!==id); saveDB(); renderQuotation();
   });
@@ -4440,7 +4576,7 @@ function renderVoucherRegister(){
   document.getElementById('view').innerHTML = `
     <div class="panel">
       <div class="panel-head">
-        <h3>Non-GST Sale Register</h3>
+        <h3>Challan Register</h3>
         <div class="row" style="gap:8px;margin:0;">
           <div class="field" style="margin:0;min-width:160px;"><input id="vor_search" placeholder="Search voucher or customer…" oninput="renderVoucherRegisterTable()"></div>
           ${regDateHtml('vor','renderVoucherRegisterTable')}
@@ -4496,7 +4632,7 @@ function renderVoucherRegisterTable(){
       ${voucherRegPaidOpen?`<div style="margin-top:10px;overflow-x:auto;"><table><thead>${headHtml}</thead><tbody>${paid.length?paid.map(rowHtml).join(''):'<tr><td colspan="12" class="empty">No paid vouchers.</td></tr>'}</tbody></table></div>`:''}
     </div>`;
 }
-function deleteVoucherFromRegister(id){if(currentUserRole!=='admin'){requestRegisterApproval('voucher',id,'delete',null);return;}requirePassword('delete this Non-GST sale',()=>askConfirm('Delete this voucher? Stock will be added back.',()=>{const r=DB.vouchers.find(x=>x.id===id);if(!r)return;r.lines.forEach(l=>{const p=DB.products.find(x=>x.id===l.productId);if(p)p.stock+=l.qty;setLineBarcodes(l,'available');});DB.vouchers=DB.vouchers.filter(x=>x.id!==id);saveDB();renderVoucherRegister();}));}
+function deleteVoucherFromRegister(id){if(currentUserRole!=='admin'){requestRegisterApproval('voucher',id,'delete',null);return;}requirePassword('delete this challan',()=>askConfirm('Delete this voucher? Stock will be added back.',()=>{const r=DB.vouchers.find(x=>x.id===id);if(!r)return;r.lines.forEach(l=>{const p=DB.products.find(x=>x.id===l.productId);if(p)p.stock+=l.qty;setLineBarcodes(l,'available');});DB.vouchers=DB.vouchers.filter(x=>x.id!==id);saveDB();renderVoucherRegister();}));}
 function updateVoucherPayment(id,val){updateRegisterField('voucher',id,'paidAmount',val,renderVoucherRegisterTable);}
 function updateVoucherDeduction(id,val){updateRegisterField('voucher',id,'deduction',val,renderVoucherRegisterTable);}
 function exportSelectedVouchers(){
@@ -4618,7 +4754,7 @@ function initUIScale(){document.documentElement.style.setProperty('--ui-scale',g
 function recentActivityHTML(){
   const items=[];
   const add=(kind,arr,entity)=>(arr||[]).forEach(x=>items.push({t:x.createdAt||x.updatedAt||x.date||'',kind,ref:registerRef(entity,x),party:x.customer||x.supplier||x.name||'',amt:(x.grandTotal??x.amount??x.totalAmount),st:x.paymentStatus||''}));
-  add('Sale',DB.sales,'sale');add('Purchase',DB.purchases,'purchase');add('Non-GST Sale',DB.vouchers,'voucher');add('Service',DB.services,'service');add('Payment Voucher',DB.paymentVouchers,'paymentvoucher');
+  add('Sale',DB.sales,'sale');add('Purchase',DB.purchases,'purchase');add('Challan',DB.vouchers,'voucher');add('Service',DB.services,'service');add('Payment Voucher',DB.paymentVouchers,'paymentvoucher');
   (DB.approvalRequests||[]).forEach(r=>items.push({t:r.reviewedAt||r.requestedAt||'',kind:'Approval · '+r.entity+' '+r.action,ref:'',party:r.requestedByName||r.requestedBy||'',amt:null,st:r.status}));
   items.sort((a,b)=>String(b.t).localeCompare(String(a.t)));
   const rows=items.slice(0,15).map(i=>`<tr><td>${safeText(i.t?new Date(i.t).toLocaleString():'—')}</td><td>${safeText(i.kind)}</td><td class="mono">${safeText(i.ref)}</td><td>${safeText(i.party)}</td><td class="num mono">${i.amt==null?'':'₹'+fmt(i.amt)}</td><td>${safeText(i.st)}</td></tr>`).join('');
@@ -4641,11 +4777,11 @@ function applyShowMore(root,n=5){
 function renderDashboardPlus(){renderDashboard();const v=document.getElementById('view');if(v){v.insertAdjacentHTML('beforeend',recentActivityHTML());applyShowMore(v);}}
 function renderMyApprovals(){
   const me=currentUserId||'',mine=r=>r.requestedById?r.requestedById===me:r.requestedBy===currentUserRole;
-  const labels={purchase:'Purchase',sale:'Sale',voucher:'Non-GST Sale',service:'Service',warranty:'Warranty / Out Repair',paymentvoucher:'Purchase Payment Voucher',customer:'Customer'};
+  const labels={purchase:'Purchase',sale:'Sale',voucher:'Challan',service:'Service',warranty:'Warranty / Out Repair',paymentvoucher:'Purchase Payment Voucher',customer:'Customer',product:'Product',quotation:'Quotation / Challan'};
   const rows=[...(DB.approvalRequests||[]),...(DB.warrantyRequests||[]).map(r=>({...r,entity:'warranty',recordId:r.jobId}))].filter(mine).sort((a,b)=>new Date(b.requestedAt)-new Date(a.requestedAt));
   const pend=rows.filter(r=>r.status==='Pending').length;
   const badge=st=>st==='Approved'?'<span class="badge ok">Approved</span>':st==='Rejected'?'<span class="badge bad">Rejected</span>':'<span class="badge" style="background:#f3e6c8;color:#7a5a16">In process</span>';
-  document.getElementById('view').innerHTML=`<div class="panel"><div class="panel-head"><h3>My Approval Requests</h3><span style="font-size:12px;color:var(--text-soft)">In process: ${pend}</span></div><div class="panel-body table-scroll" style="padding:0"><table><thead><tr><th>Requested</th><th>Section</th><th>Record</th><th>Request</th><th>Status</th><th>Reviewed</th></tr></thead><tbody>${rows.length?rows.map(r=>{const rec=r.entity==='warranty'?(DB.warrantyJobs||[]).find(x=>x.id===r.recordId):registerRecords(r.entity).find(x=>x.id===r.recordId);const pv=r.entity==='paymentvoucher'?r.changes?.paymentVoucher:null;const what=r.action==='delete'?'Delete record':r.action==='create'?(pv?'New payment voucher · ₹'+fmt(pv.totalAmount):'New record'):'Edit record';return `<tr><td>${safeText(new Date(r.requestedAt).toLocaleString())}</td><td>${safeText(labels[r.entity]||r.entity)}</td><td>${safeText(registerRef(r.entity,rec))}</td><td>${safeText(what)}</td><td>${badge(r.status)}</td><td>${r.reviewedAt?safeText(new Date(r.reviewedAt).toLocaleString()):'—'}</td></tr>`}).join(''):'<tr><td colspan="6" class="empty">You have not sent any approval requests.</td></tr>'}</tbody></table></div></div>`;
+  document.getElementById('view').innerHTML=`<div class="panel"><div class="panel-head"><h3>My Approval Requests</h3><span style="font-size:12px;color:var(--text-soft)">In process: ${pend}</span></div><div class="panel-body table-scroll" style="padding:0"><table><thead><tr><th>Requested</th><th>Section</th><th>Record</th><th>Request</th><th>Status</th><th>Reviewed</th></tr></thead><tbody>${rows.length?rows.map(r=>{const rec=r.entity==='warranty'?(DB.warrantyJobs||[]).find(x=>x.id===r.recordId):registerRecords(r.entity).find(x=>x.id===r.recordId);const pv=r.entity==='paymentvoucher'?r.changes?.paymentVoucher:null;const what=r.action==='delete'?'Delete record':r.action==='create'?(pv?'New payment voucher · ₹'+fmt(pv.totalAmount):'New record'):'Edit record';return `<tr><td>${safeText(new Date(r.requestedAt).toLocaleString())}</td><td>${safeText(labels[r.entity]||r.entity)}</td><td>${safeText((r.entity==='product'&&r.action==='create'?'New: '+(r.changes?.product?.name||''):registerRef(r.entity,rec)))}</td><td>${safeText(what)}</td><td>${badge(r.status)}</td><td>${r.reviewedAt?safeText(new Date(r.reviewedAt).toLocaleString()):'—'}</td></tr>`}).join(''):'<tr><td colspan="6" class="empty">You have not sent any approval requests.</td></tr>'}</tbody></table></div></div>`;
 }
 function toggleAdminVisibility(view,visible){DB.settings.adminHiddenViews=(DB.settings.adminHiddenViews||[]).filter(v=>v!==view);if(!visible)DB.settings.adminHiddenViews.push(view);saveDB();applyRoleRestrictions();}
 const ADMIN_TOGGLE_VIEWS=['creditnote','gstr1','duesregister','renewaltrack','salary','dashboard','purchase','sale','voucher','service','quotation','approvals','purchaseregister','paymentvoucher','salesregister','voucherregister','serviceregister','warranty','inventory','employees','customers','todos'];
@@ -4779,16 +4915,16 @@ function printRenewalVoucher(id,asPdf=false){
 </script>
 <script>
 /* Pending dues register */
-let duesFrom=DEFAULT_FROM,duesTo='',duesSearch='',duesType='',duesOrder='asc';
+let duesFrom='',duesTo='',duesSearch='',duesType='',duesOrder='asc';
 function duesRows(){
   const out=[],add=(type,key,arr,tot)=>(arr||[]).forEach(x=>{const total=+tot(x)||0,paid=+x.paidAmount||0,ded=+x.deduction||0,due=Math.round((total-paid-ded)*100)/100;if(due>0.004)out.push({type,key,id:x.id,date:x.date||'',ref:registerRef(key,x),party:x.customer||x.name||'',phone:x.phone||x.customerPhone||'',total,paid:paid+ded,rawPaid:paid,ded,due});});
-  add('Sale','sale',DB.sales,x=>x.grandTotal);add('Non-GST','voucher',DB.vouchers,x=>x.grandTotal);add('Service','service',DB.services,x=>x.amount);
+  add('Sale','sale',DB.sales,x=>x.grandTotal);add('Challan','voucher',DB.vouchers,x=>x.grandTotal);add('Service','service',DB.services,x=>x.amount);
   return out;
 }
-function duesRemind(type,id){const r=duesRows().find(x=>x.id===id&&x.type===type);if(!r)return;let ph=normalizePhone(r.phone);if(!ph){const n=prompt('Customer mobile number for '+r.party);if(!n)return;ph=normalizePhone(n);}window.open('https://wa.me/'+ph+'?text='+encodeURIComponent(buildReminderMessage(r.ref,r.date,r.total,r.due)),'_blank');}
-const DUES_ENTITY={Sale:['sale'],'Non-GST':['voucher'],Service:['service']};
+function duesRemind(type,id){const r=duesRows().find(x=>x.id===id&&x.type===type);if(!r)return;let ph=normalizePhone(r.phone)||phoneForParty(r.party);if(!ph){const n=prompt('Customer mobile number for '+r.party);if(!n)return;ph=normalizePhone(n);if(!ph){showToast('Enter a valid mobile number');return;}savePartyPhone(r.party,n);}window.open('https://wa.me/'+ph+'?text='+encodeURIComponent(buildReminderMessage(r.ref,r.date,r.total,r.due)),'_blank');}
+const DUES_ENTITY={Sale:['sale'],'Challan':['voucher'],Service:['service']};
 function duesSetPaid(type,id,val){updateRegisterField(DUES_ENTITY[type][0],id,'paidAmount',val,renderDuesRegister);}
-function duesOpen(type,id){({Sale:printSaleInvoice,'Non-GST':printVoucher,Service:printServiceInvoice})[type](id);}
+function duesOpen(type,id){({Sale:printSaleInvoice,'Challan':printVoucher,Service:printServiceInvoice})[type](id);}
 function renderDuesRegister(){
   const q=duesSearch.trim().toLowerCase(),today=todayStr();
   let rows=duesRows().filter(r=>(!duesFrom||r.date>=duesFrom)&&(!duesTo||r.date<=duesTo)&&(!duesType||r.type===duesType)&&(!q||[r.party,r.ref,r.phone,r.type].join(' ').toLowerCase().includes(q)));
@@ -4800,7 +4936,7 @@ function renderDuesRegister(){
   document.getElementById('view').innerHTML=`<div class="row db-filter" style="margin-bottom:10px">
     <div class="field"><label>From</label><input type="date" value="${duesFrom}" onchange="duesFrom=this.value;renderDuesRegister()"></div>
     <div class="field"><label>To</label><input type="date" value="${duesTo}" onchange="duesTo=this.value;renderDuesRegister()"></div>
-    <div class="field"><label>Type</label><select onchange="duesType=this.value;renderDuesRegister()"><option value="">All</option>${['Sale','Non-GST','Service'].map(t=>`<option ${duesType===t?'selected':''}>${t}</option>`).join('')}</select></div>
+    <div class="field"><label>Type</label><select onchange="duesType=this.value;renderDuesRegister()"><option value="">All</option>${['Sale','Challan','Service'].map(t=>`<option ${duesType===t?'selected':''}>${t}</option>`).join('')}</select></div>
     <div class="field"><label>Order</label><select onchange="duesOrder=this.value;renderDuesRegister()"><option value="asc" ${duesOrder==='asc'?'selected':''}>Oldest first</option><option value="desc" ${duesOrder==='desc'?'selected':''}>Newest first</option></select></div>
     <div class="field" style="flex:1 1 180px"><label>Search</label><input value="${safeText(duesSearch)}" placeholder="Party, number, phone…" oninput="duesSearch=this.value;clearTimeout(window._dsT);window._dsT=setTimeout(renderDuesRegister,300)"></div></div>
   <div class="panel"><div class="panel-head"><h3>Pending Dues Register (${rows.length})</h3><span class="badge warn">Total due ₹${fmt(tot.due)}</span></div><div class="panel-body table-scroll" style="padding:0"><table><thead><tr><th>Type</th><th>Number</th><th>Party</th><th class="num">Total</th><th class="num">Paid</th><th class="num">Due</th><th class="num">Age</th><th></th></tr></thead><tbody>${body||'<tr><td colspan="8" class="empty">No pending dues.</td></tr>'}${rows.length?`<tr><td colspan="3"><b>Total</b></td><td class="num mono"><b>₹${fmt(tot.total)}</b></td><td class="num mono"><b>₹${fmt(tot.paid)}</b></td><td class="num mono"><b>₹${fmt(tot.due)}</b></td><td colspan="2"></td></tr>`:''}</tbody></table></div></div>`;
@@ -4835,27 +4971,17 @@ function renderUISettings(){
       <p class="ui-note" style="margin-top:8px">If nothing appears, open the browser menu (⋮) and choose <b>Install app</b> / <b>Add to Home screen</b>. Needs https.</p>
     </div></div>`;
 }
+/* sections an Admin account can show or hide for itself (managed per account in User Accounts & Access) */
+const ADMIN_VIEW_LABELS=[['duesregister','Pending Dues Register'],['renewaltrack','Software Renewals'],['dashboard','Dashboard'],['purchase','Purchase'],['sale','Sale (Invoice)'],['voucher','Challan'],['service','Service Sale'],['quotation','Quotation / Challan'],['approvals','Pending Approvals'],['purchaseregister','Purchase Register'],['paymentvoucher','Purchase Payment Voucher'],['salesregister','Sales Register'],['inventory','Inventory'],['creditnote','Credit / Debit Note'],['voucherregister','Challan Register'],['serviceregister','Service Register'],['warranty','Warranty / Out Repair'],['employees','Employees'],['salary','Salary Register'],['customers','Customers'],['todos','To-Do List']];
+function adminHiddenFor(){const acct=(DB.users||[]).find(u=>u.id===currentUserId)||(!currentUserId?(DB.users||[]).find(u=>u.username==='admin'):null);
+  if(acct&&Array.isArray(acct.adminViews))return ADMIN_VIEW_LABELS.map(x=>x[0]).filter(v=>!acct.adminViews.includes(v));return (DB.settings&&DB.settings.adminHiddenViews)||[];}
 function renderSettings(){
   const st = DB.settings;
   document.getElementById('view').innerHTML = `
-    <div class="panel" style="max-width:680px;margin-bottom:16px;">
-      <div class="panel-head"><h3>Admin Visible Sections</h3></div>
-      <div class="panel-body">
-        <p style="font-size:12.5px;color:#8a8578;margin-top:0;">Tick the sections shown in the Admin side menu. Untick to hide them from your own view (Shop Settings and UI Settings always stay visible).</p>
-        ${[['duesregister','Pending Dues Register'],['renewaltrack','Software Renewals'],['dashboard','Dashboard'],['purchase','Purchase'],['sale','Sale (Invoice)'],['voucher','Sales Voucher (Non-GST)'],['service','Service Sale'],['quotation','Quotation / Challan'],['approvals','Pending Approvals'],['purchaseregister','Purchase Register'],['paymentvoucher','Purchase Payment Voucher'],['salesregister','Sales Register'],['creditnote','Credit Note'],['voucherregister','Non-GST Sale Register'],['serviceregister','Service Register'],['warranty','Warranty / Out Repair'],['inventory','Inventory'],['employees','Employees'],['salary','Salary Register'],['customers','Customers'],['todos','To-Do List']].map(([k,l])=>`<label style="display:flex;align-items:center;gap:8px;padding:5px 0;font-weight:500;"><input type="checkbox" style="width:auto;" ${(DB.settings.adminHiddenViews||[]).includes(k)?'':'checked'} onchange="toggleAdminVisibility('${k}', this.checked)"> ${l}</label>`).join('')}
-      </div>
-    </div>
-    <div class="panel" style="max-width:680px;margin-bottom:16px;">
-      <div class="panel-head"><h3>Staff Access Control</h3></div>
-      <div class="panel-body">
-        <p style="font-size:12.5px;color:#8a8578;margin-top:0;">Tick the sections the Staff login can see. Untick to hide from staff (Admin always sees everything).</p>
-        ${[['duesregister','Pending Dues Register'],['renewaltrack','Software Renewals'],['sale','Sale (Invoice)'],['voucher','Sales Voucher (Non-GST)'],['service','Service Sale'],['quotation','Quotation / Challan'],['customers','Customers'],['todos','To-Do List'],['purchaseregister','Purchase Register'],['paymentvoucher','Purchase Payment Voucher'],['salesregister','Sales Register'],['creditnote','Credit Note'],['voucherregister','Non-GST Sale Register'],['serviceregister','Service Register'],['warranty','Warranty / Out Repair']].map(([k,l])=>`<label style="display:flex;align-items:center;gap:8px;padding:5px 0;font-weight:500;"><input type="checkbox" style="width:auto;" ${(DB.settings.userHiddenExtra||[]).includes(k)?'':'checked'} onchange="toggleUserVisibility('${k}', this.checked)"> ${l}</label>`).join('')}
-      </div>
-    </div>
     <div class="panel" style="max-width:900px;margin-bottom:16px;">
       <div class="panel-head"><h3>User Accounts &amp; Access</h3><button class="btn amber sm" onclick="openUserEditor()">+ Create User</button></div>
       <div class="panel-body table-scroll" style="padding:0"><table><thead><tr><th>Name</th><th>Username</th><th>Role</th><th>Status</th><th>Sections</th><th>Actions</th></tr></thead><tbody>
-      ${(DB.users||[]).map(u=>`<tr><td>${safeText(u.name||u.username)}</td><td class="mono">${safeText(u.username)}</td><td>${u.role==='admin'?'Admin':'Staff'}${u.builtin?' · built-in':''}</td><td>${u.enabled===false?'<span class="badge bad">Disabled</span>':'<span class="badge ok">Active</span>'}</td><td>${u.role==='admin'?'All':Array.isArray(u.allowedViews)?u.allowedViews.length+' enabled':'Use default staff access'}</td><td style="white-space:nowrap"><button class="btn ghost sm" onclick="openUserEditor('${u.id}')">Manage</button> <button class="btn ghost sm" onclick="toggleUserAccount('${u.id}')">${u.enabled===false?'Enable':'Disable'}</button> ${u.builtin||u.username==='admin'?'':'<button class="btn danger sm" onclick="deleteUserAccount(\''+u.id+'\')">Delete</button>'}</td></tr>`).join('')||'<tr><td colspan="6" class="empty">No managed users.</td></tr>'}
+      ${(DB.users||[]).map(u=>`<tr><td>${safeText(u.name||u.username)}</td><td class="mono">${safeText(u.username)}</td><td>${u.role==='admin'?'Admin':'Staff'}${u.builtin?' · built-in':''}</td><td>${u.enabled===false?'<span class="badge bad">Disabled</span>':'<span class="badge ok">Active</span>'}</td><td>${u.role==='admin'?(Array.isArray(u.adminViews)?u.adminViews.length+' visible':'All'):Array.isArray(u.allowedViews)?u.allowedViews.length+' enabled':'Use default staff access'}</td><td style="white-space:nowrap"><button class="btn ghost sm" onclick="openUserEditor('${u.id}')">Manage</button> <button class="btn ghost sm" onclick="toggleUserAccount('${u.id}')">${u.enabled===false?'Enable':'Disable'}</button> ${u.builtin||u.username==='admin'?'':'<button class="btn danger sm" onclick="deleteUserAccount(\''+u.id+'\')">Delete</button>'}</td></tr>`).join('')||'<tr><td colspan="6" class="empty">No managed users.</td></tr>'}
       </tbody></table></div>
       <div style="padding:12px 16px;font-size:11.5px;color:#8a8578;">User passwords are stored as salted PBKDF2 hashes in this browser database. The existing legacy Admin login remains available.</div>
     </div>
@@ -4872,6 +4998,7 @@ function renderSettings(){
           <div class="field"><label>Invoice Prefix</label><input id="st_pref" value="${st.invoicePrefix}"></div>
           <div class="field"><label>Service Prefix</label><input id="st_spref" value="${st.servicePrefix}"></div>
           <div class="field"><label>Quotation Prefix</label><input id="st_qpref" value="${st.quotePrefix}"></div>
+          <div class="field"><label>Registers &amp; dashboard start from</label><input type="date" id="st_dfrom" value="${st.defaultFromDate||''}" title="Leave empty to start from 1 Jan of the current year"></div>
           <div class="field"><label>Leading zeros in numbers</label><select id="st_pad">${[[0,'None (INV-1)'],[2,'2 digits (INV-01)'],[3,'3 digits (INV-001)'],[4,'4 digits (INV-0001)'],[5,'5 digits (INV-00001)'],[6,'6 digits (INV-000001)']].map(([v,l])=>`<option value="${v}" ${(st.numberPad!=null?+st.numberPad:4)===v?'selected':''}>${l}</option>`).join('')}</select></div>
         </div>
         <div class="field" style="max-width:220px;"><label>Default GST % (Sales)</label><input id="st_gst" type="number" step="0.01" value="${st.gstPercent}"></div>
@@ -4970,10 +5097,10 @@ function openUserEditor(id=null){
   editingUserAccountId=id;
   const user=id?(DB.users||[]).find(u=>u.id===id):null;if(id&&!user)return;
   const permitted=user&&Array.isArray(user.allowedViews)?user.allowedViews:STAFF_CONFIGURABLE_VIEWS.filter(v=>!(DB.settings.userHiddenExtra||[]).includes(v));
-  const viewLabels={sale:'Sale (Invoice)',voucher:'Sales Voucher (Non-GST)',service:'Service Sale',quotation:'Quotation / Challan',customers:'Customers',todos:'To-Do List',purchaseregister:'Purchase Register',paymentvoucher:'Purchase Payment Voucher',salesregister:'Sales Register',creditnote:'Credit Note',voucherregister:'Non-GST Sale Register',serviceregister:'Service Register',warranty:'Warranty / Out Repair'};
-  const body=`<div class="field"><label>Display name</label><input id="ua_name" value="${safeText(user?.name||'')}" maxlength="60" placeholder="Staff name"></div><div class="field"><label>Username</label><input id="ua_username" value="${safeText(user?.username||'')}" maxlength="32" autocomplete="off" placeholder="Sign-in username" ${user?'disabled':''}></div><div class="field"><label>Role</label><select id="ua_role" ${user?.legacyPassword?'disabled':''}><option value="user" ${!user||user.role!=='admin'?'selected':''}>Staff</option><option value="admin" ${user?.role==='admin'?'selected':''}>Admin</option></select></div><div class="field"><label>${user?'New password (leave blank to keep current)':'Password'}</label><input id="ua_password" type="password" autocomplete="new-password" minlength="6" placeholder="At least 6 characters"></div><div id="ua_access_wrap" style="margin-top:12px"><label style="font-weight:700">Staff sections</label><div style="display:grid;grid-template-columns:1fr 1fr;gap:2px 12px;margin-top:6px">${STAFF_CONFIGURABLE_VIEWS.map(v=>`<label style="display:flex;align-items:center;gap:7px;font-weight:400;padding:4px 0"><input type="checkbox" class="ua_view" value="${v}" style="width:auto" ${permitted.includes(v)?'checked':''}>${viewLabels[v]||v}</label>`).join('')}</div></div><p id="ua_error" style="color:var(--red);display:none;margin:10px 0 0;font-size:12px"></p>`;
+  const viewLabels={inventory:'Inventory',inventoryedit:'Inventory edit (add directly; edit/delete need approval)',sale:'Sale (Invoice)',voucher:'Challan',service:'Service Sale',quotation:'Quotation / Challan',customers:'Customers',todos:'To-Do List',purchaseregister:'Purchase Register',paymentvoucher:'Purchase Payment Voucher',salesregister:'Sales Register',creditnote:'Credit / Debit Note',voucherregister:'Challan Register',serviceregister:'Service Register',warranty:'Warranty / Out Repair'};
+  const body=`<div class="field"><label>Display name</label><input id="ua_name" value="${safeText(user?.name||'')}" maxlength="60" placeholder="Staff name"></div><div class="field"><label>Username</label><input id="ua_username" value="${safeText(user?.username||'')}" maxlength="32" autocomplete="off" placeholder="Sign-in username" ${user?'disabled':''}></div><div class="field"><label>Role</label><select id="ua_role" ${user?.legacyPassword?'disabled':''}><option value="user" ${!user||user.role!=='admin'?'selected':''}>Staff</option><option value="admin" ${user?.role==='admin'?'selected':''}>Admin</option></select></div><div class="field"><label>${user?'New password (leave blank to keep current)':'Password'}</label><input id="ua_password" type="password" autocomplete="new-password" minlength="6" placeholder="At least 6 characters"></div><div id="ua_access_wrap" style="margin-top:12px"><label style="font-weight:700">Staff sections</label><div style="display:grid;grid-template-columns:1fr 1fr;gap:2px 12px;margin-top:6px">${STAFF_CONFIGURABLE_VIEWS.map(v=>`<label style="display:flex;align-items:center;gap:7px;font-weight:400;padding:4px 0"><input type="checkbox" class="ua_view" value="${v}" style="width:auto" ${permitted.includes(v)?'checked':''}>${viewLabels[v]||v}</label>`).join('')}</div></div><div id="ua_admin_wrap" style="margin-top:12px"><label style="font-weight:700">Admin visible sections</label><div style="display:grid;grid-template-columns:1fr 1fr;gap:2px 12px;margin-top:6px">${ADMIN_VIEW_LABELS.map(([v,l])=>`<label style="display:flex;align-items:center;gap:7px;font-weight:400;padding:4px 0"><input type="checkbox" class="ua_aview" value="${v}" style="width:auto" ${(user&&Array.isArray(user.adminViews)?user.adminViews.includes(v):!(DB.settings.adminHiddenViews||[]).includes(v))?'checked':''}>${l}</label>`).join('')}</div><div style="font-size:11.5px;color:var(--text-soft);margin-top:4px">Shop Settings and UI Settings always stay visible.</div></div><p id="ua_error" style="color:var(--red);display:none;margin:10px 0 0;font-size:12px"></p>`;
   openModal(user?(user.builtin?'Manage Staff Account':'Manage User Account'):'Create User',body,`<button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn amber" onclick="saveManagedUser()">Save User</button>`);
-  const role=document.getElementById('ua_role'),wrap=document.getElementById('ua_access_wrap');role.onchange=()=>{wrap.style.display=role.value==='user'?'':'none';};wrap.style.display=role.value==='user'?'':'none';
+  const role=document.getElementById('ua_role'),wrap=document.getElementById('ua_access_wrap'),awrap=document.getElementById('ua_admin_wrap'),sync=()=>{wrap.style.display=role.value==='user'?'':'none';awrap.style.display=role.value==='admin'?'':'none';};role.onchange=sync;sync();
 }
 async function saveManagedUser(){
   const error=document.getElementById('ua_error'),name=document.getElementById('ua_name').value.trim(),username=document.getElementById('ua_username').value.trim().toLowerCase(),password=document.getElementById('ua_password').value,role=document.getElementById('ua_role').value;
@@ -4988,7 +5115,7 @@ async function saveManagedUser(){
   const allowedViews=[...document.querySelectorAll('.ua_view:checked')].map(x=>x.value);
   if(role==='user'&&!allowedViews.length){fail('Enable at least one section for a staff account.');return;}
   try{
-    let record=existing||{id:cid(),username,passwordSalt:'',passwordHash:'',enabled:true,builtin:false};record.name=name;record.username=username;record.role=record.legacyPassword?'admin':role;record.allowedViews=record.role==='user'?allowedViews:[];
+    let record=existing||{id:cid(),username,passwordSalt:'',passwordHash:'',enabled:true,builtin:false};record.name=name;record.username=username;record.role=record.legacyPassword?'admin':role;record.allowedViews=record.role==='user'?allowedViews:[];record.adminViews=record.role==='admin'?[...document.querySelectorAll('.ua_aview:checked')].map(x=>x.value):undefined;
     if(password){const hashed=await hashManagedPassword(password);record.passwordSalt=hashed.salt;record.passwordHash=hashed.hash;record.builtin=false;record.legacyPassword=false;}
     if(!existing)DB.users.push(record);else Object.assign(existing,record);
     saveDB();closeModal();renderSettings();showToast(existing?'User account updated':'User account created');
@@ -5052,6 +5179,7 @@ function saveSettings(){
   DB.settings.servicePrefix = document.getElementById('st_spref').value.trim();
   DB.settings.quotePrefix = document.getElementById('st_qpref').value.trim();
   DB.settings.numberPad = parseInt(document.getElementById('st_pad').value,10)||0;
+  DB.settings.defaultFromDate = document.getElementById('st_dfrom').value||'';
   DB.settings.gstPercent = parseFloat(document.getElementById('st_gst').value)||0;
   if(brandImageDraft.logo==='REMOVE') DB.settings.logo='';
   else if(brandImageDraft.logo) DB.settings.logo=brandImageDraft.logo;
@@ -5189,11 +5317,30 @@ function resetData(){
 <script>
 /* Approval requests for staff changes */
 function requestRegisterApproval(entity,recordId,action,changes){if(!Array.isArray(DB.approvalRequests))DB.approvalRequests=[];DB.approvalRequests.push({id:cid(),entity,recordId,action,changes,requestedBy:currentUserRole||'staff',requestedById:currentUserId||'',requestedByName:currentUserName||'',requestedAt:new Date().toISOString(),status:'Pending'});saveDB();showToast('Request sent to Admin for approval');}
-function registerRecords(entity){return ({purchase:DB.purchases,sale:DB.sales,voucher:DB.vouchers,service:DB.services,paymentvoucher:DB.paymentVouchers,customer:DB.customers})[entity]||[];}
-function registerRef(entity,record){return record?.purchaseNo||record?.invoiceNo||record?.voucherNo||record?.serviceNo||record?.ref||record?.name||'Pending payment voucher';}
-function renderApprovals(){updateApprovalNotifications();const warranty=(DB.warrantyRequests||[]).filter(r=>r.status==='Pending').map(r=>({...r,queue:'warranty',entity:'warranty',recordId:r.jobId}));const rows=[...warranty,...(DB.approvalRequests||[]).filter(r=>r.status==='Pending').map(r=>({...r,queue:'register'}))];document.getElementById('view').innerHTML=`<div class="panel"><div class="panel-head"><h3>Pending Approvals (${rows.length})</h3></div><div class="panel-body table-scroll" style="padding:0"><table><thead><tr><th>Requested</th><th>Register</th><th>Record</th><th>Staff</th><th>Requested Changes</th><th>Actions</th></tr></thead><tbody>${rows.length?rows.map(r=>{const record=r.entity==='warranty'?DB.warrantyJobs.find(x=>x.id===r.recordId):registerRecords(r.entity).find(x=>x.id===r.recordId);const pv=r.entity==='paymentvoucher'?r.changes?.paymentVoucher:null;const changes=r.action==='delete'?'Delete record':pv?('New payment voucher · '+(pv.supplier||'Multiple suppliers')+' · ₹'+fmt(pv.totalAmount)+' · '+(pv.allocations||[]).length+' purchase allocation(s)'):Object.entries(r.changes||{}).map(([k,v])=>k+': '+(typeof v==='object'?'[updated]':v)).join(' · ')||'Open/edit record';return `<tr><td>${safeText(new Date(r.requestedAt).toLocaleString())}</td><td>${safeText(({purchase:'Purchase',sale:'Sale',voucher:'Non-GST Sale',service:'Service',warranty:'Warranty / Out Repair',paymentvoucher:'Purchase Payment Voucher',customer:'Customer'})[r.entity]||r.entity)}</td><td>${safeText(r.entity==='warranty'&&r.action==='create'?'New: '+(r.changes?.product||''):registerRef(r.entity,record))}</td><td>${safeText(r.requestedByName||r.requestedBy)}</td><td>${safeText(changes)}</td><td style="white-space:nowrap"><button class="btn ghost sm" onclick="openApprovalRecord('${r.entity}','${r.recordId}')">Open Record</button> <button class="btn amber sm" onclick="${r.queue==='warranty'?'approveWarrantyRequest':'approveRegisterRequest'}('${r.id}')">Approve</button> <button class="btn danger sm" onclick="${r.queue==='warranty'?'rejectWarrantyRequest':'rejectRegisterRequest'}('${r.id}')">Reject</button></td></tr>`}).join(''):'<tr><td colspan="6" class="empty">No pending approvals.</td></tr>'}</tbody></table></div></div>`;}
-function openApprovalRecord(entity,id){if(entity==='customer'){route('customers');return;}if(entity==='warranty'){route('warranty');editingWarrantyId=id;renderWarranty();return;}if(entity==='paymentvoucher'){const req=(DB.approvalRequests||[]).find(x=>x.entity===entity&&x.recordId===id&&x.status==='Pending'),pv=req?.changes?.paymentVoucher;if(!pv)return;openModal('Pending Purchase Payment Voucher',`<p><b>Supplier:</b> ${safeText(pv.supplier||'Multiple')}</p><p><b>Date:</b> ${safeText(pv.date)}</p><p><b>Requested amount:</b> ₹${fmt(pv.totalAmount)}</p><p><b>Mode:</b> ${safeText(pv.paymentMode)}</p><p><b>Reference:</b> ${safeText(pv.details||'—')}</p><h4>Purchase allocations</h4><ul>${pv.allocations.map(a=>`<li>${safeText(a.purchaseNo)} — ₹${fmt(a.amountApplied)}</li>`).join('')}</ul>`);return;}const routes={purchase:['purchase',()=>renderPurchase(id)],sale:['sale',()=>renderSale(id)],voucher:['voucher',()=>renderVoucher(id)],service:['service',()=>renderService(id)]};const r=routes[entity];if(!r)return;route(r[0]);setTimeout(r[1],0);}
-function applyRegisterApproval(r){if(r.action==='delete'&&r.entity==='customer'){DB.customers=DB.customers.filter(x=>x.id!==r.recordId);return true;}if(r.action==='delete'&&r.entity==='warranty'){DB.warrantyJobs=DB.warrantyJobs.filter(x=>x.id!==r.recordId);return true;}if(r.entity==='paymentvoucher'&&r.action==='create'){const data=r.changes?.paymentVoucher;if(!data||!Array.isArray(data.allocations)||!data.allocations.length||Math.abs(data.allocations.reduce((n,a)=>n+(+a.amountApplied||0),0)-(+data.totalAmount||0))>.004){showToast('Payment voucher request is incomplete or its allocations do not match the total');return false;}for(const a of data.allocations){const p=DB.purchases.find(x=>x.id===a.purchaseId),amt=+a.amountApplied||0;if(!p||amt<=0||amt>(+p.grandTotal||0)-(+p.paidAmount||0)+.004){showToast('Approval failed: a purchase balance changed or is no longer due');return false;}}const pv={...data,voucherNo:buildDocNo(DB.settings.paymentVoucherPrefix,seriesNext(DB.paymentVouchers,'voucherNo',DB.settings.paymentVoucherPrefix))};pv.allocations.forEach(a=>{const p=DB.purchases.find(x=>x.id===a.purchaseId);p.paidAmount=(+p.paidAmount||0)+(+a.amountApplied||0);});DB.paymentVouchers.push(pv);DB.settings.nextPaymentVoucherNo++;return true;}const rows=registerRecords(r.entity),record=rows.find(x=>x.id===r.recordId);if(!record){showToast('Record no longer exists');return false;}if(r.action==='delete'){if(r.entity==='purchase')record.lines.forEach(l=>{const p=DB.products.find(x=>x.id===l.productId);if(p)p.stock-=l.qty;});if(r.entity==='sale'||r.entity==='voucher')record.lines.forEach(l=>{const p=DB.products.find(x=>x.id===l.productId);if(p)p.stock+=l.qty;setLineBarcodes(l,'available');});rows.splice(rows.indexOf(record),1);return true;}const c=r.changes||{},total=+(Object.prototype.hasOwnProperty.call(c,'grandTotal')?c.grandTotal:(r.entity==='service'?record.amount:record.grandTotal))||0,paid=+(Object.prototype.hasOwnProperty.call(c,'paidAmount')?c.paidAmount:record.paidAmount)||0,deduction=+(Object.prototype.hasOwnProperty.call(c,'deduction')?c.deduction:record.deduction)||0;if(paid<0||deduction<0||paid+deduction>total+.004){showToast('Approval rejected: paid amount and deduction exceed record total');return false;}if(r.entity==='purchase'&&c.lines){record.lines.forEach(l=>{const p=DB.products.find(x=>x.id===l.productId);if(p)p.stock-=l.qty;});c.lines.forEach(l=>{const p=DB.products.find(x=>x.id===l.productId);if(p){p.stock+=l.qty;if(l.cost!=null)p.purchasePrice=l.cost;}});applyPurchaseLineBarcodes(c.lines);}if((r.entity==='sale'||r.entity==='voucher')&&c.lines){record.lines.forEach(l=>{const p=DB.products.find(x=>x.id===l.productId);if(p)p.stock+=l.qty;setLineBarcodes(l,'available');});c.lines.forEach(l=>{const p=DB.products.find(x=>x.id===l.productId);if(p)p.stock-=l.qty;setLineBarcodes(l,'sold');});}Object.assign(record,c);return true;}
+function registerRecords(entity){return ({quotation:DB.quotations,product:DB.products,purchase:DB.purchases,sale:DB.sales,voucher:DB.vouchers,service:DB.services,paymentvoucher:DB.paymentVouchers,customer:DB.customers})[entity]||[];}
+function registerRef(entity,record){if(entity==='product')return record?record.name:'(deleted product)';return record?.purchaseNo||record?.invoiceNo||record?.quoteNo||record?.voucherNo||record?.serviceNo||record?.ref||record?.name||'Pending payment voucher';}
+function renderApprovals(){updateApprovalNotifications();const warranty=(DB.warrantyRequests||[]).filter(r=>r.status==='Pending').map(r=>({...r,queue:'warranty',entity:'warranty',recordId:r.jobId}));const rows=[...warranty,...(DB.approvalRequests||[]).filter(r=>r.status==='Pending').map(r=>({...r,queue:'register'}))];document.getElementById('view').innerHTML=`<div class="panel"><div class="panel-head"><h3>Pending Approvals (${rows.length})</h3></div><div class="panel-body table-scroll" style="padding:0"><table><thead><tr><th>Requested</th><th>Register</th><th>Record</th><th>Staff</th><th>Requested Changes</th><th>Actions</th></tr></thead><tbody>${rows.length?rows.map(r=>{const record=r.entity==='warranty'?DB.warrantyJobs.find(x=>x.id===r.recordId):registerRecords(r.entity).find(x=>x.id===r.recordId);const pv=r.entity==='paymentvoucher'?r.changes?.paymentVoucher:null;const changes=r.action==='delete'?(r.entity==='product'?'Delete product '+(r.changes?.name||''):'Delete record'):r.entity==='product'&&r.action==='create'?('New product · '+(r.changes?.product?.sku||'')+' · sale ₹'+fmt(r.changes?.product?.salePrice)+' · stock '+(r.changes?.product?.stock||0)):pv?('New payment voucher · '+(pv.supplier||'Multiple suppliers')+' · ₹'+fmt(pv.totalAmount)+' · '+(pv.allocations||[]).length+' purchase allocation(s)'):Object.entries(r.changes||{}).map(([k,v])=>k+': '+(typeof v==='object'?'[updated]':v)).join(' · ')||'Open/edit record';return `<tr><td>${safeText(new Date(r.requestedAt).toLocaleString())}</td><td>${safeText(({purchase:'Purchase',sale:'Sale',voucher:'Challan',service:'Service',warranty:'Warranty / Out Repair',paymentvoucher:'Purchase Payment Voucher',customer:'Customer',product:'Product',quotation:'Quotation / Challan'})[r.entity]||r.entity)}</td><td>${safeText(r.entity==='warranty'&&r.action==='create'?'New: '+(r.changes?.product||''):(r.entity==='product'&&r.action==='create'?'New: '+(r.changes?.product?.name||''):registerRef(r.entity,record)))}</td><td>${safeText(r.requestedByName||r.requestedBy)}</td><td>${safeText(changes)}</td><td style="white-space:nowrap"><button class="btn ghost sm" onclick="openApprovalRecord('${r.entity}','${r.recordId}','${r.id}')">Open Record</button> <button class="btn amber sm" onclick="${r.queue==='warranty'?'approveWarrantyRequest':'approveRegisterRequest'}('${r.id}')">Approve</button> <button class="btn danger sm" onclick="${r.queue==='warranty'?'rejectWarrantyRequest':'rejectRegisterRequest'}('${r.id}')">Reject</button></td></tr>`}).join(''):'<tr><td colspan="6" class="empty">No pending approvals.</td></tr>'}</tbody></table></div></div>`;}
+function openProductRequest(id,reqId){
+  const rq=(DB.approvalRequests||[]).filter(x=>x.entity==='product'&&x.recordId===id&&(!reqId||x.id===reqId)).sort((a,b)=>String(b.requestedAt).localeCompare(String(a.requestedAt)))[0];
+  if(!rq)return;const cur=DB.products.find(x=>x.id===id)||{};
+  const L={sku:'SKU',brand:'Brand',hsn:'HSN',name:'Name',category:'Category',salePrice:'Sale ₹',gstPercent:'GST %',stock:'Stock',reorderLevel:'Reorder level',uqc:'UQC',image:'Image'};
+  const row=(k,a,b)=>'<tr><td>'+safeText(L[k]||k)+'</td><td>'+safeText(a==null?'—':a)+'</td><td><b>'+safeText(b==null?'—':b)+'</b></td></tr>';
+  let body;
+  if(rq.action==='create'){const n=rq.changes.product||{};body=Object.keys(L).filter(k=>k!=='image'&&n[k]!=null&&n[k]!=='').map(k=>row(k,'',n[k])).join('');}
+  else if(rq.action==='delete'){body=['sku','name','brand','salePrice','stock'].filter(k=>cur[k]!=null).map(k=>row(k,cur[k],'will be deleted')).join('')||'<tr><td colspan="3">Product '+safeText(rq.changes?.name||'')+'</td></tr>';}
+  else if(rq.action==='barcode-remove')body=row('barcode',rq.changes.code,'remove this barcode');
+  else body=Object.keys(rq.changes||{}).map(k=>row(k,k==='image'?(cur[k]?'(current image)':''):cur[k],k==='image'?'(new image)':rq.changes[k])).join('');
+  openModal('Product request — '+({create:'new product',update:'edit',delete:'delete','barcode-remove':'remove barcode'})[rq.action]+' by '+(rq.requestedByName||rq.requestedBy||''),'<table class="no-ct"><thead><tr><th>Field</th><th>Current</th><th>Requested</th></tr></thead><tbody>'+body+'</tbody></table>','<button class="btn ghost" onclick="closeModal()">Close</button>');
+}
+function openApprovalRecord(entity,id,reqId){if(entity==='customer'){route('customers');return;}if(entity==='product'){openProductRequest(id,reqId);return;}if(entity==='quotation'){route('quotation');return;}if(entity==='warranty'){route('warranty');editingWarrantyId=id;renderWarranty();return;}if(entity==='paymentvoucher'){const req=(DB.approvalRequests||[]).find(x=>x.entity===entity&&x.recordId===id&&x.status==='Pending'),pv=req?.changes?.paymentVoucher;if(!pv)return;openModal('Pending Purchase Payment Voucher',`<p><b>Supplier:</b> ${safeText(pv.supplier||'Multiple')}</p><p><b>Date:</b> ${safeText(pv.date)}</p><p><b>Requested amount:</b> ₹${fmt(pv.totalAmount)}</p><p><b>Mode:</b> ${safeText(pv.paymentMode)}</p><p><b>Reference:</b> ${safeText(pv.details||'—')}</p><h4>Purchase allocations</h4><ul>${pv.allocations.map(a=>`<li>${safeText(a.purchaseNo)} — ₹${fmt(a.amountApplied)}</li>`).join('')}</ul>`);return;}const routes={purchase:['purchase',()=>renderPurchase(id)],sale:['sale',()=>renderSale(id)],voucher:['voucher',()=>renderVoucher(id)],service:['service',()=>renderService(id)]};const r=routes[entity];if(!r)return;route(r[0]);setTimeout(r[1],0);}
+function applyRegisterApproval(r){if(r.entity==='customer'&&r.action==='update'){const c=DB.customers.find(x=>x.id===r.recordId);if(!c){showToast('Customer no longer exists');return false;}Object.assign(c,r.changes||{});return true;}
+if(r.entity==='product'){
+  if(r.action==='create'){const np=r.changes&&r.changes.product;if(!np){showToast('Product request is incomplete');return false;}if(DB.products.some(x=>x.id===np.id))return true;DB.products.push({...np});return true;}
+  const p=DB.products.find(x=>x.id===r.recordId);if(!p){showToast('Product no longer exists');return false;}
+  if(r.action==='barcode-remove'){const k=(p.barcodeUnits||[]).findIndex(u=>u.code===r.changes.code&&u.status==='available');if(k<0){showToast('That barcode is already sold or removed');return false;}p.barcodeUnits.splice(k,1);return true;}
+  if(r.action==='delete'){DB.products=DB.products.filter(x=>x.id!==r.recordId);return true;}
+  const c={...(r.changes||{})};delete c.purchasePrice;delete c.id;Object.assign(p,c);return true;}
+if(r.action==='delete'&&r.entity==='customer'){DB.customers=DB.customers.filter(x=>x.id!==r.recordId);return true;}if(r.action==='delete'&&r.entity==='warranty'){DB.warrantyJobs=DB.warrantyJobs.filter(x=>x.id!==r.recordId);return true;}if(r.entity==='paymentvoucher'&&r.action==='create'){const data=r.changes?.paymentVoucher;if(!data||!Array.isArray(data.allocations)||!data.allocations.length||Math.abs(data.allocations.reduce((n,a)=>n+(+a.amountApplied||0),0)-(+data.totalAmount||0))>.004){showToast('Payment voucher request is incomplete or its allocations do not match the total');return false;}for(const a of data.allocations){const p=DB.purchases.find(x=>x.id===a.purchaseId),amt=+a.amountApplied||0;if(!p||amt<=0||amt>(+p.grandTotal||0)-(+p.paidAmount||0)+.004){showToast('Approval failed: a purchase balance changed or is no longer due');return false;}}const pv={...data,voucherNo:buildDocNo(DB.settings.paymentVoucherPrefix,seriesNext(DB.paymentVouchers,'voucherNo',DB.settings.paymentVoucherPrefix))};pv.allocations.forEach(a=>{const p=DB.purchases.find(x=>x.id===a.purchaseId);p.paidAmount=(+p.paidAmount||0)+(+a.amountApplied||0);});DB.paymentVouchers.push(pv);DB.settings.nextPaymentVoucherNo++;return true;}const rows=registerRecords(r.entity),record=rows.find(x=>x.id===r.recordId);if(!record){showToast('Record no longer exists');return false;}if(r.action==='delete'){if(r.entity==='purchase')record.lines.forEach(l=>{const p=DB.products.find(x=>x.id===l.productId);if(p)p.stock-=l.qty;});if(r.entity==='sale'||r.entity==='voucher')record.lines.forEach(l=>{const p=DB.products.find(x=>x.id===l.productId);if(p)p.stock+=l.qty;setLineBarcodes(l,'available');});rows.splice(rows.indexOf(record),1);return true;}const c=r.changes||{},total=+(Object.prototype.hasOwnProperty.call(c,'grandTotal')?c.grandTotal:(r.entity==='service'?record.amount:record.grandTotal))||0,paid=+(Object.prototype.hasOwnProperty.call(c,'paidAmount')?c.paidAmount:record.paidAmount)||0,deduction=+(Object.prototype.hasOwnProperty.call(c,'deduction')?c.deduction:record.deduction)||0;if(paid<0||deduction<0||paid+deduction>total+.004){showToast('Approval rejected: paid amount and deduction exceed record total');return false;}if(r.entity==='purchase'&&c.lines){record.lines.forEach(l=>{const p=DB.products.find(x=>x.id===l.productId);if(p)p.stock-=l.qty;});c.lines.forEach(l=>{const p=DB.products.find(x=>x.id===l.productId);if(p){p.stock+=l.qty;if(l.cost!=null)p.purchasePrice=l.cost;}});applyPurchaseLineBarcodes(c.lines);}if((r.entity==='sale'||r.entity==='voucher')&&c.lines){record.lines.forEach(l=>{const p=DB.products.find(x=>x.id===l.productId);if(p)p.stock+=l.qty;setLineBarcodes(l,'available');});c.lines.forEach(l=>{const p=DB.products.find(x=>x.id===l.productId);if(p)p.stock-=l.qty;setLineBarcodes(l,'sold');});}Object.assign(record,c);return true;}
 function approveRegisterRequest(id){const r=(DB.approvalRequests||[]).find(x=>x.id===id&&x.status==='Pending');if(!r)return;requirePassword('approve this register change',()=>{if(!applyRegisterApproval(r))return;r.status='Approved';r.reviewedAt=new Date().toISOString();r.reviewedBy=currentUserRole;saveDB();renderApprovals();showToast('Request approved');});}
 function rejectRegisterRequest(id){const r=(DB.approvalRequests||[]).find(x=>x.id===id&&x.status==='Pending');if(!r)return;requirePassword('reject this register change',()=>{r.status='Rejected';r.reviewedAt=new Date().toISOString();r.reviewedBy=currentUserRole;saveDB();renderApprovals();showToast('Request rejected');});}
 
@@ -5254,7 +5401,7 @@ function togglePaidBox(id, btn){
   el.style.display = open ? 'block' : 'none';
   btn.textContent = btn.textContent.replace(open?'▸':'▾', open?'▾':'▸');
 }
-const STAFF_CONFIGURABLE_VIEWS=['duesregister','renewaltrack','sale','voucher','service','quotation','customers','todos','purchaseregister','paymentvoucher','salesregister','creditnote','voucherregister','serviceregister','warranty'];
+const STAFF_CONFIGURABLE_VIEWS=['duesregister','renewaltrack','sale','voucher','service','quotation','customers','todos','purchaseregister','paymentvoucher','salesregister','creditnote','voucherregister','serviceregister','warranty','inventory','inventoryedit'];
 function canStaffAccess(view){if(view==='uisettings'||view==='myapprovals')return true;if(currentUserRole==='admin')return true;if(ADMIN_ONLY_VIEWS.includes(view)||!STAFF_CONFIGURABLE_VIEWS.includes(view))return false;const account=(DB.users||[]).find(u=>u.id===currentUserId);const allowed=account&&Array.isArray(account.allowedViews)?account.allowedViews:(STAFF_CONFIGURABLE_VIEWS.filter(v=>!(DB.settings.userHiddenExtra||[]).includes(v)));return allowed.includes(view);}
 function userFallbackView(){return STAFF_CONFIGURABLE_VIEWS.find(v=>canStaffAccess(v))||'todos';}
 function toggleUserVisibility(view, visible){
@@ -5267,6 +5414,13 @@ function buildReminderMessage(ref, date, total, due){
   const partial = due < total-0.004 ? ` (invoice total ₹${fmt(total)})` : '';
   return `Hi, this is ${DB.settings.shopName}. Your invoice ${ref} dated ${date} has an outstanding balance of ₹${fmt(due)}${partial}. Kindly clear it at your earliest convenience. Thank you.`;
 }
+/* a mobile number typed for WhatsApp is kept on the party's customer record (created if missing) so it is not asked again */
+function phoneForParty(name){const c=(DB.customers||[]).find(x=>String(x.name||'').trim().toLowerCase()===String(name||'').trim().toLowerCase());return c?normalizePhone(c.phone):'';}
+function savePartyPhone(name,raw){const ph=normalizePhone(raw),nm=String(name||'').trim();if(!ph||!nm)return;const disp=ph.length===12&&ph.slice(0,2)==='91'?ph.slice(2):ph;
+  const c=(DB.customers||[]).find(x=>String(x.name||'').trim().toLowerCase()===nm.toLowerCase());
+  if(c){if(normalizePhone(c.phone)===ph||(c.phone&&currentUserRole!=='admin'))return;c.phone=disp;}else DB.customers.push({id:cid(),name:nm,phone:disp,gstin:'',address:''});
+  saveDB();showToast('Mobile number saved for '+nm);}
+let _remParty='';
 function normalizePhone(ph){
   const d = (ph||'').replace(/\D/g,'');
   if(d.length===10) return '91'+d;
@@ -5279,7 +5433,8 @@ function sendPaymentReminder(kind, id){
   else { r=DB.vouchers.find(x=>x.id===id); ref=r.voucherNo; total=r.grandTotal; due=r.grandTotal-(r.paidAmount||0)-(r.deduction||0); }
   const msg = buildReminderMessage(ref, r.date, total, due);
   let phone = normalizePhone(r.phone);
-  if(!phone){ const cust = DB.customers.find(c=>c.name===r.customer); if(cust) phone = normalizePhone(cust.phone); }
+  if(!phone) phone = phoneForParty(r.customer);
+  _remParty = r.customer||'';
   if(phone){ window.open('https://wa.me/'+phone+'?text='+encodeURIComponent(msg), '_blank'); return; }
   openModal('Send Payment Reminder', `
     <p style="font-size:13px;color:#5b5748;margin-top:0;">No mobile number on file for ${r.customer||'this customer'}. Enter one to open WhatsApp, or copy the message and send it manually.</p>
@@ -5294,6 +5449,7 @@ function copyReminderMessage(){
 function sendReminderWithPhone(){
   const phone = normalizePhone(document.getElementById('rem_phone').value);
   if(!phone){ showToast('Enter a valid mobile number'); return; }
+  savePartyPhone(_remParty, phone);
   window.open('https://wa.me/'+phone+'?text='+encodeURIComponent(document.getElementById('rem_msg').value), '_blank');
   closeModal();
 }
@@ -5586,16 +5742,20 @@ function logoutUser(){
 function applyRoleRestrictions(){
   const isAdmin = currentUserRole === 'admin';
   document.querySelectorAll('.adminonly').forEach(el=>{ el.style.display = isAdmin ? '' : 'none'; });
+  if(isAdmin&&DB.settings&&!DB.settings.inventoryDefaultApplied){DB.settings.inventoryDefaultApplied=true;DB.settings.userHiddenExtra=[...(DB.settings.userHiddenExtra||[]).filter(v=>v!=='inventory'),'inventory'];setTimeout(()=>{try{saveDB()}catch(e){}},500);}
+  document.body.classList.toggle('is-staff',!isAdmin);
+  if(isAdmin&&DB.settings&&!DB.settings.inventoryEditDefaultApplied){DB.settings.inventoryEditDefaultApplied=true;DB.settings.userHiddenExtra=[...(DB.settings.userHiddenExtra||[]).filter(v=>v!=='inventoryedit'),'inventoryedit'];setTimeout(()=>{try{saveDB()}catch(e){}},500);}
+  document.body.classList.toggle('inv-edit',!isAdmin&&canStaffAccess('inventory')&&canStaffAccess('inventoryedit'));
   if(isAdmin&&DB.settings&&!DB.settings.creditNoteDefaultApplied){DB.settings.creditNoteDefaultApplied=true;DB.settings.userHiddenExtra=[...(DB.settings.userHiddenExtra||[]).filter(v=>v!=='creditnote'),'creditnote'];setTimeout(()=>{try{saveDB()}catch(e){}},500);}
   if(isAdmin&&DB.settings&&!DB.settings.renewalDefaultApplied){DB.settings.renewalDefaultApplied=true;DB.settings.userHiddenExtra=[...(DB.settings.userHiddenExtra||[]).filter(v=>v!=='renewaltrack'),'renewaltrack'];setTimeout(()=>{try{saveDB()}catch(e){}},500);}
   document.querySelectorAll('.staffonly').forEach(el=>{ el.style.display = isAdmin ? 'none' : ''; });
-  if(isAdmin){ const hid=(DB.settings&&DB.settings.adminHiddenViews)||[]; ADMIN_TOGGLE_VIEWS.forEach(v=>{const b=document.querySelector('.navbtn[data-view="'+v+'"]'); if(b) b.style.display=hid.includes(v)?'none':'';}); }
+  if(isAdmin){ const hid=adminHiddenFor(); ADMIN_TOGGLE_VIEWS.forEach(v=>{const b=document.querySelector('.navbtn[data-view="'+v+'"]'); if(b) b.style.display=hid.includes(v)?'none':'';}); }
   if(!isAdmin){ STAFF_CONFIGURABLE_VIEWS.forEach(v=>{const b=document.querySelector('.navbtn[data-view="'+v+'"]');if(b)b.style.display=canStaffAccess(v)?'':'none';}); }
   try{syncNavSectionVisibility();}catch(e){}
   const userEl = document.getElementById('sidefootUser');
   if(userEl) userEl.textContent = 'Signed in as '+(currentUserName||(isAdmin?'Admin':'Staff'));
 }
-const ADMIN_ONLY_VIEWS = ['alerts','gstr1','recyclebin','dashboard','approvals','purchase','inventory','settings','employees'];
+const ADMIN_ONLY_VIEWS = ['alerts','gstr1','recyclebin','dashboard','approvals','purchase','settings','employees'];
 function startApp(){
   // Admin recovery is deliberately allowed even when every database is down.
   // Normal users/staff still require a connected database.
@@ -5743,7 +5903,7 @@ async function runUpdateCheck(){const st=document.getElementById('updStatus'),ap
     else if(!sb.classList.contains('collapsed')){sb.classList.add('collapsed');}
     sync();}
   var btn=document.createElement('button');btn.type='button';btn.className='sb-auto';
-  btn.innerHTML='<span class="t"></span><span class="pin">📌</span>';
+  btn.innerHTML='<span class="t"></span><span class="pin"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6l-1 6 3 3H7l3-3z"/><path d="M12 12v9"/></svg></span>';
   function paint(){var pinned=!on();btn.classList.toggle('on',pinned);btn.querySelector('.t').textContent=pinned?'Unpin sidebar':'Pin sidebar';btn.title=pinned?'Pinned: stays open. Click to unpin (folds automatically)':'Unpinned: folds automatically. Click to pin it open';}
   btn.onclick=function(){var wasOn=on();try{localStorage.setItem(KEY,wasOn?'0':'1');}catch(e){}paint();clearTimeout(t);if(wasOn)openIfPinned();};
   var lo=sb.querySelector('.logout-contrast');if(lo&&lo.parentNode)lo.parentNode.insertBefore(btn,lo);paint();
@@ -5779,7 +5939,7 @@ function pdfName(info){return [safeFile(info.party),safeFile(info.ref||info.titl
 function saveBlob(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1500);}
 /* phones: ask the browser for persistent storage access once, the first time a PDF is saved or shared */
 function ensureStorageAccess(){try{if(!isMobileLayout()||localStorage.getItem('sm_storage_asked'))return;localStorage.setItem('sm_storage_asked','1');
-  if(navigator.storage&&navigator.storage.persist){navigator.storage.persist().then(function(ok){if(!ok)showToast('If your phone asks for storage / files access, allow it so PDFs can be saved and shared');}).catch(function(){});}}catch(e){}}
+  if(navigator.storage&&navigator.storage.persist){navigator.storage.persist().then(function(ok){if(!ok)showToast('PDFs will be saved to your Downloads folder');}).catch(function(){});}}catch(e){}}
 async function downloadInvoicePdf(){ensureStorageAccess();if(!document.getElementById('invoiceSheet')){showToast('Open a document first');return;}showToast('Creating PDF…');
   try{const info=invDocInfo(),blob=await invMakePdf();saveBlob(blob,pdfName(info)+'.pdf');showToast('PDF saved: '+pdfName(info)+'.pdf');}catch(e){console.error(e);showToast('Could not create the PDF (check your internet)');}}
 async function tryShare(file){
@@ -5868,7 +6028,7 @@ window.addEventListener('resize',function(){clearTimeout(window._ctT);window._ct
 </script>
 <script>
 /* ===== v1.0.65 Recycle Bin: deleted records are kept (Admin) and can be restored ===== */
-const BIN_TABLES={products:'Product',employees:'Employee',purchases:'Purchase',sales:'Sale (GST)',services:'Service',quotations:'Quotation / Challan',customers:'Customer',vouchers:'Non-GST Sale',paymentVouchers:'Payment Voucher',todoPages:'To-Do Page',warrantyJobs:'Warranty / Repair',users:'User Account',salaryEntries:'Salary Entry',renewalClients:'Renewal Client',renewalEntries:'Renewal Payment'};
+const BIN_TABLES={products:'Product',employees:'Employee',purchases:'Purchase',sales:'Sale (GST)',services:'Service',quotations:'Quotation / Challan',customers:'Customer',vouchers:'Challan',paymentVouchers:'Payment Voucher',todoPages:'To-Do Page',warrantyJobs:'Warranty / Repair',users:'User Account',salaryEntries:'Salary Entry',renewalClients:'Renewal Client',renewalEntries:'Renewal Payment'};
 let _binSnap=null,_binArm=false;
 function binTake(){const m={};Object.keys(BIN_TABLES).forEach(t=>{m[t]=new Map((DB[t]||[]).map(r=>[r&&r.id,JSON.stringify(r)]));});return m;}
 function binLabel(t,r){const f=(...k)=>k.map(x=>r[x]).filter(Boolean).join(' · ');
@@ -5986,45 +6146,47 @@ netStart();
 <script>
 /* ================= CREDIT NOTE (sales return / post-sale discount) ================= */
 const CN_REASONS=['01-Sales Return','02-Post Sale Discount','03-Deficiency in services','04-Correction in invoice','05-Change in POS','06-Finalization of Provisional assessment','07-Others'];
-let cnSale=null,cnLines=[];
-function cnPriorCredit(saleId){return (DB.creditNotes||[]).filter(n=>n.saleId===saleId).reduce((t,n)=>t+(+n.grandTotal||0),0);}
+let cnSale=null,cnLines=[],cnKind='credit';
+const cnK=()=>cnKind==='debit'?'Debit':'Credit';
+function cnPriorCredit(saleId){return (DB.creditNotes||[]).filter(n=>n.saleId===saleId&&n.kind!=='debit').reduce((t,n)=>t+(+n.grandTotal||0),0);}
 function renderCreditNote(){
   if(!Array.isArray(DB.creditNotes))DB.creditNotes=[];
   cnSale=null;cnLines=[];
-  const sales=sortRecent(DB.sales),no=buildDocNo('CN',seriesNext(DB.creditNotes,'noteNo','CN'));
+  const sales=sortRecent(DB.sales),pf=cnKind==='debit'?'DN':'CN',no=buildDocNo(pf,seriesNext(DB.creditNotes,'noteNo',pf));
   const notes=sortRecent(DB.creditNotes);
   document.getElementById('view').innerHTML=`
-    <div class="panel" style="margin-bottom:16px"><div class="panel-head"><h3>New Credit Note</h3></div><div class="panel-body">
-      <p style="font-size:12px;color:var(--text-soft);margin:0 0 10px">Issued against a Sale Invoice. Credit notes are reported in GSTR-1 (Table 9B) for the month of the credit note date.</p>
+    <div class="panel" style="margin-bottom:16px"><div class="panel-head"><h3>New ${cnK()} Note</h3><div class="seg" role="group"><button type="button" class="${cnKind==='credit'?'active':''}" onclick="cnKind='credit';renderCreditNote()">Credit Note</button><button type="button" class="${cnKind==='debit'?'active':''}" onclick="cnKind='debit';renderCreditNote()">Debit Note</button></div></div><div class="panel-body">
+      <p style="font-size:12px;color:var(--text-soft);margin:0 0 10px">${cnKind==='debit'?'Issued against a Sale Invoice to charge the customer more (price increase, extra charges). Enter the quantity and the extra price per unit. No stock change.':'Issued against a Sale Invoice for a return or discount.'} Reported in GSTR-1 (Table 9B) for the month of the note date.</p>
       <div class="row">
-        <div class="field"><label>Credit Note No</label><input id="cn_no" value="${no}"></div>
+        <div class="field"><label>${cnK()} Note No</label><input id="cn_no" value="${no}"></div>
         <div class="field"><label>Date</label><input id="cn_date" type="date" value="${todayStr()}"></div>
         <div class="field" style="flex:2"><label>Against Invoice</label><input id="cn_inv" list="cn_invlist" placeholder="Type or pick an invoice number" onchange="cnLoad()" autocomplete="off"><datalist id="cn_invlist">${sales.map(s=>`<option value="${safeText(s.invoiceNo)}">${safeText(s.customer)} · ${safeText(s.date)} · ₹${fmt(s.grandTotal)}</option>`).join('')}</datalist></div>
-        <div class="field"><label>Reason (GST)</label><select id="cn_reason" onchange="document.getElementById('cn_stock').checked=this.value.startsWith('01')">${CN_REASONS.map(r=>`<option>${r}</option>`).join('')}</select></div>
+        <div class="field"><label>Reason (GST)</label><select id="cn_reason" onchange="var c=document.getElementById('cn_stock');if(c)c.checked=this.value.startsWith('01')">${CN_REASONS.map(r=>`<option${cnKind==='debit'&&r.startsWith('04')?' selected':''}>${r}</option>`).join('')}</select></div>
       </div>
       <div id="cn_body"><div class="empty">Select the original invoice to load its items.</div></div>
     </div></div>
-    <div class="panel"><div class="panel-head"><h3>Credit Notes (${notes.length})</h3></div><div class="panel-body table-scroll" style="padding:0"><table><thead><tr><th>Credit note</th><th>Date</th><th>Customer</th><th>Against</th><th>Reason</th><th class="num">Value</th><th></th></tr></thead><tbody>
-      ${notes.length?notes.map(n=>`<tr><td class="mono">${safeText(n.noteNo)}</td><td>${safeText(n.date)}</td><td>${safeText(n.customer)}</td><td class="mono">${safeText(n.invoiceNo)}</td><td>${safeText(n.reason)}</td><td class="num mono">₹${fmt(n.grandTotal)}</td><td style="white-space:nowrap"><button class="btn ghost sm" onclick="printCreditNote('${n.id}')">Print</button> <button class="btn danger sm" onclick="deleteCreditNote('${n.id}')">Del</button></td></tr>`).join(''):'<tr><td colspan="7" class="empty">No credit notes yet.</td></tr>'}
+    <div class="panel"><div class="panel-head"><h3>Credit / Debit Notes (${notes.length})</h3></div><div class="panel-body table-scroll" style="padding:0"><table><thead><tr><th>Note</th><th>Type</th><th>Date</th><th>Customer</th><th>Against</th><th>Reason</th><th class="num">Value</th><th></th></tr></thead><tbody>
+      ${notes.length?notes.map(n=>`<tr><td class="mono">${safeText(n.noteNo)}</td><td>${cnLabel(n)}</td><td>${safeText(n.date)}</td><td>${safeText(n.customer)}</td><td class="mono">${safeText(n.invoiceNo)}</td><td>${safeText(n.reason)}</td><td class="num mono">₹${fmt(n.grandTotal)}</td><td style="white-space:nowrap"><button class="btn ghost sm" onclick="printCreditNote('${n.id}')">Print</button> <button class="btn danger sm" onclick="deleteCreditNote('${n.id}')">Del</button></td></tr>`).join(''):'<tr><td colspan="7" class="empty">No credit notes yet.</td></tr>'}
     </tbody></table></div></div>`;
 }
+const cnLabel=n=>n.kind==='debit'?'Debit':'Credit';
 function cnLoad(){
   const v=document.getElementById('cn_inv').value.trim(),s=DB.sales.find(x=>x.invoiceNo===v),body=document.getElementById('cn_body');
   if(!s){cnSale=null;cnLines=[];body.innerHTML='<div class="empty">Invoice not found — pick one from the list.</div>';return;}
   cnSale=s;
   const scale=(+s.subtotalBeforeDiscount>0)?1-((+s.discountAmount||0)/(+s.subtotalBeforeDiscount)):1;
-  cnLines=s.lines.map(l=>({productId:l.productId,name:l.name,hsn:l.hsn||'',gstPercent:+l.gstPercent||0,maxQty:+l.qty||0,cqty:+l.qty||0,price:Math.round((+l.price||0)*scale*100)/100}));
+  cnLines=s.lines.map(l=>({productId:l.productId,name:l.name,hsn:l.hsn||'',gstPercent:+l.gstPercent||0,maxQty:+l.qty||0,cqty:cnKind==='debit'?0:(+l.qty||0),price:Math.round((+l.price||0)*scale*100)/100}));
   const prior=cnPriorCredit(s.id);
   body.innerHTML=`
     <div style="font-size:12.5px;margin:6px 0 10px"><strong>${safeText(s.customer)}</strong>${s.customerGstin?' · GSTIN '+safeText(s.customerGstin):' · unregistered'} · ${s.supplyType==='inter'?'Inter-state (IGST)':'Intra-state (CGST+SGST)'} · Invoice value ₹${fmt(s.grandTotal)}${prior>0?' · already credited ₹'+fmt(prior):''}</div>
-    <div class="table-scroll"><table><thead><tr><th>Item</th><th>HSN</th><th class="num">Invoice qty</th><th class="num">Credit qty</th><th class="num">Price${s.priceMode==='inclusive'?' (incl. GST)':''}</th><th class="num">Tax %</th><th class="num">Amount</th></tr></thead><tbody>
+    <div class="table-scroll"><table><thead><tr><th>Item</th><th>HSN</th><th class="num">Invoice qty</th><th class="num">${cnK()} qty</th><th class="num">Price${s.priceMode==='inclusive'?' (incl. GST)':''}</th><th class="num">Tax %</th><th class="num">Amount</th></tr></thead><tbody>
     ${cnLines.map((l,i)=>`<tr><td>${safeText(l.name)}</td><td class="mono">${safeText(l.hsn)}</td><td class="num mono">${l.maxQty}</td><td class="num"><input type="number" min="0" max="${l.maxQty}" step="1" value="${l.cqty}" style="width:80px;text-align:right" class="mono" oninput="cnEdit(${i},'cqty',this.value)"></td><td class="num"><input type="number" min="0" step="0.01" value="${l.price}" style="width:100px;text-align:right" class="mono" oninput="cnEdit(${i},'price',this.value)"></td><td class="num mono">${l.gstPercent}%</td><td class="num mono" id="cn_amt${i}">₹0.00</td></tr>`).join('')}
     </tbody></table></div>
     <div class="row" style="margin-top:10px"><div class="field" style="flex:2"><label>Notes</label><input id="cn_notes" placeholder="Optional"></div>
-      <div class="field" style="flex:none;align-self:flex-end"><label style="display:flex;gap:6px;align-items:center;margin:0"><input type="checkbox" id="cn_stock" checked> Return items to stock</label></div></div>
+      ${cnKind==='debit'?'':'<div class="field" style="flex:none;align-self:flex-end"><label style="display:flex;gap:6px;align-items:center;margin:0"><input type="checkbox" id="cn_stock" checked> Return items to stock</label></div>'}</div>
     <div class="totals-box" id="cn_totals"></div>
-    <div style="margin-top:12px"><button class="btn amber" onclick="saveCreditNote()">Save &amp; Print Credit Note</button></div>`;
-  document.getElementById('cn_stock').checked=document.getElementById('cn_reason').value.startsWith('01');
+    <div style="margin-top:12px"><button class="btn amber" onclick="saveCreditNote()">Save &amp; Print ${cnK()} Note</button></div>`;
+  const stk=document.getElementById('cn_stock');if(stk)stk.checked=document.getElementById('cn_reason').value.startsWith('01');
   cnTotals();
 }
 function cnEdit(i,f,v){cnLines[i][f]=Math.max(0,parseFloat(v)||0);cnTotals();}
@@ -6036,31 +6198,31 @@ function cnTotals(){
   if(!cnSale)return;
   cnLines.forEach((l,i)=>{const r=computeLineTax(l.cqty*l.price,l.gstPercent,cnSale.priceMode||'exclusive'),e=document.getElementById('cn_amt'+i);if(e)e.textContent='₹'+fmt(r.grand);});
   const t=cnCalc();
-  document.getElementById('cn_totals').innerHTML=`<div class="trow"><span>Taxable Amount</span><span class="mono">₹${fmt(t.subtotal)}</span></div>${gstBreakupRowsHTML(t.breakup,cnSale.supplyType)}<div class="trow grand"><span>Credit Note Total</span><span class="mono">₹${fmt(t.grandTotal)}</span></div>`;
+  document.getElementById('cn_totals').innerHTML=`<div class="trow"><span>Taxable Amount</span><span class="mono">₹${fmt(t.subtotal)}</span></div>${gstBreakupRowsHTML(t.breakup,cnSale.supplyType)}<div class="trow grand"><span>${cnK()} Note Total</span><span class="mono">₹${fmt(t.grandTotal)}</span></div>`;
 }
 function saveCreditNote(){
   if(!cnSale){showToast('Select the original invoice first');return;}
   const no=document.getElementById('cn_no').value.trim(),date=document.getElementById('cn_date').value||todayStr();
-  if(!no){showToast('Credit note number is required');return;}
-  if((DB.creditNotes||[]).some(n=>n.noteNo===no)){showToast('Credit note "'+no+'" already exists — choose a different number');return;}
+  if(!no){showToast(cnK()+' note number is required');return;}
+  if((DB.creditNotes||[]).some(n=>n.noteNo===no)){showToast(cnK()+' note "'+no+'" already exists — choose a different number');return;}
   const act=cnLines.filter(l=>l.cqty>0);
-  if(!act.length){showToast('Enter a credit quantity for at least one item');return;}
-  if(act.some(l=>l.cqty>l.maxQty)){showToast('Credit quantity cannot exceed the invoice quantity');return;}
+  if(!act.length){showToast('Enter a quantity for at least one item');return;}
+  if(cnKind==='credit'&&act.some(l=>l.cqty>l.maxQty)){showToast('Credit quantity cannot exceed the invoice quantity');return;}
   const t=cnCalc();
-  if(cnPriorCredit(cnSale.id)+t.grandTotal>(+cnSale.grandTotal||0)+0.5){showToast('Total credit notes for this invoice would exceed the invoice value');return;}
-  const reason=document.getElementById('cn_reason').value,returnStock=document.getElementById('cn_stock').checked;
-  const note={id:cid(),noteNo:no,date,saleId:cnSale.id,invoiceNo:cnSale.invoiceNo,invoiceDate:cnSale.date,invoiceTotal:cnSale.grandTotal,customer:cnSale.customer,phone:cnSale.phone||'',customerGstin:cnSale.customerGstin||'',
+  if(cnKind==='credit'&&cnPriorCredit(cnSale.id)+t.grandTotal>(+cnSale.grandTotal||0)+0.5){showToast('Total credit notes for this invoice would exceed the invoice value');return;}
+  const reason=document.getElementById('cn_reason').value,returnStock=cnKind==='credit'&&document.getElementById('cn_stock').checked;
+  const note={id:cid(),kind:cnKind,noteNo:no,date,saleId:cnSale.id,invoiceNo:cnSale.invoiceNo,invoiceDate:cnSale.date,invoiceTotal:cnSale.grandTotal,customer:cnSale.customer,phone:cnSale.phone||'',customerGstin:cnSale.customerGstin||'',
     placeOfSupply:cnSale.placeOfSupply||'',supplyType:cnSale.supplyType,priceMode:cnSale.priceMode||'exclusive',reason,returnStock,notes:document.getElementById('cn_notes').value.trim(),
     lines:act.map(l=>({productId:l.productId,name:l.name,hsn:l.hsn,qty:l.cqty,price:l.price,gstPercent:l.gstPercent})),
     subtotal:t.subtotal,gstAmount:t.gstAmount,breakup:t.breakup,grandTotal:t.grandTotal};
   DB.creditNotes.push(note);
   if(returnStock)note.lines.forEach(l=>{const p=DB.products.find(x=>x.id===l.productId);if(p)p.stock+=l.qty;});
-  saveDB();showToast('Credit note saved'+(returnStock?' — stock returned':''));
+  saveDB();showToast(cnK()+' note saved'+(returnStock?' — stock returned':''));
   renderCreditNote();printCreditNote(note.id);
 }
 function deleteCreditNote(id){
-  if(currentUserRole!=='admin'){showToast('Only Admin can delete a credit note');return;}
-  askConfirm('Delete this credit note?'+((DB.creditNotes.find(x=>x.id===id)||{}).returnStock?' Returned stock will be taken out again.':''),()=>{
+  if(currentUserRole!=='admin'){showToast('Only Admin can delete a credit/debit note');return;}
+  askConfirm('Delete this note?'+((DB.creditNotes.find(x=>x.id===id)||{}).returnStock?' Returned stock will be taken out again.':''),()=>{
     const n=DB.creditNotes.find(x=>x.id===id);if(!n)return;
     if(n.returnStock)n.lines.forEach(l=>{const p=DB.products.find(x=>x.id===l.productId);if(p)p.stock-=l.qty;});
     DB.creditNotes=DB.creditNotes.filter(x=>x.id!==id);saveDB();renderCreditNote();});
@@ -6078,7 +6240,7 @@ function printCreditNote(id){
     </div>
     <div id="invoiceSheet" class="size-${currentPageSize.toLowerCase()}">
       <div class="inv-head"><div style="display:flex;gap:12px;align-items:center;">${st.logo?`<img src="${st.logo}" style="width:88px;height:88px;object-fit:contain;flex:none;">`:''}<div><div class="co">${st.shopName}</div><div class="co-sub">${st.address}<br>${st.phone}${st.gstin?`<br>GSTIN: ${st.gstin}`:''}</div></div></div>
-        <div class="tag"><div class="t1">CREDIT NOTE</div><div class="co-sub mono">${safeText(n.noteNo)}</div></div></div>
+        <div class="tag"><div class="t1">${n.kind==='debit'?'DEBIT':'CREDIT'} NOTE</div><div class="co-sub mono">${safeText(n.noteNo)}</div></div></div>
       <div class="inv-meta"><div><strong>Customer:</strong><br>${safeText(n.customer)}${n.phone?'<br>'+safeText(n.phone):''}${n.customerGstin?'<br>GSTIN: '+safeText(n.customerGstin):''}</div>
         <div style="text-align:right;"><strong>Date:</strong> ${safeText(n.date)}<br><strong>Against Invoice:</strong> ${safeText(n.invoiceNo)} (${safeText(n.invoiceDate||'')})<br><strong>Reason:</strong> ${safeText(n.reason)}</div></div>
       <table class="inv-table"><thead><tr><th>Sl.</th><th>Item</th><th>HSN</th><th class="num">Qty</th><th class="num">Unit Price</th><th class="num">Tax %</th><th class="num">Total</th></tr></thead><tbody>
@@ -6086,7 +6248,7 @@ function printCreditNote(id){
       <div class="inv-bottom">${n.notes?`<div style="margin:14px 0;font-size:12px;"><strong>Notes:</strong> ${safeText(n.notes)}</div>`:''}
         <div style="display:flex;justify-content:flex-end"><div class="totals-box" style="flex:1;max-width:340px;margin-top:0;padding-top:0;border-top:none;">
           <div class="trow"><span>Taxable Amount</span><span class="mono">₹${fmt(n.subtotal)}</span></div>${gstBreakupRowsHTML(n.breakup,n.supplyType)}
-          <div class="trow grand"><span>Credit Note Total</span><span class="mono">₹${fmt(n.grandTotal)}</span></div></div></div></div>
+          <div class="trow grand"><span>${cnLabel(n)} Note Total</span><span class="mono">₹${fmt(n.grandTotal)}</span></div></div></div></div>
     </div>
   </div>`);
   const w=document.getElementById('invoiceWrap');if(w&&w.scrollIntoView)w.scrollIntoView({behavior:'smooth'});
@@ -6171,30 +6333,30 @@ function gstr1Build(db,opts){
   const notes=(db.creditNotes||[]).filter(n=>n.date>=per.from&&n.date<=per.to).sort((a,b)=>String(a.date).localeCompare(String(b.date))||String(a.noteNo).localeCompare(String(b.noteNo),undefined,{numeric:true}));
   const cdnrMap={},cdnur=[];
   notes.forEach(n=>{
-    const ref=n.noteNo||'(no number)',num=String(n.noteNo||''),T=[{t:'creditnote',id:n.id,label:'Open note'}];
+    const deb=n.kind==='debit',sg=deb?1:-1,lbl=deb?'Debit note':'Credit note',ref=n.noteNo||'(no number)',num=String(n.noteNo||''),T=[{t:'creditnote',id:n.id,label:'Open note'}];
     const orig=(db.sales||[]).find(x=>x.id===n.saleId),TO=orig?[...T,{t:'sale',id:orig.id,label:'Original invoice'}]:T;
-    if(!num||num.length>16||!/^[A-Za-z0-9\/-]+$/.test(num)||/^[0\/-]/.test(num))issue('error',ref,'Credit note number must be 1–16 characters, only letters, digits, "-" or "/", and must not start with 0, "-" or "/".',T);
+    if(!num||num.length>16||!/^[A-Za-z0-9\/-]+$/.test(num)||/^[0\/-]/.test(num))issue('error',ref,lbl+' number must be 1–16 characters, only letters, digits, "-" or "/", and must not start with 0, "-" or "/".',T);
     const ctin=String(n.customerGstin||'').trim().toUpperCase();let registered=false;
     if(ctin){if(!gstinValid(ctin))issue('error',ref,'Customer GSTIN "'+ctin+'" is not valid — treated as unregistered until corrected.',TO);else if(ctin===sellerGstin)issue('error',ref,'Customer GSTIN is the same as your own GSTIN.',TO);else registered=true;}
     const inter=n.supplyType==='inter';
     const pos=n.placeOfSupply||(registered?ctin.slice(0,2):'')||(!inter?sellerState:'');
-    if(!pos)issue('error',ref,'Place of Supply is missing on this credit note.',TO);
+    if(!pos)issue('error',ref,'Place of Supply is missing on this '+lbl.toLowerCase()+'.',TO);
     else if(!gstr1StateName(pos))issue('error',ref,'Place of Supply code "'+pos+'" is not a valid state code.',TO);
     if(pos&&sellerState&&((pos!==sellerState)!==inter))issue('error',ref,'Supply type does not match Place of Supply — wrong tax heads would be filed.',TO);
     if(!orig)issue('warn',ref,'Original invoice '+(n.invoiceNo||'')+' no longer exists in the sales list.',T);
-    const val=gstr1R2(n.grandTotal);if(!(val>0))issue('warn',ref,'Credit note value is zero.',T);
+    const val=gstr1R2(n.grandTotal);if(!(val>0))issue('warn',ref,lbl+' value is zero.',T);
     const itms=[];let k=0;
     (n.breakup||[]).forEach(b=>{const rate=+b.rate||0;
       if(!GSTR1_RATES.includes(rate))issue('error',ref,'GST rate '+rate+'% is not a valid GST slab.',T);
-      if(rate<=0){const key=(inter?'INTR':'INTRA')+(registered?'B2B':'B2C');nil[key]=gstr1R2(nil[key]-(+b.taxable||0));return;}
+      if(rate<=0){const key=(inter?'INTR':'INTRA')+(registered?'B2B':'B2C');nil[key]=gstr1R2(nil[key]+sg*(+b.taxable||0));return;}
       itms.push({num:++k,itm_det:taxRow(rate,b.taxable,b.gstAmt,inter)});});
     const origVal=orig?(+orig.grandTotal||0):(+n.invoiceTotal||0);
     if(itms.length){
-      if(registered){(cdnrMap[ctin]=cdnrMap[ctin]||[]).push({ntty:'C',nt_num:num,nt_dt:gstr1Dmy(n.date),val,pos,rchrg:'N',inv_typ:'R',itms,_name:n.customer||'',_id:n.id,_inv:n.invoiceNo||''});}
-      else if(inter&&origVal>GSTR1_B2CL_LIMIT){cdnur.push({typ:'B2CL',ntty:'C',nt_num:num,nt_dt:gstr1Dmy(n.date),val,pos,itms:itms.map(i=>({num:i.num,itm_det:{txval:i.itm_det.txval,rt:i.itm_det.rt,iamt:i.itm_det.iamt,csamt:0}})),_id:n.id,_inv:n.invoiceNo||''});}
-      else{itms.forEach(i=>{const d=i.itm_det,key=(inter?'INTER':'INTRA')+'|'+pos+'|'+d.rt;const r=b2cs[key]=b2cs[key]||{sply_ty:inter?'INTER':'INTRA',rt:d.rt,typ:'OE',pos,txval:0,iamt:0,camt:0,samt:0,csamt:0,_inv:[]};['txval','iamt','camt','samt'].forEach(f=>r[f]=gstr1R2(r[f]-d[f]));if(!r._inv.some(x=>x.id===n.id))r._inv.push({id:n.id,no:num,date:n.date,val:-val,cn:true});});}
+      if(registered){(cdnrMap[ctin]=cdnrMap[ctin]||[]).push({ntty:deb?'D':'C',nt_num:num,nt_dt:gstr1Dmy(n.date),val,pos,rchrg:'N',inv_typ:'R',itms,_name:n.customer||'',_id:n.id,_inv:n.invoiceNo||''});}
+      else if(inter&&origVal>GSTR1_B2CL_LIMIT){cdnur.push({typ:'B2CL',ntty:deb?'D':'C',nt_num:num,nt_dt:gstr1Dmy(n.date),val,pos,itms:itms.map(i=>({num:i.num,itm_det:{txval:i.itm_det.txval,rt:i.itm_det.rt,iamt:i.itm_det.iamt,csamt:0}})),_id:n.id,_inv:n.invoiceNo||''});}
+      else{itms.forEach(i=>{const d=i.itm_det,key=(inter?'INTER':'INTRA')+'|'+pos+'|'+d.rt;const r=b2cs[key]=b2cs[key]||{sply_ty:inter?'INTER':'INTRA',rt:d.rt,typ:'OE',pos,txval:0,iamt:0,camt:0,samt:0,csamt:0,_inv:[]};['txval','iamt','camt','samt'].forEach(f=>r[f]=gstr1R2(r[f]+sg*d[f]));if(!r._inv.some(x=>x.id===n.id))r._inv.push({id:n.id,no:num,date:n.date,val:sg*val,cn:true});});}
     }
-    const retQty=String(n.reason||'').startsWith('01');
+    const retQty=!deb&&String(n.reason||'').startsWith('01');
     (n.lines||[]).forEach(l=>{
       const p=prod(l.productId)||{},hsn=String(l.hsn||p.hsn||'').trim(),g=+l.gstPercent||0,amt=(+l.qty||0)*(+l.price||0);
       const taxable=(n.priceMode==='inclusive'?(g>0?amt/(1+g/100):amt):amt),tax=taxable*g/100;
@@ -6203,8 +6365,8 @@ function gstr1Build(db,opts){
       else if(!/^\d+$/.test(hsn)||hsn.length<minDig||hsn.length>8){const kk='h|'+hsn;if(!seenHsnIssue[kk]){seenHsnIssue[kk]=1;issue('error',(l.name||'Product')+' / HSN '+hsn,'HSN must be numeric with at least '+minDig+' digits (turnover '+(o.aato5cr?'above':'up to')+' ₹5 Cr).',TH);}}
       const uqc=p.uqc||'NOS',tgt=registered?hsnB2B:hsnB2C,key=hsn+'|'+uqc+'|'+g;
       const r=tgt[key]=tgt[key]||{hsn_sc:hsn,desc:String(l.name||p.name||'').slice(0,30),uqc,qty:0,val:0,rt:g,txval:0,iamt:0,camt:0,samt:0,csamt:0};
-      if(retQty)r.qty-=(+l.qty||0);r.txval-=taxable;r.val-=(taxable+tax);
-      if(inter)r.iamt-=tax;else{r.camt-=tax/2;r.samt-=tax/2;}
+      if(retQty)r.qty-=(+l.qty||0);r.txval+=sg*taxable;r.val+=sg*(taxable+tax);
+      if(inter)r.iamt+=sg*tax;else{r.camt+=sg*tax/2;r.samt+=sg*tax/2;}
     });
   });
   /* documents issued (Table 13) – gaps in a series are reported as cancelled/unused */
@@ -6212,7 +6374,7 @@ function gstr1Build(db,opts){
     return Object.entries(series).map(([k,arr])=>{arr.sort((a,b)=>a.n-b.n);const first=arr[0],last=arr[arr.length-1],span=last.n-first.n+1,tot=Math.max(span,arr.length),canc=tot-arr.length;
       if(canc>0)issue('info',k||label,label+' series "'+(k||'(none)')+'": '+canc+' number(s) missing between '+first.inum+' and '+last.inum+' — reported as cancelled/unused in Table 13. Check that this is correct.');
       return{from:first.inum,to:last.inum,totnum:tot,cancel:canc,net_issue:arr.length};});};
-  const docs=mkDocs(sales,'invoiceNo','Invoice'),ndocs=mkDocs(notes,'noteNo','Credit note');
+  const docs=mkDocs(sales,'invoiceNo','Invoice'),ndocs=mkDocs(notes.filter(n=>n.kind!=='debit'),'noteNo','Credit note'),ddocs=mkDocs(notes.filter(n=>n.kind==='debit'),'noteNo','Debit note');
   const cdnr=Object.entries(cdnrMap).map(([ctin,nt])=>({ctin,nt}));
   const b2b=Object.entries(b2bMap).map(([ctin,inv])=>({ctin,inv}));
   const b2clL=Object.entries(b2cl).map(([pos,inv])=>({pos,inv}));
@@ -6228,7 +6390,7 @@ function gstr1Build(db,opts){
     cdnur:{count:cdnur.length,txval:itmSum(cdnur,'txval'),iamt:itmSum(cdnur,'iamt'),camt:0,samt:0},notes:notes.length,
     nil:gstr1R2(Object.values(nil).reduce((a,b)=>a+b,0))};
   const rank={error:0,warn:1,info:2};issues.sort((a,b)=>rank[a.level]-rank[b.level]);
-  return{period:per,gstin:sellerGstin,sellerState,minDig,b2b,b2cl:b2clL,b2cs:b2csL,cdnr,cdnur,nil,hsn_b2b:hsnList(hsnB2B),hsn_b2c:hsnList(hsnB2C),docs,ndocs,totals,issues,errors:issues.filter(i=>i.level==='error').length};
+  return{period:per,gstin:sellerGstin,sellerState,minDig,b2b,b2cl:b2clL,b2cs:b2csL,cdnr,cdnur,nil,hsn_b2b:hsnList(hsnB2B),hsn_b2c:hsnList(hsnB2C),docs,ndocs,ddocs,totals,issues,errors:issues.filter(i=>i.level==='error').length};
 }
 function gstr1Json(d,opts){
   const o=opts||{},out={gstin:d.gstin,fp:d.period.fp,version:'GST2.2',hash:'hash',gt:+o.gt||0,cur_gt:+o.cgt||0};
@@ -6242,6 +6404,7 @@ function gstr1Json(d,opts){
   const hs={};if(d.hsn_b2b.length)hs.hsn_b2b=d.hsn_b2b;if(d.hsn_b2c.length)hs.hsn_b2c=d.hsn_b2c;if(Object.keys(hs).length)out.hsn=hs;
   const dd=[];const dmap=(a)=>a.map((x,i)=>({num:i+1,from:x.from,to:x.to,totnum:x.totnum,cancel:x.cancel,net_issue:x.net_issue}));
   if(d.docs.length)dd.push({doc_num:1,doc_typ:'Invoices for outward supply',docs:dmap(d.docs)});
+  if(d.ddocs.length)dd.push({doc_num:4,doc_typ:'Debit Note',docs:dmap(d.ddocs)});
   if(d.ndocs.length)dd.push({doc_num:5,doc_typ:'Credit Note',docs:dmap(d.ndocs)});
   if(dd.length)out.doc_issue={doc_det:dd};
   return out;
@@ -6258,15 +6421,15 @@ function gstr1Xlsx(d){
   const b2cs=[['Type','Place Of Supply','Applicable % of Tax Rate','Rate','Taxable Value','Cess Amount','E-Commerce GSTIN']];
   d.b2cs.forEach(r=>b2cs.push(['OE',gstr1PosLabel(r.pos),'',r.rt,r.txval,0,'']));add('b2cs',b2cs);
   const cr=[['GSTIN/UIN of Recipient','Receiver Name','Note/Refund Voucher Number','Note/Refund Voucher date','Document Type','Place Of Supply','Reverse Charge','Note Supply Type','Note/Refund Voucher Value','Applicable % of Tax Rate','Rate','Taxable Value','Cess Amount']];
-  d.cdnr.forEach(c=>c.nt.forEach(n=>n.itms.forEach(t=>cr.push([c.ctin,n._name,n.nt_num,gstr1DmyMon(n.nt_dt.split('-').reverse().join('-')),'Credit Note',gstr1PosLabel(n.pos),'N','Regular',n.val,'',t.itm_det.rt,t.itm_det.txval,0]))));add('cdnr',cr);
+  d.cdnr.forEach(c=>c.nt.forEach(n=>n.itms.forEach(t=>cr.push([c.ctin,n._name,n.nt_num,gstr1DmyMon(n.nt_dt.split('-').reverse().join('-')),n.ntty==='D'?'Debit Note':'Credit Note',gstr1PosLabel(n.pos),'N','Regular',n.val,'',t.itm_det.rt,t.itm_det.txval,0]))));add('cdnr',cr);
   const cu=[['UR Type','Note/Refund Voucher Number','Note/Refund Voucher date','Document Type','Place Of Supply','Note/Refund Voucher Value','Applicable % of Tax Rate','Rate','Taxable Value','Cess Amount']];
-  d.cdnur.forEach(n=>n.itms.forEach(t=>cu.push([n.typ,n.nt_num,gstr1DmyMon(n.nt_dt.split('-').reverse().join('-')),'Credit Note',gstr1PosLabel(n.pos),n.val,'',t.itm_det.rt,t.itm_det.txval,0])));add('cdnur',cu);
+  d.cdnur.forEach(n=>n.itms.forEach(t=>cu.push([n.typ,n.nt_num,gstr1DmyMon(n.nt_dt.split('-').reverse().join('-')),n.ntty==='D'?'Debit Note':'Credit Note',gstr1PosLabel(n.pos),n.val,'',t.itm_det.rt,t.itm_det.txval,0])));add('cdnur',cu);
   const nl=d.nil,ex=[['Description','Nil Rated Supplies','Exempted(other than nil rated/non GST supply)','Non-GST supplies'],
     ['Inter-State supplies to registered persons',nl.INTRB2B,0,0],['Intra-State supplies to registered persons',nl.INTRAB2B,0,0],['Inter-State supplies to unregistered persons',nl.INTRB2C,0,0],['Intra-State supplies to unregistered persons',nl.INTRAB2C,0,0]];add('exemp',ex);
   const hh=['HSN','Description','UQC','Total Quantity','Total Value','Rate','Taxable Value','Integrated Tax Amount','Central Tax Amount','State/UT Tax Amount','Cess Amount'];
   const hr=a=>[hh,...a.map(r=>[r.hsn_sc,r.desc,r.uqc+'-'+(((GSTR1_UQC.find(u=>u[0]===r.uqc)||[])[1]||(' - '+r.uqc)).split(' - ')[1]).toUpperCase(),r.qty,r.val,r.rt,r.txval,r.iamt,r.camt,r.samt,0])];
   add('hsn(b2b)',hr(d.hsn_b2b));add('hsn(b2c)',hr(d.hsn_b2c));
-  add('docs',[['Nature of Document','Sr. No. From','Sr. No. To','Total Number','Cancelled'],...d.docs.map(x=>['Invoices for outward supply',x.from,x.to,x.totnum,x.cancel]),...d.ndocs.map(x=>['Credit Note',x.from,x.to,x.totnum,x.cancel])]);
+  add('docs',[['Nature of Document','Sr. No. From','Sr. No. To','Total Number','Cancelled'],...d.docs.map(x=>['Invoices for outward supply',x.from,x.to,x.totnum,x.cancel]),...d.ddocs.map(x=>['Debit Note',x.from,x.to,x.totnum,x.cancel]),...d.ndocs.map(x=>['Credit Note',x.from,x.to,x.totnum,x.cancel])]);
   add('Issues (not for upload)',[['Level','Reference','Message'],...d.issues.map(i=>[i.level,i.ref,i.msg])]);
   return wb;
 }
@@ -6298,7 +6461,7 @@ function runGstr1(){
   const lvl={error:'<span class="badge bad">Error</span>',warn:'<span class="badge partial">Warning</span>',info:'<span class="badge ok">Info</span>'};
   const trow=(n,x)=>`<tr><td>${n}</td><td class="num mono">${x.count}</td><td class="num mono">${m(x.txval)}</td><td class="num mono">${m(x.iamt)}</td><td class="num mono">${m(x.camt)}</td><td class="num mono">${m(x.samt)}</td></tr>`;
   const invRows=(a,reg)=>a.map(c=>c.inv.map(i=>`<tr style="cursor:pointer" title="Click to open invoice" onclick="gstr1Go('invoice','${i._id}')"><td class="mono">${reg?safeText(c.ctin):safeText(gstr1PosLabel(c.pos))}</td><td class="mono">${safeText(i.inum)}</td><td>${safeText(i.idt)}</td><td class="num mono">${m(i.val)}</td><td>${safeText(gstr1PosLabel(i.pos||c.pos))}</td><td class="num mono">${m(i.itms.reduce((s,x)=>s+x.itm_det.txval,0))}</td><td class="num mono">${m(i.itms.reduce((s,x)=>s+(x.itm_det.iamt||0)+(x.itm_det.camt||0)+(x.itm_det.samt||0),0))}</td></tr>`).join('')).join('');
-  const ntRows=(a,reg)=>a.map(c=>c.nt.map(n=>`<tr style="cursor:pointer" title="Click to open credit note" onclick="gstr1Go('creditnote','${n._id}')"><td class="mono">${reg?safeText(c.ctin):safeText(gstr1PosLabel(n.pos))}</td><td class="mono">${safeText(n.nt_num)}</td><td>${safeText(n.nt_dt)}</td><td class="num mono">${m(n.val)}</td><td>${reg?safeText(gstr1PosLabel(n.pos)):safeText(n._inv)}</td><td class="num mono">${m(n.itms.reduce((s,x)=>s+x.itm_det.txval,0))}</td><td class="num mono">${m(n.itms.reduce((s,x)=>s+(x.itm_det.iamt||0)+(x.itm_det.camt||0)+(x.itm_det.samt||0),0))}</td></tr>`).join('')).join('');
+  const ntRows=(a,reg)=>a.map(c=>c.nt.map(n=>`<tr style="cursor:pointer" title="Click to open note" onclick="gstr1Go('creditnote','${n._id}')"><td class="mono">${reg?safeText(c.ctin):safeText(gstr1PosLabel(n.pos))}</td><td class="mono">${safeText(n.nt_num)}</td><td>${safeText(n.nt_dt)}</td><td class="num mono">${m(n.val)}</td><td>${reg?safeText(gstr1PosLabel(n.pos)):safeText(n._inv)}</td><td class="num mono">${m(n.itms.reduce((s,x)=>s+x.itm_det.txval,0))}</td><td class="num mono">${m(n.itms.reduce((s,x)=>s+(x.itm_det.iamt||0)+(x.itm_det.camt||0)+(x.itm_det.samt||0),0))}</td></tr>`).join('')).join('');
   const hsnRows=a=>a.map(r=>`<tr><td class="mono">${safeText(r.hsn_sc)}</td><td>${safeText(r.desc)}</td><td>${r.uqc}</td><td class="num mono">${r.qty}</td><td class="num mono">${r.rt}%</td><td class="num mono">${m(r.txval)}</td><td class="num mono">${m(r.iamt+r.camt+r.samt)}</td></tr>`).join('');
   const tbl=(title,head,body,cols)=>`<div class="panel" style="margin-bottom:14px"><div class="panel-head"><h3>${title}</h3></div><div class="panel-body table-scroll" style="padding:0"><table><thead><tr>${head}</tr></thead><tbody>${body||`<tr><td colspan="${cols}" class="empty">Nothing in this period.</td></tr>`}</tbody></table></div></div>`;
   document.getElementById('gstr1Out').innerHTML=`
@@ -6308,16 +6471,16 @@ function runGstr1(){
       <div class="panel-body table-scroll" style="padding:0"><table><thead><tr><th>Level</th><th>Reference</th><th>Issue</th><th>Open</th></tr></thead><tbody>${d.issues.length?d.issues.map(i=>`<tr><td>${lvl[i.level]}</td><td>${safeText(i.ref)}</td><td>${safeText(i.msg)}</td><td style="white-space:nowrap">${(i.targets||[]).map(x=>`<button class="btn ghost sm" onclick="gstr1Go('${x.t}','${x.id||''}')">${x.label}</button>`).join(' ')}</td></tr>`).join(''):'<tr><td colspan="4" class="empty">All invoices passed the checks.</td></tr>'}</tbody></table></div></div>
     <div class="panel" style="margin-bottom:14px"><div class="panel-head"><h3>Summary</h3></div><div class="panel-body table-scroll" style="padding:0"><table><thead><tr><th>Table</th><th class="num">Invoices / rows</th><th class="num">Taxable</th><th class="num">IGST</th><th class="num">CGST</th><th class="num">SGST</th></tr></thead><tbody>
       ${trow('4 – B2B (registered)',t.b2b)}${trow('5 – B2C Large (inter-state, above ₹1 lakh)',t.b2cl)}${trow('7 – B2C Others (state/rate wise)',t.b2cs)}
-      ${trow('9B – Credit notes, registered (CDNR)',t.cdnr)}${trow('9B – Credit notes, unregistered (CDNUR)',t.cdnur)}
-      <tr><td>8 – Nil rated (0% items, net of credit notes)</td><td class="num mono">—</td><td class="num mono">${m(t.nil)}</td><td></td><td></td><td></td></tr></tbody></table></div></div>
+      ${trow('9B – Credit / debit notes, registered (CDNR)',t.cdnr)}${trow('9B – Credit / debit notes, unregistered (CDNUR)',t.cdnur)}
+      <tr><td>8 – Nil rated (0% items, net of credit/debit notes)</td><td class="num mono">—</td><td class="num mono">${m(t.nil)}</td><td></td><td></td><td></td></tr></tbody></table></div></div>
     ${tbl('Table 4 – B2B invoices','<th>GSTIN</th><th>Invoice</th><th>Date</th><th class="num">Value</th><th>Place of supply</th><th class="num">Taxable</th><th class="num">Tax</th>',invRows(d.b2b,true),7)}
     ${tbl('Table 5 – B2C Large invoices','<th>Place of supply</th><th>Invoice</th><th>Date</th><th class="num">Value</th><th>Place of supply</th><th class="num">Taxable</th><th class="num">Tax</th>',invRows(d.b2cl,false),7)}
-    ${tbl('Table 9B – Credit notes (registered)','<th>GSTIN</th><th>Credit note</th><th>Date</th><th class="num">Value</th><th>Place of supply</th><th class="num">Taxable</th><th class="num">Tax</th>',ntRows(d.cdnr,true),7)}
-    ${tbl('Table 9B – Credit notes (unregistered, B2CL type)','<th>Place of supply</th><th>Credit note</th><th>Date</th><th class="num">Value</th><th>Against invoice</th><th class="num">Taxable</th><th class="num">Tax</th>',ntRows([{nt:d.cdnur}],false),7)}
-    ${tbl('Table 7 – B2C Others (net of credit notes to unregistered customers)','<th>Type</th><th>Place of supply</th><th class="num">Rate</th><th class="num">Taxable</th><th class="num">IGST</th><th class="num">CGST</th><th class="num">SGST</th>',d.b2cs.map((r,ix)=>`<tr style="cursor:pointer" title="Click to see the invoices in this row" onclick="gstr1B2csOpen(${ix})"><td>${r.sply_ty}</td><td>${safeText(gstr1PosLabel(r.pos))}</td><td class="num mono">${r.rt}%</td><td class="num mono">${m(r.txval)}</td><td class="num mono">${m(r.iamt)}</td><td class="num mono">${m(r.camt)}</td><td class="num mono">${m(r.samt)}</td></tr>`).join(''),7)}
+    ${tbl('Table 9B – Credit / debit notes (registered)','<th>GSTIN</th><th>Credit note</th><th>Date</th><th class="num">Value</th><th>Place of supply</th><th class="num">Taxable</th><th class="num">Tax</th>',ntRows(d.cdnr,true),7)}
+    ${tbl('Table 9B – Credit / debit notes (unregistered, B2CL type)','<th>Place of supply</th><th>Credit note</th><th>Date</th><th class="num">Value</th><th>Against invoice</th><th class="num">Taxable</th><th class="num">Tax</th>',ntRows([{nt:d.cdnur}],false),7)}
+    ${tbl('Table 7 – B2C Others (net of credit/debit notes to unregistered customers)','<th>Type</th><th>Place of supply</th><th class="num">Rate</th><th class="num">Taxable</th><th class="num">IGST</th><th class="num">CGST</th><th class="num">SGST</th>',d.b2cs.map((r,ix)=>`<tr style="cursor:pointer" title="Click to see the invoices in this row" onclick="gstr1B2csOpen(${ix})"><td>${r.sply_ty}</td><td>${safeText(gstr1PosLabel(r.pos))}</td><td class="num mono">${r.rt}%</td><td class="num mono">${m(r.txval)}</td><td class="num mono">${m(r.iamt)}</td><td class="num mono">${m(r.camt)}</td><td class="num mono">${m(r.samt)}</td></tr>`).join(''),7)}
     ${tbl('Table 12 – HSN summary · B2B','<th>HSN</th><th>Description</th><th>UQC</th><th class="num">Qty</th><th class="num">Rate</th><th class="num">Taxable</th><th class="num">Tax</th>',hsnRows(d.hsn_b2b),7)}
     ${tbl('Table 12 – HSN summary · B2C','<th>HSN</th><th>Description</th><th>UQC</th><th class="num">Qty</th><th class="num">Rate</th><th class="num">Taxable</th><th class="num">Tax</th>',hsnRows(d.hsn_b2c),7)}
-    ${tbl('Table 13 – Documents issued (Invoices and Credit Notes)','<th>From</th><th>To</th><th class="num">Total</th><th class="num">Cancelled</th><th class="num">Net issued</th>',[...d.docs.map(x=>({...x,k:'Invoice'})),...d.ndocs.map(x=>({...x,k:'Credit note'}))].map(x=>`<tr><td class="mono">${safeText(x.k)}: ${safeText(x.from)}</td><td class="mono">${safeText(x.to)}</td><td class="num mono">${x.totnum}</td><td class="num mono">${x.cancel}</td><td class="num mono">${x.net_issue}</td></tr>`).join(''),5)}`;
+    ${tbl('Table 13 – Documents issued (Invoices, Credit and Debit Notes)','<th>From</th><th>To</th><th class="num">Total</th><th class="num">Cancelled</th><th class="num">Net issued</th>',[...d.docs.map(x=>({...x,k:'Invoice'})),...d.ddocs.map(x=>({...x,k:'Debit note'})),...d.ndocs.map(x=>({...x,k:'Credit note'}))].map(x=>`<tr><td class="mono">${safeText(x.k)}: ${safeText(x.from)}</td><td class="mono">${safeText(x.to)}</td><td class="num mono">${x.totnum}</td><td class="num mono">${x.cancel}</td><td class="num mono">${x.net_issue}</td></tr>`).join(''),5)}`;
 }
 function gstr1Download(kind){
   const o=gstr1Opts(),d=gstr1Build(DB,o);
@@ -6327,7 +6490,7 @@ function gstr1Download(kind){
     else{XLSX.writeFile(gstr1Xlsx(d),base+'.xlsx');}
     showToast('GSTR-1 '+(kind==='json'?'JSON':'Excel')+' downloaded');
   };
-  if(!d.totals.invoices&&!d.totals.notes){showToast('No sale invoices or credit notes in this period');return;}
+  if(!d.totals.invoices&&!d.totals.notes){showToast('No sale invoices or credit/debit notes in this period');return;}
   if(d.errors)askConfirm(d.errors+' error(s) found in this return. The file will not be accepted by the GST portal until they are fixed. Download anyway?',go);else go();
 }
 function gstr1Go(t,id){
@@ -6385,7 +6548,7 @@ function gstr1SaveFile(name,blob){const a=document.createElement('a');a.href=URL
   window.alertAck=function(id){var k=alertMyKey();if(acked({id:id},k))return;DB.alertAcks=DB.alertAcks||[];DB.alertAcks.push({id:'ack_'+id+'_'+k,alertId:id,userKey:k,by:currentUserName||'',at:new Date().toISOString()});stopSpeak();saveDB();alertCheck(true);refreshModal();};
   function refreshModal(){if(document.getElementById('alertListWrap'))alertOpenList();if(document.getElementById('alertAdminList'))alertAdminListPaint();}
 
-  function ensureBell(){if(document.getElementById('alertBell'))return;var host=document.getElementById('approvalTopNotification');if(!host||!host.parentNode)return;var b=document.createElement('button');b.id='alertBell';b.type='button';b.title='My alerts';b.innerHTML='🔔<span class="cnt">0</span>';b.onclick=alertOpenList;host.parentNode.insertBefore(b,host);}
+  function ensureBell(){if(document.getElementById('alertBell'))return;var host=document.getElementById('approvalTopNotification');if(!host||!host.parentNode)return;var b=document.createElement('button');b.id='alertBell';b.type='button';b.title='My alerts';b.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9a6 6 0 0 1 12 0c0 6 2 7 2 7H4s2-1 2-7"/><path d="M10 20a2 2 0 0 0 4 0"/></svg><span class="cnt">0</span>';b.onclick=alertOpenList;host.parentNode.insertBefore(b,host);}
   function paintBell(n){ensureBell();var b=document.getElementById('alertBell');if(!b)return;b.classList.toggle('has',n>0);b.querySelector('.cnt').textContent=n;}
   function sysNotify(a){try{if(!('Notification' in window)||Notification.permission!=='granted'||!document.hidden)return;var o={body:a.message||'',tag:'alert-'+a.id,requireInteraction:true,vibrate:[300,150,300]};if(navigator.serviceWorker&&navigator.serviceWorker.getRegistration){navigator.serviceWorker.getRegistration().then(function(r){if(r)r.showNotification('🔔 '+a.title,o);else new Notification('🔔 '+a.title,o);}).catch(function(){new Notification('🔔 '+a.title,o);});}else new Notification('🔔 '+a.title,o);}catch(e){}}
   window.alertEnableSystem=function(){try{if(!('Notification' in window)){showToast('This browser does not support system notifications');return;}Notification.requestPermission().then(function(p){showToast(p==='granted'?'Phone/desktop notifications enabled':'Notifications not allowed');refreshModal();});}catch(e){}};
@@ -6409,8 +6572,16 @@ function gstr1SaveFile(name,blob){const a=document.createElement('a');a.href=URL
     showPop(show);
     var now=Date.now(),ring=false;
     p.forEach(function(a){if(fresh.indexOf(a.id)>=0){ring=true;lastRing[a.id]=now;sysNotify(a);}else if(+a.repeatMin>0&&!dismissed[a.id]&&now-(lastRing[a.id]||0)>=a.repeatMin*60000){ring=true;lastRing[a.id]=now;sysNotify(a);}});
+    purgeOldAlerts();
     if(ring&&show.length){if(unlocked)ringStart();var top=show[0];setTimeout(function(){if(unlocked)speak(top);},1800);}
   };
+  /* admin tidies alerts that everyone has finished and that are older than 90 days */
+  var _purgeAt=0;
+  function purgeOldAlerts(){if(currentUserRole!=='admin'||Date.now()-_purgeAt<3600000)return;_purgeAt=Date.now();
+    var cut=new Date(Date.now()-90*864e5).toISOString(),act=(DB.users||[]).filter(function(u){return u.enabled!==false;}).map(function(u){return u.id;});
+    var old=(DB.alerts||[]).filter(function(a){if(a.createdAt>=cut)return false;var to=a.to.indexOf('*')>=0?act:a.to;return to.every(function(k){return acked(a,k);});});
+    if(!old.length)return;var ids=old.map(function(a){return a.id;});
+    DB.alerts=DB.alerts.filter(function(a){return ids.indexOf(a.id)<0;});DB.alertAcks=(DB.alertAcks||[]).filter(function(x){return ids.indexOf(x.alertId)<0;});_binArm=false;saveDB();}
   setInterval(function(){try{alertCheck();}catch(e){}},15000);
   document.addEventListener('visibilitychange',function(){if(!document.hidden)try{alertCheck();}catch(e){}});
   var _orig=window.renderCurrentPageAfterCloudChange;if(typeof _orig==='function'){window.renderCurrentPageAfterCloudChange=function(){var r=_orig.apply(this,arguments);setTimeout(function(){try{alertCheck();}catch(e){}},600);return r;};}

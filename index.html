@@ -1539,7 +1539,7 @@ window.APP_ENV = Object.freeze({
 </script>
 <script>
 /* App version. Bumped by tools/release.py (also updates version.json and the ?v= cache stamps in index.html). */
-const APP_VERSION='1.0.101';
+const APP_VERSION='1.0.103';
 document.title='Shop Manager — v'+APP_VERSION;
 
 </script>
@@ -2742,6 +2742,7 @@ function renderTodos(){
         <div class="row" style="gap:8px;margin:0;">
           <div class="field" style="margin:0;"><input id="newPageName" placeholder="New page name…" style="width:160px;"></div>
           <button class="btn ghost sm" onclick="addTodoPage()">+ Add Page</button>
+          <button class="btn ghost sm" onclick="gtOpen()">🔄 Google Tasks</button>
         </div>
       </div>
       <div class="panel-body" id="todoPageBody"></div>
@@ -2751,7 +2752,7 @@ function renderTodos(){
 }
 function renderTodoPageTabs(){
   document.getElementById('todoPageTabs').innerHTML = DB.todoPages.map(p=>`
-    <button class="btn ${p.id===activeTodoPageId?'amber':'ghost'} sm" onclick="selectTodoPage('${p.id}')">${p.name}</button>
+    <button class="btn ${p.id===activeTodoPageId?'amber':'ghost'} sm" onclick="selectTodoPage('${p.id}')">${safeText(p.name)}</button>
   `).join('');
 }
 function selectTodoPage(id){
@@ -2772,6 +2773,7 @@ function addTodoPage(){
 function deleteTodoPage(id){
   if(DB.todoPages.length<=1){ showToast("Can't delete the only page"); return; }
   askConfirm('Delete this page and all its tasks?', ()=>{
+    const gp = DB.todoPages.find(p=>p.id===id); if(gp&&gp.gtListId)(DB.settings.gtDeleted=DB.settings.gtDeleted||[]).push({l:gp.gtListId});
     DB.todoPages = DB.todoPages.filter(p=>p.id!==id);
     activeTodoPageId = DB.todoPages[0].id;
     saveDB(); renderTodos();
@@ -2784,7 +2786,7 @@ function renderTodoPageBody(){
   const completed = page.tasks.filter(t=>t.done);
   document.getElementById('todoPageBody').innerHTML = `
     <div class="row" style="align-items:center;margin-bottom:6px;">
-      <h3 style="margin:0;flex:1;">${page.name}</h3>
+      <h3 style="margin:0;flex:1;">${safeText(page.name)}</h3>
       ${DB.todoPages.length>1?`<button class="btn danger sm" onclick="deleteTodoPage('${page.id}')">Delete Page</button>`:''}
     </div>
     <div class="line-item-row-p" style="grid-template-columns:2fr 1fr 100px;margin-top:10px;">
@@ -2810,7 +2812,7 @@ function todoRowHTML(t){
   const pClass = t.priority==='High'?'bad':(t.priority==='Low'?'ok':'warn');
   return `<div style="display:flex;align-items:center;gap:10px;padding:8px 4px;border-bottom:1px solid #F0EDE5;">
     <input type="checkbox" ${t.done?'checked':''} onchange="toggleTask('${t.id}')" style="width:16px;height:16px;flex:none;">
-    <span style="flex:1;font-size:13.5px;${t.done?'text-decoration:line-through;color:#a39d8c;':''}">${t.text}</span>
+    <span style="flex:1;font-size:13.5px;${t.done?'text-decoration:line-through;color:#a39d8c;':''}">${safeText(t.text)}</span>
     <span class="badge ${pClass}">${t.priority}</span>
     <button class="btn ghost sm" onclick="editTask('${t.id}')">Edit</button>
     <button class="btn danger sm" onclick="deleteTask('${t.id}')">Del</button>
@@ -2837,6 +2839,7 @@ function toggleTask(id){
 function deleteTask(id){
   askConfirm('Delete this task?', ()=>{
     const page = DB.todoPages.find(p=>p.id===activeTodoPageId);
+    const gone = page.tasks.find(x=>x.id===id); if(gone&&gone.gtId&&page.gtListId)(DB.settings.gtDeleted=DB.settings.gtDeleted||[]).push({l:page.gtListId,id:gone.gtId});
     page.tasks = page.tasks.filter(x=>x.id!==id);
     saveDB(); renderTodoPageBody();
   });
@@ -2861,6 +2864,73 @@ function saveTaskEdit(id){
   const t = page.tasks.find(x=>x.id===id);
   t.text = text; t.priority = document.getElementById('edit_task_priority').value;
   saveDB(); closeModal(); renderTodoPageBody();
+}
+
+/* ---------- Google Tasks two-way sync (v1.0.103) ----------
+   Needs the owner's own OAuth Client ID (Settings stored in DB.settings.googleClientId). Token stays in memory only. */
+let _gtToken='',_gtExp=0,_gtBusy=false;
+function gtLoadGis(){return new Promise((res,rej)=>{if(window.google&&google.accounts&&google.accounts.oauth2)return res();const sc=document.createElement('script');sc.src='https://accounts.google.com/gsi/client';sc.onload=()=>res();sc.onerror=()=>rej(new Error('Could not load Google sign-in (check internet)'));document.head.appendChild(sc);});}
+function gtGetToken(){return new Promise((res,rej)=>{
+  if(_gtToken&&Date.now()<_gtExp)return res(_gtToken);
+  const cidv=DB.settings.googleClientId;if(!cidv)return rej(new Error('Paste the Google Client ID first'));
+  gtLoadGis().then(()=>{google.accounts.oauth2.initTokenClient({client_id:cidv,scope:'https://www.googleapis.com/auth/tasks',
+    callback:r=>{if(r.error)return rej(new Error(r.error));_gtToken=r.access_token;_gtExp=Date.now()+((+r.expires_in||3600)-60)*1000;res(_gtToken);},
+    error_callback:e=>rej(new Error((e&&e.type)||'Sign-in cancelled'))}).requestAccessToken({prompt:''});}).catch(rej);});}
+async function gtApi(method,path,body){
+  const r=await fetch('https://tasks.googleapis.com/tasks/v1/'+path,{method,headers:{Authorization:'Bearer '+_gtToken,'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});
+  if(method==='DELETE'){if(!r.ok&&r.status!==404&&r.status!==410)throw new Error('Google '+r.status);return null;}
+  if(r.status===401)_gtToken='';
+  if(!r.ok)throw new Error('Google '+r.status+(r.status===403?' (is the Google Tasks API enabled?)':''));
+  return r.json();}
+const gtHash=t=>[t.text,t.done?1:0,t.priority].join('|');
+const gtBody=t=>({title:t.text,notes:'Priority: '+t.priority,status:t.done?'completed':'needsAction',completed:t.done?undefined:null});
+function gtFromRemote(x){const m=/Priority:\s*(High|Medium|Low)/i.exec(x.notes||'');return{text:x.title||'',done:x.status==='completed',priority:m?m[1][0].toUpperCase()+m[1].slice(1).toLowerCase():'Medium'};}
+async function gtSync(){
+  if(_gtBusy)return;_gtBusy=true;const st=document.getElementById('gtStatus'),say=m=>{if(st)st.textContent=m;};
+  try{
+    const cv=document.getElementById('gtClientId');if(cv){DB.settings.googleClientId=cv.value.trim();saveDB();}
+    say('Signing in to Google…');await gtGetToken();say('Syncing…');
+    const S=DB.settings;let pulled=0,pushed=0;
+    for(const d of (S.gtDeleted||[]))await gtApi('DELETE',d.id?`lists/${d.l}/tasks/${d.id}`:`users/@me/lists/${d.l}`);
+    S.gtDeleted=[];
+    const lists=((await gtApi('GET','users/@me/lists?maxResults=100')).items||[]);
+    for(const p of DB.todoPages){
+      let l=lists.find(x=>x.id===p.gtListId)||lists.find(x=>!x._p&&!DB.todoPages.some(q=>q.gtListId===x.id)&&x.title===p.name);
+      if(!l){l=await gtApi('POST','users/@me/lists',{title:p.name});lists.push(l);}
+      p.gtListId=l.id;l._p=p;}
+    for(const l of lists)if(!l._p){const p={id:cid(),name:l.title||'Google list',tasks:[],gtListId:l.id};DB.todoPages.push(p);l._p=p;}
+    for(const l of lists){
+      const p=l._p;let rem=[],tok='';
+      do{const r=await gtApi('GET',`lists/${l.id}/tasks?showCompleted=true&showHidden=true&maxResults=100`+(tok?'&pageToken='+encodeURIComponent(tok):''));rem=rem.concat(r.items||[]);tok=r.nextPageToken||'';}while(tok);
+      const byId=new Map(rem.map(x=>[x.id,x]));
+      p.tasks=p.tasks.filter(t=>!t.gtId||byId.has(t.gtId));
+      for(const t of p.tasks){const h=gtHash(t);
+        if(!t.gtId){t.gtId=(await gtApi('POST',`lists/${l.id}/tasks`,gtBody(t))).id;t.gtHash=h;pushed++;}
+        else if(h!==t.gtHash){await gtApi('PATCH',`lists/${l.id}/tasks/${t.gtId}`,gtBody(t));t.gtHash=h;pushed++;}
+        else{const rt=gtFromRemote(byId.get(t.gtId));if(gtHash(rt)!==h){Object.assign(t,rt);t.gtHash=gtHash(t);pulled++;}}}
+      for(const x of rem)if(x.title&&!p.tasks.some(t=>t.gtId===x.id)){const t={id:cid(),...gtFromRemote(x),gtId:x.id};t.gtHash=gtHash(t);p.tasks.push(t);pulled++;}
+    }
+    S.gtLastSync=new Date().toLocaleString('en-IN');saveDB();
+    say(`Done · ${pushed} sent to Google, ${pulled} received · ${S.gtLastSync}`);
+    if(document.getElementById('todoPageBody')){renderTodoPageTabs();renderTodoPageBody();}
+  }catch(e){say('Sync failed: '+(e.message||e));}
+  finally{_gtBusy=false;}
+}
+function gtOpen(){
+  gtLoadGis().catch(()=>{});
+  const S=DB.settings;
+  openModal('Google Tasks sync',`
+    <div class="field"><label>Google OAuth Client ID</label><input id="gtClientId" placeholder="123456-abc.apps.googleusercontent.com" value="${safeText(S.googleClientId||'')}"></div>
+    <div id="gtStatus" style="font-size:12.5px;margin:8px 0;color:#6b6554;">${S.gtLastSync?'Last sync: '+safeText(S.gtLastSync):'Not synced yet.'}</div>
+    <p style="font-size:12.5px;color:#6b6554;line-height:1.5;">Each To-Do page = one Google Tasks list. Two-way: new, edited, completed and deleted tasks go both ways when you press Sync now (local change wins if both changed). Priority is kept in the Google task notes.</p>
+    <details style="font-size:12.5px;line-height:1.6;"><summary><b>How to link (one-time, free)</b></summary><ol style="padding-left:18px;margin:6px 0;">
+      <li>Open <b>console.cloud.google.com</b> signed in with the Google account whose Tasks you want; create a project.</li>
+      <li>APIs &amp; Services → Library → search <b>Google Tasks API</b> → Enable.</li>
+      <li>OAuth consent screen (Google Auth Platform) → External → fill app name &amp; your email → under Audience add your own Gmail as a <b>Test user</b>.</li>
+      <li>Credentials → Create credentials → <b>OAuth client ID</b> → type <b>Web application</b> → Authorized JavaScript origins: <code>https://wahid0018.github.io</code> (no path, no trailing slash).</li>
+      <li>Copy the Client ID, paste it above, press <b>Connect &amp; Sync now</b>, allow Tasks access in the Google popup.</li>
+    </ol>Works from the installed GitHub Pages app only (not a local file). Sign-in lasts about an hour, then Sync asks again.</details>`,
+    `<button class="btn ghost" onclick="closeModal()">Close</button><button class="btn amber" onclick="gtSync()">Connect &amp; Sync now</button>`);
 }
 
 function renderCustomers(){
@@ -5362,7 +5432,7 @@ function warrantyRow(x,hide){
 function warrantyHead(){return '<thead><tr><th>Ref</th><th>Type / Item</th><th>Customer</th><th>Provider</th><th>Sent</th><th>Status</th><th>Charge</th><th>Paid</th><th>Due</th><th></th></tr></thead>';}
 function toggleWarrantyMore(btn,n){const t=btn.parentNode.previousElementSibling.querySelector('table');t.classList.toggle('sm-open');btn.textContent=t.classList.contains('sm-open')?'View less':'View more ('+n+' more)';}
 function renderWarrantyTable(){
-  const q=warrantySearchTerm.trim().toLowerCase(),all=[...DB.warrantyJobs].reverse().filter(x=>!q||JSON.stringify(x).toLowerCase().includes(q));
+  const q=warrantySearchTerm.trim().toLowerCase(),all=[...DB.warrantyJobs].sort((a,b)=>{const n=x=>{const m=String(x.ref||'').match(/(\d+)\D*$/);return m?+m[1]:0;};return n(b)-n(a)||String(b.sentDate||'').localeCompare(String(a.sentDate||''));}).filter(x=>!q||JSON.stringify(x).toLowerCase().includes(q));
   const rows=all.filter(x=>x.status!=='Received'),recv=all.filter(x=>x.status==='Received'),pendTotal=DB.warrantyJobs.filter(x=>x.status!=='Received').length,dueSum=DB.warrantyJobs.filter(x=>x.status!=='Received').reduce((n,x)=>n+Math.max(0,(+x.totalAmount||0)-(+x.paidAmount||0)),0);
   const main=`<div class="panel"><div class="panel-head wr-head"><h3>Warranty / Out Repair Register (${rows.length} / ${pendTotal})</h3><input aria-label="Search warranty and repair records" placeholder="Search any field…" value="${safeText(warrantySearchTerm)}" oninput="filterWarrantyRecords(this)" style="max-width:300px"><span class="badge warn">Pending ${pendTotal}</span><span class="badge ${dueSum>0?'bad':'ok'}">Due ₹${fmt(dueSum)}</span></div><div class="panel-body table-scroll" style="padding:0"><table class="wr-table">${warrantyHead()}<tbody>${rows.length?rows.map(x=>warrantyRow(x)).join(''):'<tr><td colspan="10" class="empty">No matching records.</td></tr>'}</tbody></table></div></div>`;
   if(currentUserRole!=='admin')return main; /* Received items are visible to Admin only */
@@ -5629,11 +5699,28 @@ function saveLoginPreferences(uname,pass){
       localStorage.removeItem('circuitdesk_saved_login_id');
       localStorage.removeItem('circuitdesk_saved_login_password');
     }
-    if(keep)localStorage.setItem('circuitdesk_keep_logged_in','1');
-    else localStorage.removeItem('circuitdesk_keep_logged_in');
+    if(!keep)clearKeepLoggedIn();
   }catch(e){console.warn('Could not save login preferences',e);}
 }
-function clearKeepLoggedIn(){try{localStorage.removeItem('circuitdesk_keep_logged_in');}catch(e){}}
+function clearKeepLoggedIn(){try{localStorage.removeItem('circuitdesk_keep_logged_in');localStorage.removeItem('circuitdesk_session');}catch(e){}}
+/* Keep me logged in: opt-in session stored on this device until manual logout; re-checked against the account list on restore */
+function askNotifyOnce(){try{if(!('Notification' in window)||Notification.permission!=='default')return;document.addEventListener('click',function(){try{Notification.requestPermission();}catch(e){}},{once:true});}catch(e){}}
+function persistSession(){try{if(window.tempAdminSession||!document.getElementById('keepLoggedIn')?.checked)return;localStorage.setItem('circuitdesk_keep_logged_in','1');localStorage.setItem('circuitdesk_session',JSON.stringify({role:currentUserRole,userId:currentUserId,name:currentUserName}));}catch(e){}}
+async function restoreKeptSession(){
+  try{
+    if(localStorage.getItem('circuitdesk_keep_logged_in')!=='1')return;
+    const ss=JSON.parse(localStorage.getItem('circuitdesk_session')||'null');if(!ss||!ss.role)return;
+    await initializeDatabaseGate();
+    const users=DB.users||[],acc=ss.userId?users.find(u=>u.id===ss.userId):users.find(u=>u.username==='admin');
+    if(ss.userId&&!acc)return;
+    if(acc&&acc.enabled===false){clearKeepLoggedIn();return;}
+    if(ss.role!=='admin'&&!window.databaseConnected)return;
+    if(ss.role==='admin')window.databaseConnected=true;
+    currentUserRole=ss.role==='admin'?'admin':'user';currentUserId=ss.userId||null;currentUserName=ss.name||'';
+    try{sessionStorage.setItem('circuitdesk_role',currentUserRole);if(currentUserId)sessionStorage.setItem('circuitdesk_user_id',currentUserId);}catch(e){}
+    startApp();
+  }catch(e){console.warn('Could not restore session',e);}
+}
 
 async function requestAdminBrowserPermissions(userGesture=false){
   const status=document.getElementById('adminPermissionStatus'),fileBtn=document.getElementById('adminFilePermissionButton');
@@ -5767,6 +5854,8 @@ function startApp(){
   document.getElementById('app').classList.add('authed');
   AppStore.set('session.role',currentUserRole);AppStore.set('session.userId',currentUserId);AppStore.set('session.userName',currentUserName);
   initAppTheme();
+  persistSession();
+  askNotifyOnce();
   applyRoleRestrictions();
   updateApprovalNotifications();
   updateBranding();
@@ -5782,6 +5871,7 @@ function startApp(){
   loadLoginPreferences();
   updateDatabaseGate(false,cloudConfigured()?'Connecting to Superbase…':'Superbase credentials not configured. Staff login requires Superbase. Use Admin Login / Configure Connection to repair or configure the database.');
   setTimeout(()=>initializeDatabaseGate(),0);
+  restoreKeptSession();
 })();
 
 </script>
@@ -6550,7 +6640,7 @@ function gstr1SaveFile(name,blob){const a=document.createElement('a');a.href=URL
 
   function ensureBell(){if(document.getElementById('alertBell'))return;var host=document.getElementById('approvalTopNotification');if(!host||!host.parentNode)return;var b=document.createElement('button');b.id='alertBell';b.type='button';b.title='My alerts';b.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9a6 6 0 0 1 12 0c0 6 2 7 2 7H4s2-1 2-7"/><path d="M10 20a2 2 0 0 0 4 0"/></svg><span class="cnt">0</span>';b.onclick=alertOpenList;host.parentNode.insertBefore(b,host);}
   function paintBell(n){ensureBell();var b=document.getElementById('alertBell');if(!b)return;b.classList.toggle('has',n>0);b.querySelector('.cnt').textContent=n;}
-  function sysNotify(a){try{if(!('Notification' in window)||Notification.permission!=='granted'||!document.hidden)return;var o={body:a.message||'',tag:'alert-'+a.id,requireInteraction:true,vibrate:[300,150,300]};if(navigator.serviceWorker&&navigator.serviceWorker.getRegistration){navigator.serviceWorker.getRegistration().then(function(r){if(r)r.showNotification('🔔 '+a.title,o);else new Notification('🔔 '+a.title,o);}).catch(function(){new Notification('🔔 '+a.title,o);});}else new Notification('🔔 '+a.title,o);}catch(e){}}
+  function sysNotify(a){try{if(!('Notification' in window)||Notification.permission!=='granted'||!(document.hidden||isMobileLayout()))return;var o={body:a.message||'',tag:'alert-'+a.id,requireInteraction:true,vibrate:[300,150,300]};if(navigator.serviceWorker&&navigator.serviceWorker.getRegistration){navigator.serviceWorker.getRegistration().then(function(r){if(r)r.showNotification('🔔 '+a.title,o);else new Notification('🔔 '+a.title,o);}).catch(function(){new Notification('🔔 '+a.title,o);});}else new Notification('🔔 '+a.title,o);}catch(e){}}
   window.alertEnableSystem=function(){try{if(!('Notification' in window)){showToast('This browser does not support system notifications');return;}Notification.requestPermission().then(function(p){showToast(p==='granted'?'Phone/desktop notifications enabled':'Notifications not allowed');refreshModal();});}catch(e){}};
 
   function showPop(list){var old=document.getElementById('alertPop');if(!list.length){if(old)old.remove();return;}

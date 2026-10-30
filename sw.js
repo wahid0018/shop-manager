@@ -9,3 +9,4 @@ self.addEventListener('fetch',e=>{
   if(r.method!=='GET'||u.origin!==location.origin||u.pathname.endsWith('version.json'))return;
   e.respondWith(fetch(r).then(res=>{const copy=res.clone();caches.open(CACHE).then(c=>c.put(r,copy)).catch(()=>{});return res;}).catch(()=>caches.match(r).then(m=>m||caches.match('index.html'))));
 });
+self.addEventListener('notificationclick',e=>{e.notification.close();e.waitUntil(self.clients.matchAll({type:'window',includeUncontrolled:true}).then(l=>l.length?l[0].focus():self.clients.openWindow('./')));});

@@ -1439,6 +1439,8 @@ html body .modal-bg{backdrop-filter:blur(2px);}
     <nav id="nav">
       <div class="navlabel adminonly">Overview</div>
       <button class="navbtn adminonly" data-view="dashboard"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg></span> <span class="label">Dashboard</span></button>
+      <div class="navlabel staffonly">Overview</div>
+      <button class="navbtn staffonly" data-view="staffdash"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg></span> <span class="label">My Dashboard</span></button>
       <div class="navlabel">Transactions</div>
       <button class="navbtn adminonly" data-view="purchase"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h3l2.5 11.5h11L21 7H6"/></svg></span> <span class="label">Purchase</span></button>
       <button class="navbtn" data-view="sale"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg></span> <span class="label">Sale (Invoice)</span></button>
@@ -1539,7 +1541,7 @@ window.APP_ENV = Object.freeze({
 </script>
 <script>
 /* App version. Bumped by tools/release.py (also updates version.json and the ?v= cache stamps in index.html). */
-const APP_VERSION='1.0.103';
+const APP_VERSION='1.0.105';
 document.title='Shop Manager — v'+APP_VERSION;
 
 </script>
@@ -2283,6 +2285,7 @@ const titles = {
   myapprovals:['My Approvals','Your requests sent to Admin'],
   uisettings:['UI Settings','Theme, dark mode and text size'],
   recyclebin:['Recycle Bin','Deleted records kept for restore (Admin only)'],
+  staffdash:['My Dashboard','Your tasks, alerts and recent documents'],
   settings:['Shop Settings','Business details used on printed documents'],
 };
 document.querySelectorAll('.navbtn').forEach(btn=>btn.addEventListener('click', ()=> route(btn.dataset.view)));
@@ -2291,7 +2294,7 @@ function route(view){
   document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active', b.dataset.view===view));
   document.getElementById('pageTitle').textContent = titles[view][0];
   document.getElementById('pageCrumb').textContent = titles[view][1];
-  const renderers = {alerts:renderAlertsAdmin,creditnote:renderCreditNote, gstr1:renderGstr1, recyclebin:renderRecycleBin, duesregister:renderDuesRegister, renewaltrack:renderRenewals, salary:renderSalary, myapprovals:renderMyApprovals, uisettings:renderUISettings, dashboard:renderDashboardPlus, approvals:renderApprovals, purchase:()=>renderPurchase(), paymentvoucher:()=>renderPaymentVoucher(), sale:()=>renderSale(), voucher:()=>renderVoucher(), voucherregister:renderVoucherRegister, service:()=>renderService(), quotation:()=>renderQuotation(), salesregister:renderSalesRegister, purchaseregister:renderPurchaseRegister, serviceregister:renderServiceRegister, warranty:renderWarranty, inventory:renderInventory, employees:renderEmployees, customers:renderCustomers, todos:renderTodos, settings:renderSettings};
+  const renderers = {alerts:renderAlertsAdmin,creditnote:renderCreditNote, gstr1:renderGstr1, recyclebin:renderRecycleBin, duesregister:renderDuesRegister, renewaltrack:renderRenewals, salary:renderSalary, myapprovals:renderMyApprovals, uisettings:renderUISettings, dashboard:renderDashboardPlus, approvals:renderApprovals, purchase:()=>renderPurchase(), paymentvoucher:()=>renderPaymentVoucher(), sale:()=>renderSale(), voucher:()=>renderVoucher(), voucherregister:renderVoucherRegister, service:()=>renderService(), quotation:()=>renderQuotation(), salesregister:renderSalesRegister, purchaseregister:renderPurchaseRegister, serviceregister:renderServiceRegister, warranty:renderWarranty, inventory:renderInventory, employees:renderEmployees, customers:renderCustomers, todos:renderTodos, settings:renderSettings, staffdash:renderStaffDash};
   currentPageKey=view;AppStore.set('ui.page',view);
   try{renderers[view]();}
   catch(e){AppErrors.report(e,'route:'+view);document.getElementById('view').innerHTML='<div class="panel"><div class="panel-body"><b>This screen could not be loaded.</b><br><span style="font-size:12px;color:var(--text-soft)">'+safeText(e.message||'Unknown error')+'</span><br><br><button class="btn amber sm" type="button" onclick="route(\''+view+'\')">Try again</button></div></div>';}
@@ -2789,13 +2792,14 @@ function renderTodoPageBody(){
       <h3 style="margin:0;flex:1;">${safeText(page.name)}</h3>
       ${DB.todoPages.length>1?`<button class="btn danger sm" onclick="deleteTodoPage('${page.id}')">Delete Page</button>`:''}
     </div>
-    <div class="line-item-row-p" style="grid-template-columns:2fr 1fr 100px;margin-top:10px;">
+    <div class="line-item-row-p" style="grid-template-columns:2fr 1fr 1fr 100px;margin-top:10px;">
       <div class="field" style="margin:0;"><label>Task</label><input id="newTaskText" placeholder="What needs to be done?" onkeydown="if(event.key==='Enter') addTask()"></div>
       <div class="field" style="margin:0;"><label>Priority</label>
         <select id="newTaskPriority">
           <option>Low</option><option selected>Medium</option><option>High</option>
         </select>
       </div>
+      <div class="field" style="margin:0;"><label>Assign to</label><select id="newTaskAssign">${assignOptions('')}</select></div>
       <div class="field" style="margin:0;align-self:end;"><button class="btn amber" style="width:100%;" onclick="addTask()">Add Task</button></div>
     </div>
     <div style="margin-top:16px;">
@@ -2813,6 +2817,7 @@ function todoRowHTML(t){
   return `<div style="display:flex;align-items:center;gap:10px;padding:8px 4px;border-bottom:1px solid #F0EDE5;">
     <input type="checkbox" ${t.done?'checked':''} onchange="toggleTask('${t.id}')" style="width:16px;height:16px;flex:none;">
     <span style="flex:1;font-size:13.5px;${t.done?'text-decoration:line-through;color:#a39d8c;':''}">${safeText(t.text)}</span>
+    ${t.assignedTo?`<span class="badge">→ ${safeText(assigneeName(t.assignedTo))}</span>`:''}
     <span class="badge ${pClass}">${t.priority}</span>
     <button class="btn ghost sm" onclick="editTask('${t.id}')">Edit</button>
     <button class="btn danger sm" onclick="deleteTask('${t.id}')">Del</button>
@@ -2827,7 +2832,7 @@ function addTask(){
   if(!text){ showToast('Enter a task first'); return; }
   const priority = document.getElementById('newTaskPriority').value;
   const page = DB.todoPages.find(p=>p.id===activeTodoPageId);
-  page.tasks.push({id:cid(), text, priority, done:false});
+  page.tasks.push({id:cid(), text, priority, done:false, assignedTo:document.getElementById('newTaskAssign').value||''});
   saveDB();
   renderTodoPageBody();
 }
@@ -2855,6 +2860,7 @@ function editTask(id){
       <option ${t.priority==='Medium'?'selected':''}>Medium</option>
       <option ${t.priority==='High'?'selected':''}>High</option>
     </select></div>
+    <div class="field"><label>Assign to</label><select id="edit_task_assign">${assignOptions(t.assignedTo)}</select></div>
   `, `<button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn amber" onclick="saveTaskEdit('${id}')">Save</button>`);
 }
 function saveTaskEdit(id){
@@ -2862,7 +2868,7 @@ function saveTaskEdit(id){
   if(!text){ showToast('Task text is required'); return; }
   const page = DB.todoPages.find(p=>p.id===activeTodoPageId);
   const t = page.tasks.find(x=>x.id===id);
-  t.text = text; t.priority = document.getElementById('edit_task_priority').value;
+  t.text = text; t.priority = document.getElementById('edit_task_priority').value; t.assignedTo = document.getElementById('edit_task_assign').value||'';
   saveDB(); closeModal(); renderTodoPageBody();
 }
 
@@ -2870,12 +2876,12 @@ function saveTaskEdit(id){
    Needs the owner's own OAuth Client ID (Settings stored in DB.settings.googleClientId). Token stays in memory only. */
 let _gtToken='',_gtExp=0,_gtBusy=false;
 function gtLoadGis(){return new Promise((res,rej)=>{if(window.google&&google.accounts&&google.accounts.oauth2)return res();const sc=document.createElement('script');sc.src='https://accounts.google.com/gsi/client';sc.onload=()=>res();sc.onerror=()=>rej(new Error('Could not load Google sign-in (check internet)'));document.head.appendChild(sc);});}
-function gtGetToken(){return new Promise((res,rej)=>{
+function gtGetToken(quiet){return new Promise((res,rej)=>{
   if(_gtToken&&Date.now()<_gtExp)return res(_gtToken);
   const cidv=DB.settings.googleClientId;if(!cidv)return rej(new Error('Paste the Google Client ID first'));
   gtLoadGis().then(()=>{google.accounts.oauth2.initTokenClient({client_id:cidv,scope:'https://www.googleapis.com/auth/tasks',
     callback:r=>{if(r.error)return rej(new Error(r.error));_gtToken=r.access_token;_gtExp=Date.now()+((+r.expires_in||3600)-60)*1000;res(_gtToken);},
-    error_callback:e=>rej(new Error((e&&e.type)||'Sign-in cancelled'))}).requestAccessToken({prompt:''});}).catch(rej);});}
+    error_callback:e=>rej(new Error((e&&e.type)||'Sign-in cancelled'))}).requestAccessToken({prompt:quiet?'none':''});}).catch(rej);});}
 async function gtApi(method,path,body){
   const r=await fetch('https://tasks.googleapis.com/tasks/v1/'+path,{method,headers:{Authorization:'Bearer '+_gtToken,'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});
   if(method==='DELETE'){if(!r.ok&&r.status!==404&&r.status!==410)throw new Error('Google '+r.status);return null;}
@@ -2885,12 +2891,14 @@ async function gtApi(method,path,body){
 const gtHash=t=>[t.text,t.done?1:0,t.priority].join('|');
 const gtBody=t=>({title:t.text,notes:'Priority: '+t.priority,status:t.done?'completed':'needsAction',completed:t.done?undefined:null});
 function gtFromRemote(x){const m=/Priority:\s*(High|Medium|Low)/i.exec(x.notes||'');return{text:x.title||'',done:x.status==='completed',priority:m?m[1][0].toUpperCase()+m[1].slice(1).toLowerCase():'Medium'};}
-async function gtSync(){
+async function gtSync(auto){
   if(_gtBusy)return;_gtBusy=true;const st=document.getElementById('gtStatus'),say=m=>{if(st)st.textContent=m;};
   try{
-    const cv=document.getElementById('gtClientId');if(cv){DB.settings.googleClientId=cv.value.trim();saveDB();}
-    say('Signing in to Google…');await gtGetToken();say('Syncing…');
-    const S=DB.settings;let pulled=0,pushed=0;
+    const cv=document.getElementById('gtClientId');if(cv&&auto!==true){DB.settings.googleClientId=cv.value.trim();saveDB();}
+    if(auto!==true)say('Signing in to Google…');
+    try{await gtGetToken(auto===true);}catch(e){if(auto===true){_gtNeedAuth=true;gtArmClick();return;}throw e;}
+    _gtNeedAuth=false;if(auto!==true)say('Syncing…');
+    const S=DB.settings;let pulled=0,pushed=0;const before=JSON.stringify([DB.todoPages,S.gtDeleted]);
     for(const d of (S.gtDeleted||[]))await gtApi('DELETE',d.id?`lists/${d.l}/tasks/${d.id}`:`users/@me/lists/${d.l}`);
     S.gtDeleted=[];
     const lists=((await gtApi('GET','users/@me/lists?maxResults=100')).items||[]);
@@ -2910,19 +2918,32 @@ async function gtSync(){
         else{const rt=gtFromRemote(byId.get(t.gtId));if(gtHash(rt)!==h){Object.assign(t,rt);t.gtHash=gtHash(t);pulled++;}}}
       for(const x of rem)if(x.title&&!p.tasks.some(t=>t.gtId===x.id)){const t={id:cid(),...gtFromRemote(x),gtId:x.id};t.gtHash=gtHash(t);p.tasks.push(t);pulled++;}
     }
-    S.gtLastSync=new Date().toLocaleString('en-IN');saveDB();
-    say(`Done · ${pushed} sent to Google, ${pulled} received · ${S.gtLastSync}`);
+    _gtLast=new Date().toLocaleString('en-IN');
+    if(JSON.stringify([DB.todoPages,S.gtDeleted])!==before){S.gtLastSync=_gtLast;_gtSaving=true;try{saveDB();}finally{_gtSaving=false;}}
+    try{localStorage.setItem('gt_auto','1');}catch(e){}
+    _gtSnap=JSON.stringify(DB.todoPages);
+    say(`Live sync on · ${pushed} sent, ${pulled} received · ${_gtLast}`);
     if(document.getElementById('todoPageBody')){renderTodoPageTabs();renderTodoPageBody();}
   }catch(e){say('Sync failed: '+(e.message||e));}
   finally{_gtBusy=false;}
 }
+/* Live sync: polls Google every 30s and pushes local to-do changes ~3s after they are saved.
+   shortcut: Google Tasks has no push for web apps (polling only); the sign-in token expires hourly, renewal is silent when the browser allows, otherwise on the next tap. */
+let _gtNeedAuth=false,_gtClick=false,_gtSnap='',_gtLast='',_gtSaving=false,_gtKickT=0;
+const gtAutoOn=()=>{try{return localStorage.getItem('gt_auto')==='1'&&!!DB.settings.googleClientId&&document.getElementById('app')?.classList.contains('authed');}catch(e){return false;}};
+function gtArmClick(){if(_gtClick)return;_gtClick=true;document.addEventListener('click',function(){_gtClick=false;if(gtAutoOn())gtSync(false).then(()=>{});},{once:true});if(typeof showToast==='function')showToast('Google Tasks: tap anywhere to renew the Google sign-in (live sync paused)');}
+function gtKick(){if(_gtSaving||_gtBusy||!gtAutoOn())return;try{if(JSON.stringify(DB.todoPages)===_gtSnap)return;}catch(e){return;}clearTimeout(_gtKickT);_gtKickT=setTimeout(()=>{if(gtAutoOn()&&!_gtNeedAuth)gtSync(true);},3000);}
+(function(){const _sd=saveDB;saveDB=function(){const r=_sd.apply(this,arguments);try{gtKick();}catch(e){}return r;};})();
+setInterval(()=>{if(gtAutoOn()&&!_gtNeedAuth&&!document.hidden)gtSync(true);},30000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&gtAutoOn()&&!_gtNeedAuth)gtSync(true);});
+setTimeout(()=>{if(gtAutoOn())gtSync(true);},4000);
 function gtOpen(){
   gtLoadGis().catch(()=>{});
   const S=DB.settings;
   openModal('Google Tasks sync',`
     <div class="field"><label>Google OAuth Client ID</label><input id="gtClientId" placeholder="123456-abc.apps.googleusercontent.com" value="${safeText(S.googleClientId||'')}"></div>
     <div id="gtStatus" style="font-size:12.5px;margin:8px 0;color:#6b6554;">${S.gtLastSync?'Last sync: '+safeText(S.gtLastSync):'Not synced yet.'}</div>
-    <p style="font-size:12.5px;color:#6b6554;line-height:1.5;">Each To-Do page = one Google Tasks list. Two-way: new, edited, completed and deleted tasks go both ways when you press Sync now (local change wins if both changed). Priority is kept in the Google task notes.</p>
+    <p style="font-size:12.5px;color:#6b6554;line-height:1.5;">Each To-Do page = one Google Tasks list. Two-way and live: after the first connect, local changes go to Google within seconds and Google changes arrive within ~30 seconds while the app is open (local change wins if both changed). Turn it on on one device only. Priority is kept in the Google task notes.</p>
     <details style="font-size:12.5px;line-height:1.6;"><summary><b>How to link (one-time, free)</b></summary><ol style="padding-left:18px;margin:6px 0;">
       <li>Open <b>console.cloud.google.com</b> signed in with the Google account whose Tasks you want; create a project.</li>
       <li>APIs &amp; Services → Library → search <b>Google Tasks API</b> → Enable.</li>
@@ -2931,6 +2952,25 @@ function gtOpen(){
       <li>Copy the Client ID, paste it above, press <b>Connect &amp; Sync now</b>, allow Tasks access in the Google popup.</li>
     </ol>Works from the installed GitHub Pages app only (not a local file). Sign-in lasts about an hour, then Sync asks again.</details>`,
     `<button class="btn ghost" onclick="closeModal()">Close</button><button class="btn amber" onclick="gtSync()">Connect &amp; Sync now</button>`);
+}
+
+/* ---------- Staff dashboard (v1.0.105) ---------- */
+function assignOptions(sel){return '<option value="">— nobody —</option>'+(DB.users||[]).filter(u=>u.enabled!==false&&u.role!=='admin').map(u=>`<option value="${safeText(u.id)}" ${u.id===sel?'selected':''}>${safeText(u.name||u.username)}</option>`).join('');}
+function assigneeName(id){const u=(DB.users||[]).find(x=>x.id===id);return u?(u.name||u.username):'(removed user)';}
+function staffTaskDone(pid,tid){const p=DB.todoPages.find(x=>x.id===pid),t=p&&p.tasks.find(x=>x.id===tid);if(!t)return;t.done=true;t.doneBy=currentUserName||'';saveDB();renderStaffDash();}
+function renderStaffDash(){
+  const me=currentUserId||'',k=window.alertMyKey?alertMyKey():'';
+  const tasks=[];DB.todoPages.forEach(p=>p.tasks.forEach(t=>{if(me&&t.assignedTo===me&&!t.done)tasks.push({p,t});}));
+  tasks.sort((a,b)=>({High:0,Medium:1,Low:2}[a.t.priority]||1)-({High:0,Medium:1,Low:2}[b.t.priority]||1));
+  const acked=a=>(DB.alertAcks||[]).some(x=>x.alertId===a.id&&x.userKey===k);
+  const alerts=(DB.alerts||[]).filter(a=>Array.isArray(a.to)&&(a.to.includes('*')||a.to.includes(k))).sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt))).slice(0,8);
+  const card=(title,body)=>`<div class="panel" style="margin-bottom:14px;"><div class="panel-head"><h3>${title}</h3></div><div class="panel-body" style="padding:${body.includes('<table')?'0':''};">${body}</div></div>`;
+  const tHtml=tasks.length?tasks.map(({p,t})=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 4px;border-bottom:1px solid #F0EDE5;"><span style="flex:1;font-size:13.5px;">${safeText(t.text)} <span style="color:#a39d8c;font-size:11.5px;">· ${safeText(p.name)}</span></span><span class="badge ${t.priority==='High'?'bad':(t.priority==='Low'?'ok':'warn')}">${t.priority}</span><button class="btn amber sm" onclick="staffTaskDone('${p.id}','${t.id}')">Mark done</button></div>`).join(''):'<div class="empty">No tasks assigned to you.</div>';
+  const aHtml=alerts.length?alerts.map(a=>`<div style="padding:8px 4px;border-bottom:1px solid #F0EDE5;"><b>${a.urgent?'🚨 ':''}${safeText(a.title)}</b> <span class="badge ${acked(a)?'ok':'bad'}">${acked(a)?'Done':'Pending'}</span>${acked(a)?'':` <button class="btn ghost sm" style="float:right;" onclick="alertAck('${a.id}');renderStaffDash()">Mark done</button>`}<div style="font-size:13px;white-space:pre-wrap;">${safeText(a.message)}</div><div style="font-size:11px;color:#a39d8c;">${safeText(a.from||'Admin')} · ${new Date(a.createdAt).toLocaleString()}</div></div>`).join(''):'<div class="empty">No alerts.</div>';
+  const docs=(rows,noF,fn,label,extra)=>rows.length?`<table><thead><tr><th>${label}</th><th>Date</th><th>Customer</th><th class="num">Total</th><th></th></tr></thead><tbody>${sortRecent(rows).slice(0,10).map(r=>`<tr><td class="mono">${safeText(r[noF])}</td><td>${safeText(r.date||'')}</td><td>${safeText(r.customer||'')}</td><td class="num mono">₹${fmt(r.grandTotal)}</td><td><button class="btn ghost sm" onclick="${fn}('${r.id}')">Print</button></td></tr>`).join('')}</tbody></table>`:'<div class="empty">Nothing yet.</div>';
+  document.getElementById('view').innerHTML=card('My Tasks ('+tasks.length+')',tHtml)+card('My Alerts',aHtml)
+    +((canStaffAccess('voucher')||canStaffAccess('voucherregister'))?card('Recent Challan',docs(DB.vouchers,'voucherNo','printVoucher','Challan')):'')
+    +((canStaffAccess('sale')||canStaffAccess('salesregister'))?card('Recent Sales Invoices',docs(DB.sales,'invoiceNo','printSaleInvoice','Invoice')):'');
 }
 
 function renderCustomers(){
@@ -5472,7 +5512,7 @@ function togglePaidBox(id, btn){
   btn.textContent = btn.textContent.replace(open?'▸':'▾', open?'▾':'▸');
 }
 const STAFF_CONFIGURABLE_VIEWS=['duesregister','renewaltrack','sale','voucher','service','quotation','customers','todos','purchaseregister','paymentvoucher','salesregister','creditnote','voucherregister','serviceregister','warranty','inventory','inventoryedit'];
-function canStaffAccess(view){if(view==='uisettings'||view==='myapprovals')return true;if(currentUserRole==='admin')return true;if(ADMIN_ONLY_VIEWS.includes(view)||!STAFF_CONFIGURABLE_VIEWS.includes(view))return false;const account=(DB.users||[]).find(u=>u.id===currentUserId);const allowed=account&&Array.isArray(account.allowedViews)?account.allowedViews:(STAFF_CONFIGURABLE_VIEWS.filter(v=>!(DB.settings.userHiddenExtra||[]).includes(v)));return allowed.includes(view);}
+function canStaffAccess(view){if(view==='uisettings'||view==='myapprovals'||view==='staffdash')return true;if(currentUserRole==='admin')return true;if(ADMIN_ONLY_VIEWS.includes(view)||!STAFF_CONFIGURABLE_VIEWS.includes(view))return false;const account=(DB.users||[]).find(u=>u.id===currentUserId);const allowed=account&&Array.isArray(account.allowedViews)?account.allowedViews:(STAFF_CONFIGURABLE_VIEWS.filter(v=>!(DB.settings.userHiddenExtra||[]).includes(v)));return allowed.includes(view);}
 function userFallbackView(){return STAFF_CONFIGURABLE_VIEWS.find(v=>canStaffAccess(v))||'todos';}
 function toggleUserVisibility(view, visible){
   if(!DB.settings.userHiddenExtra) DB.settings.userHiddenExtra = [];
@@ -5860,7 +5900,7 @@ function startApp(){
   updateApprovalNotifications();
   updateBranding();
   initSidebarState();
-  route(currentUserRole==='admin' ? 'dashboard' : userFallbackView());
+  route(currentUserRole==='admin' ? 'dashboard' : 'staffdash');
   startSharedUpdateMonitor();
   if(netCreds())netRefresh();
 }

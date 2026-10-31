@@ -1541,7 +1541,7 @@ window.APP_ENV = Object.freeze({
 </script>
 <script>
 /* App version. Bumped by tools/release.py (also updates version.json and the ?v= cache stamps in index.html). */
-const APP_VERSION='1.0.107';
+const APP_VERSION='1.0.108';
 document.title='Shop Manager — v'+APP_VERSION;
 
 </script>
@@ -2833,7 +2833,9 @@ function addTask(){
   if(!text){ showToast('Enter a task first'); return; }
   const priority = document.getElementById('newTaskPriority').value;
   const page = DB.todoPages.find(p=>p.id===activeTodoPageId);
-  page.tasks.push({id:cid(), text, priority, done:false, assignedTo:(document.getElementById('newTaskAssign')||{}).value||''});
+  const asg=(document.getElementById('newTaskAssign')||{}).value||'';
+  page.tasks.push({id:cid(), text, priority, done:false, assignedTo:asg});
+  assignAlert(asg,text,page.name);
   saveDB();
   renderTodoPageBody();
 }
@@ -2870,7 +2872,7 @@ function saveTaskEdit(id){
   if(!text){ showToast('Task text is required'); return; }
   const page = DB.todoPages.find(p=>p.id===activeTodoPageId);
   const t = page.tasks.find(x=>x.id===id);
-  t.text = text; t.priority = document.getElementById('edit_task_priority').value; const as=document.getElementById('edit_task_assign'); if(as&&as.value!==(t.assignedTo||'')){t.assignedTo=as.value||'';t.staffDone=false;t.doneBy='';}
+  t.text = text; t.priority = document.getElementById('edit_task_priority').value; const as=document.getElementById('edit_task_assign'); if(as&&as.value!==(t.assignedTo||'')){t.assignedTo=as.value||'';t.staffDone=false;t.doneBy='';assignAlert(t.assignedTo,text,page.name);}
   saveDB(); closeModal(); renderTodoPageBody();
 }
 
@@ -2958,6 +2960,7 @@ function gtOpen(){
 
 /* ---------- Staff dashboard (v1.0.105) ---------- */
 function assignOptions(sel){return '<option value="">— nobody —</option>'+(DB.users||[]).filter(u=>u.enabled!==false&&u.role!=='admin').map(u=>`<option value="${safeText(u.id)}" ${u.id===sel?'selected':''}>${safeText(u.name||u.username)}</option>`).join('');}
+function assignAlert(uid,text,page){if(!uid)return;(DB.alerts=DB.alerts||[]).push({id:cid(),title:'New task assigned',message:text+(page?'  ('+page+')':''),to:[uid],from:currentUserName||'Admin',createdAt:new Date().toISOString(),urgent:false,repeatMin:0});}
 function assigneeName(id){const u=(DB.users||[]).find(x=>x.id===id);return u?(u.name||u.username):'(removed user)';}
 function staffTaskDone(pid,tid){const p=DB.todoPages.find(x=>x.id===pid),t=p&&p.tasks.find(x=>x.id===tid);if(!t)return;t.staffDone=true;t.doneBy=currentUserName||'Staff';t.doneAt=new Date().toLocaleString('en-IN');saveDB();renderStaffDash();}
 function renderStaffDash(){

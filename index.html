@@ -1541,7 +1541,7 @@ window.APP_ENV = Object.freeze({
 </script>
 <script>
 /* App version. Bumped by tools/release.py (also updates version.json and the ?v= cache stamps in index.html). */
-const APP_VERSION='1.0.111';
+const APP_VERSION='1.0.112';
 document.title='Shop Manager — v'+APP_VERSION;
 
 </script>
@@ -2747,7 +2747,7 @@ function renderTodos(){
         <div class="row" style="gap:8px;margin:0;">
           <div class="field" style="margin:0;"><input id="newPageName" placeholder="New page name…" style="width:160px;"></div>
           <button class="btn ghost sm" onclick="addTodoPage()">+ Add Page</button>
-          <button class="btn ghost sm" onclick="gtOpen()">🔄 Google Tasks</button>
+          <button class="btn ghost sm" onclick="gtOpen()">🔄 Google Tasks${_gtNeedAuth?' (reconnect)':''}</button>
         </div>
       </div>
       <div class="panel-body" id="todoPageBody"></div>
@@ -2883,15 +2883,16 @@ function saveTaskEdit(id){
 let _gtToken='',_gtExp=0,_gtBusy=false;
 function gtLoadGis(){return new Promise((res,rej)=>{if(window.google&&google.accounts&&google.accounts.oauth2)return res();const sc=document.createElement('script');sc.src='https://accounts.google.com/gsi/client';sc.onload=()=>res();sc.onerror=()=>rej(new Error('Could not load Google sign-in (check internet)'));document.head.appendChild(sc);});}
 function gtGetToken(quiet){return new Promise((res,rej)=>{
+  if(!_gtToken){try{const o=JSON.parse(localStorage.getItem('gt_tok')||'null');if(o&&o.exp>Date.now()){_gtToken=o.t;_gtExp=o.exp;}}catch(e){}}
   if(_gtToken&&Date.now()<_gtExp)return res(_gtToken);
   const cidv=DB.settings.googleClientId;if(!cidv)return rej(new Error('Paste the Google Client ID first'));
   gtLoadGis().then(()=>{google.accounts.oauth2.initTokenClient({client_id:cidv,scope:'https://www.googleapis.com/auth/tasks',
-    callback:r=>{if(r.error)return rej(new Error(r.error));_gtToken=r.access_token;_gtExp=Date.now()+((+r.expires_in||3600)-60)*1000;res(_gtToken);},
+    callback:r=>{if(r.error)return rej(new Error(r.error));_gtToken=r.access_token;_gtExp=Date.now()+((+r.expires_in||3600)-60)*1000;try{localStorage.setItem('gt_tok',JSON.stringify({t:_gtToken,exp:_gtExp}));}catch(e){}res(_gtToken);},
     error_callback:e=>rej(new Error((e&&e.type)||'Sign-in cancelled'))}).requestAccessToken({prompt:quiet?'none':''});}).catch(rej);});}
 async function gtApi(method,path,body){
   const r=await fetch('https://tasks.googleapis.com/tasks/v1/'+path,{method,headers:{Authorization:'Bearer '+_gtToken,'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});
   if(method==='DELETE'){if(!r.ok&&r.status!==404&&r.status!==410)throw new Error('Google '+r.status);return null;}
-  if(r.status===401)_gtToken='';
+  if(r.status===401){_gtToken='';try{localStorage.removeItem('gt_tok');}catch(e){}}
   if(!r.ok)throw new Error('Google '+r.status+(r.status===403?' (is the Google Tasks API enabled?)':''));
   return r.json();}
 const gtHash=t=>[t.text,t.done?1:0,t.priority].join('|');
@@ -2902,7 +2903,7 @@ async function gtSync(auto){
   try{
     const cv=document.getElementById('gtClientId');if(cv&&!bg){DB.settings.googleClientId=cv.value.trim();saveDB();}
     if(!bg)say('Signing in to Google…');
-    try{await gtGetToken(auto===true);}catch(e){if(bg){_gtNeedAuth=true;gtArmClick();return;}throw e;}
+    try{await gtGetToken(auto===true);}catch(e){if(bg){_gtNeedAuth=true;if(auto==='kick')showToast('Google Tasks: sign-in needed — open 🔄 Google Tasks and press Connect');return;}throw e;}
     _gtNeedAuth=false;if(!bg)say('Syncing…');
     const S=DB.settings;let pulled=0,pushed=0;const before=JSON.stringify([DB.todoPages,S.gtDeleted]);
     for(const d of (S.gtDeleted||[]))await gtApi('DELETE',d.id?`lists/${d.l}/tasks/${d.id}`:`users/@me/lists/${d.l}`);
@@ -2937,8 +2938,8 @@ async function gtSync(auto){
    shortcut: Google Tasks has no push for web apps (polling only); the sign-in token expires hourly, renewal is silent when the browser allows, otherwise on the next tap. */
 let _gtDirty=false,_gtNeedAuth=false,_gtClick=false,_gtSnap='',_gtLast='',_gtSaving=false,_gtKickT=0;
 const gtAutoOn=()=>{try{return localStorage.getItem('gt_auto')==='1'&&!!DB.settings.googleClientId&&document.getElementById('app')?.classList.contains('authed');}catch(e){return false;}};
-function gtArmClick(){if(_gtClick)return;_gtClick=true;document.addEventListener('click',function(){_gtClick=false;if(gtAutoOn())gtSync(false).then(()=>{});},{once:true});if(typeof showToast==='function')showToast('Google Tasks: tap anywhere to renew the Google sign-in (live sync paused)');}
-function gtKick(){if(_gtSaving||!gtAutoOn())return;if(_gtBusy){_gtDirty=true;return;}try{if(JSON.stringify(DB.todoPages)===_gtSnap)return;}catch(e){return;}clearTimeout(_gtKickT);_gtKickT=setTimeout(()=>{if(gtAutoOn()&&!_gtNeedAuth)gtSync('kick');},250);}
+function gtArmClickUnused(){if(_gtClick)return;_gtClick=true;document.addEventListener('click',function(){_gtClick=false;if(gtAutoOn())gtSync(false).then(()=>{});},{once:true});if(typeof showToast==='function')showToast('Google Tasks: tap anywhere to renew the Google sign-in (live sync paused)');}
+function gtKick(){if(_gtSaving||!gtAutoOn())return;if(_gtBusy){_gtDirty=true;return;}try{if(JSON.stringify(DB.todoPages)===_gtSnap)return;}catch(e){return;}clearTimeout(_gtKickT);_gtKickT=setTimeout(()=>{if(gtAutoOn())gtSync('kick');},250);}
 (function(){const _sd=saveDB;saveDB=function(){const r=_sd.apply(this,arguments);try{gtKick();}catch(e){}return r;};})();
 setInterval(()=>{if(gtAutoOn()&&!_gtNeedAuth&&!document.hidden)gtSync(true);},30000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&gtAutoOn()&&!_gtNeedAuth)gtSync(true);});

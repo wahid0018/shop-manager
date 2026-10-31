@@ -1541,7 +1541,7 @@ window.APP_ENV = Object.freeze({
 </script>
 <script>
 /* App version. Bumped by tools/release.py (also updates version.json and the ?v= cache stamps in index.html). */
-const APP_VERSION='1.0.105';
+const APP_VERSION='1.0.107';
 document.title='Shop Manager — v'+APP_VERSION;
 
 </script>
@@ -2792,14 +2792,14 @@ function renderTodoPageBody(){
       <h3 style="margin:0;flex:1;">${safeText(page.name)}</h3>
       ${DB.todoPages.length>1?`<button class="btn danger sm" onclick="deleteTodoPage('${page.id}')">Delete Page</button>`:''}
     </div>
-    <div class="line-item-row-p" style="grid-template-columns:2fr 1fr 1fr 100px;margin-top:10px;">
+    <div class="line-item-row-p" style="grid-template-columns:${currentUserRole==='admin'?'2fr 1fr 1fr 100px':'2fr 1fr 100px'};margin-top:10px;">
       <div class="field" style="margin:0;"><label>Task</label><input id="newTaskText" placeholder="What needs to be done?" onkeydown="if(event.key==='Enter') addTask()"></div>
       <div class="field" style="margin:0;"><label>Priority</label>
         <select id="newTaskPriority">
           <option>Low</option><option selected>Medium</option><option>High</option>
         </select>
       </div>
-      <div class="field" style="margin:0;"><label>Assign to</label><select id="newTaskAssign">${assignOptions('')}</select></div>
+      ${currentUserRole==='admin'?`<div class="field" style="margin:0;"><label>Assign to</label><select id="newTaskAssign">${assignOptions('')}</select></div>`:''}
       <div class="field" style="margin:0;align-self:end;"><button class="btn amber" style="width:100%;" onclick="addTask()">Add Task</button></div>
     </div>
     <div style="margin-top:16px;">
@@ -2815,9 +2815,10 @@ function renderTodoPageBody(){
 function todoRowHTML(t){
   const pClass = t.priority==='High'?'bad':(t.priority==='Low'?'ok':'warn');
   return `<div style="display:flex;align-items:center;gap:10px;padding:8px 4px;border-bottom:1px solid #F0EDE5;">
-    <input type="checkbox" ${t.done?'checked':''} onchange="toggleTask('${t.id}')" style="width:16px;height:16px;flex:none;">
+    <input type="checkbox" ${t.done?'checked':''} ${currentUserRole!=='admin'&&t.assignedTo?'disabled title="Only Admin can complete assigned tasks"':''} onchange="toggleTask('${t.id}')" style="width:16px;height:16px;flex:none;">
     <span style="flex:1;font-size:13.5px;${t.done?'text-decoration:line-through;color:#a39d8c;':''}">${safeText(t.text)}</span>
     ${t.assignedTo?`<span class="badge">→ ${safeText(assigneeName(t.assignedTo))}</span>`:''}
+    ${t.staffDone&&!t.done?`<span class="badge ok">Done by ${safeText(t.doneBy||'')}${t.doneAt?' · '+safeText(t.doneAt):''}</span>`:''}
     <span class="badge ${pClass}">${t.priority}</span>
     <button class="btn ghost sm" onclick="editTask('${t.id}')">Edit</button>
     <button class="btn danger sm" onclick="deleteTask('${t.id}')">Del</button>
@@ -2832,14 +2833,15 @@ function addTask(){
   if(!text){ showToast('Enter a task first'); return; }
   const priority = document.getElementById('newTaskPriority').value;
   const page = DB.todoPages.find(p=>p.id===activeTodoPageId);
-  page.tasks.push({id:cid(), text, priority, done:false, assignedTo:document.getElementById('newTaskAssign').value||''});
+  page.tasks.push({id:cid(), text, priority, done:false, assignedTo:(document.getElementById('newTaskAssign')||{}).value||''});
   saveDB();
   renderTodoPageBody();
 }
 function toggleTask(id){
   const page = DB.todoPages.find(p=>p.id===activeTodoPageId);
   const t = page.tasks.find(x=>x.id===id);
-  if(t){ t.done = !t.done; saveDB(); renderTodoPageBody(); }
+  if(t&&currentUserRole!=='admin'&&t.assignedTo){ showToast('Only Admin can complete assigned tasks'); renderTodoPageBody(); return; }
+  if(t){ t.done = !t.done; if(!t.done){t.staffDone=false;} saveDB(); renderTodoPageBody(); }
 }
 function deleteTask(id){
   askConfirm('Delete this task?', ()=>{
@@ -2860,7 +2862,7 @@ function editTask(id){
       <option ${t.priority==='Medium'?'selected':''}>Medium</option>
       <option ${t.priority==='High'?'selected':''}>High</option>
     </select></div>
-    <div class="field"><label>Assign to</label><select id="edit_task_assign">${assignOptions(t.assignedTo)}</select></div>
+    ${currentUserRole==='admin'?`<div class="field"><label>Assign to</label><select id="edit_task_assign">${assignOptions(t.assignedTo)}</select></div>`:''}
   `, `<button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn amber" onclick="saveTaskEdit('${id}')">Save</button>`);
 }
 function saveTaskEdit(id){
@@ -2868,7 +2870,7 @@ function saveTaskEdit(id){
   if(!text){ showToast('Task text is required'); return; }
   const page = DB.todoPages.find(p=>p.id===activeTodoPageId);
   const t = page.tasks.find(x=>x.id===id);
-  t.text = text; t.priority = document.getElementById('edit_task_priority').value; t.assignedTo = document.getElementById('edit_task_assign').value||'';
+  t.text = text; t.priority = document.getElementById('edit_task_priority').value; const as=document.getElementById('edit_task_assign'); if(as&&as.value!==(t.assignedTo||'')){t.assignedTo=as.value||'';t.staffDone=false;t.doneBy='';}
   saveDB(); closeModal(); renderTodoPageBody();
 }
 
@@ -2892,12 +2894,12 @@ const gtHash=t=>[t.text,t.done?1:0,t.priority].join('|');
 const gtBody=t=>({title:t.text,notes:'Priority: '+t.priority,status:t.done?'completed':'needsAction',completed:t.done?undefined:null});
 function gtFromRemote(x){const m=/Priority:\s*(High|Medium|Low)/i.exec(x.notes||'');return{text:x.title||'',done:x.status==='completed',priority:m?m[1][0].toUpperCase()+m[1].slice(1).toLowerCase():'Medium'};}
 async function gtSync(auto){
-  if(_gtBusy)return;_gtBusy=true;const st=document.getElementById('gtStatus'),say=m=>{if(st)st.textContent=m;};
+  if(_gtBusy)return;_gtBusy=true;const bg=auto===true||auto==='kick',st=document.getElementById('gtStatus'),say=m=>{if(st)st.textContent=m;};
   try{
-    const cv=document.getElementById('gtClientId');if(cv&&auto!==true){DB.settings.googleClientId=cv.value.trim();saveDB();}
-    if(auto!==true)say('Signing in to Google…');
-    try{await gtGetToken(auto===true);}catch(e){if(auto===true){_gtNeedAuth=true;gtArmClick();return;}throw e;}
-    _gtNeedAuth=false;if(auto!==true)say('Syncing…');
+    const cv=document.getElementById('gtClientId');if(cv&&!bg){DB.settings.googleClientId=cv.value.trim();saveDB();}
+    if(!bg)say('Signing in to Google…');
+    try{await gtGetToken(auto===true);}catch(e){if(bg){_gtNeedAuth=true;gtArmClick();return;}throw e;}
+    _gtNeedAuth=false;if(!bg)say('Syncing…');
     const S=DB.settings;let pulled=0,pushed=0;const before=JSON.stringify([DB.todoPages,S.gtDeleted]);
     for(const d of (S.gtDeleted||[]))await gtApi('DELETE',d.id?`lists/${d.l}/tasks/${d.id}`:`users/@me/lists/${d.l}`);
     S.gtDeleted=[];
@@ -2925,14 +2927,14 @@ async function gtSync(auto){
     say(`Live sync on · ${pushed} sent, ${pulled} received · ${_gtLast}`);
     if(document.getElementById('todoPageBody')){renderTodoPageTabs();renderTodoPageBody();}
   }catch(e){say('Sync failed: '+(e.message||e));}
-  finally{_gtBusy=false;}
+  finally{_gtBusy=false;if(_gtDirty){_gtDirty=false;setTimeout(()=>{if(gtAutoOn()&&!_gtNeedAuth)gtSync('kick');},100);}}
 }
 /* Live sync: polls Google every 30s and pushes local to-do changes ~3s after they are saved.
    shortcut: Google Tasks has no push for web apps (polling only); the sign-in token expires hourly, renewal is silent when the browser allows, otherwise on the next tap. */
-let _gtNeedAuth=false,_gtClick=false,_gtSnap='',_gtLast='',_gtSaving=false,_gtKickT=0;
+let _gtDirty=false,_gtNeedAuth=false,_gtClick=false,_gtSnap='',_gtLast='',_gtSaving=false,_gtKickT=0;
 const gtAutoOn=()=>{try{return localStorage.getItem('gt_auto')==='1'&&!!DB.settings.googleClientId&&document.getElementById('app')?.classList.contains('authed');}catch(e){return false;}};
 function gtArmClick(){if(_gtClick)return;_gtClick=true;document.addEventListener('click',function(){_gtClick=false;if(gtAutoOn())gtSync(false).then(()=>{});},{once:true});if(typeof showToast==='function')showToast('Google Tasks: tap anywhere to renew the Google sign-in (live sync paused)');}
-function gtKick(){if(_gtSaving||_gtBusy||!gtAutoOn())return;try{if(JSON.stringify(DB.todoPages)===_gtSnap)return;}catch(e){return;}clearTimeout(_gtKickT);_gtKickT=setTimeout(()=>{if(gtAutoOn()&&!_gtNeedAuth)gtSync(true);},3000);}
+function gtKick(){if(_gtSaving||!gtAutoOn())return;if(_gtBusy){_gtDirty=true;return;}try{if(JSON.stringify(DB.todoPages)===_gtSnap)return;}catch(e){return;}clearTimeout(_gtKickT);_gtKickT=setTimeout(()=>{if(gtAutoOn()&&!_gtNeedAuth)gtSync('kick');},250);}
 (function(){const _sd=saveDB;saveDB=function(){const r=_sd.apply(this,arguments);try{gtKick();}catch(e){}return r;};})();
 setInterval(()=>{if(gtAutoOn()&&!_gtNeedAuth&&!document.hidden)gtSync(true);},30000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&gtAutoOn()&&!_gtNeedAuth)gtSync(true);});
@@ -2943,7 +2945,7 @@ function gtOpen(){
   openModal('Google Tasks sync',`
     <div class="field"><label>Google OAuth Client ID</label><input id="gtClientId" placeholder="123456-abc.apps.googleusercontent.com" value="${safeText(S.googleClientId||'')}"></div>
     <div id="gtStatus" style="font-size:12.5px;margin:8px 0;color:#6b6554;">${S.gtLastSync?'Last sync: '+safeText(S.gtLastSync):'Not synced yet.'}</div>
-    <p style="font-size:12.5px;color:#6b6554;line-height:1.5;">Each To-Do page = one Google Tasks list. Two-way and live: after the first connect, local changes go to Google within seconds and Google changes arrive within ~30 seconds while the app is open (local change wins if both changed). Turn it on on one device only. Priority is kept in the Google task notes.</p>
+    <p style="font-size:12.5px;color:#6b6554;line-height:1.5;">Each To-Do page = one Google Tasks list. Two-way and live: after the first connect, local changes go to Google instantly (no button) and Google changes arrive within ~30 seconds while the app is open (local change wins if both changed). Turn it on on one device only. Priority is kept in the Google task notes.</p>
     <details style="font-size:12.5px;line-height:1.6;"><summary><b>How to link (one-time, free)</b></summary><ol style="padding-left:18px;margin:6px 0;">
       <li>Open <b>console.cloud.google.com</b> signed in with the Google account whose Tasks you want; create a project.</li>
       <li>APIs &amp; Services → Library → search <b>Google Tasks API</b> → Enable.</li>
@@ -2957,7 +2959,7 @@ function gtOpen(){
 /* ---------- Staff dashboard (v1.0.105) ---------- */
 function assignOptions(sel){return '<option value="">— nobody —</option>'+(DB.users||[]).filter(u=>u.enabled!==false&&u.role!=='admin').map(u=>`<option value="${safeText(u.id)}" ${u.id===sel?'selected':''}>${safeText(u.name||u.username)}</option>`).join('');}
 function assigneeName(id){const u=(DB.users||[]).find(x=>x.id===id);return u?(u.name||u.username):'(removed user)';}
-function staffTaskDone(pid,tid){const p=DB.todoPages.find(x=>x.id===pid),t=p&&p.tasks.find(x=>x.id===tid);if(!t)return;t.done=true;t.doneBy=currentUserName||'';saveDB();renderStaffDash();}
+function staffTaskDone(pid,tid){const p=DB.todoPages.find(x=>x.id===pid),t=p&&p.tasks.find(x=>x.id===tid);if(!t)return;t.staffDone=true;t.doneBy=currentUserName||'Staff';t.doneAt=new Date().toLocaleString('en-IN');saveDB();renderStaffDash();}
 function renderStaffDash(){
   const me=currentUserId||'',k=window.alertMyKey?alertMyKey():'';
   const tasks=[];DB.todoPages.forEach(p=>p.tasks.forEach(t=>{if(me&&t.assignedTo===me&&!t.done)tasks.push({p,t});}));
@@ -2965,7 +2967,7 @@ function renderStaffDash(){
   const acked=a=>(DB.alertAcks||[]).some(x=>x.alertId===a.id&&x.userKey===k);
   const alerts=(DB.alerts||[]).filter(a=>Array.isArray(a.to)&&(a.to.includes('*')||a.to.includes(k))).sort((a,b)=>String(b.createdAt).localeCompare(String(a.createdAt))).slice(0,8);
   const card=(title,body)=>`<div class="panel" style="margin-bottom:14px;"><div class="panel-head"><h3>${title}</h3></div><div class="panel-body" style="padding:${body.includes('<table')?'0':''};">${body}</div></div>`;
-  const tHtml=tasks.length?tasks.map(({p,t})=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 4px;border-bottom:1px solid #F0EDE5;"><span style="flex:1;font-size:13.5px;">${safeText(t.text)} <span style="color:#a39d8c;font-size:11.5px;">· ${safeText(p.name)}</span></span><span class="badge ${t.priority==='High'?'bad':(t.priority==='Low'?'ok':'warn')}">${t.priority}</span><button class="btn amber sm" onclick="staffTaskDone('${p.id}','${t.id}')">Mark done</button></div>`).join(''):'<div class="empty">No tasks assigned to you.</div>';
+  const tHtml=tasks.length?tasks.map(({p,t})=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 4px;border-bottom:1px solid #F0EDE5;"><span style="flex:1;font-size:13.5px;">${safeText(t.text)} <span style="color:#a39d8c;font-size:11.5px;">· ${safeText(p.name)}</span></span><span class="badge ${t.priority==='High'?'bad':(t.priority==='Low'?'ok':'warn')}">${t.priority}</span>${t.staffDone?`<span class="badge ok">Done by ${safeText(t.doneBy||'')}</span>`:`<button class="btn amber sm" onclick="staffTaskDone('${p.id}','${t.id}')">Mark done</button>`}</div>`).join(''):'<div class="empty">No tasks assigned to you.</div>';
   const aHtml=alerts.length?alerts.map(a=>`<div style="padding:8px 4px;border-bottom:1px solid #F0EDE5;"><b>${a.urgent?'🚨 ':''}${safeText(a.title)}</b> <span class="badge ${acked(a)?'ok':'bad'}">${acked(a)?'Done':'Pending'}</span>${acked(a)?'':` <button class="btn ghost sm" style="float:right;" onclick="alertAck('${a.id}');renderStaffDash()">Mark done</button>`}<div style="font-size:13px;white-space:pre-wrap;">${safeText(a.message)}</div><div style="font-size:11px;color:#a39d8c;">${safeText(a.from||'Admin')} · ${new Date(a.createdAt).toLocaleString()}</div></div>`).join(''):'<div class="empty">No alerts.</div>';
   const docs=(rows,noF,fn,label,extra)=>rows.length?`<table><thead><tr><th>${label}</th><th>Date</th><th>Customer</th><th class="num">Total</th><th></th></tr></thead><tbody>${sortRecent(rows).slice(0,10).map(r=>`<tr><td class="mono">${safeText(r[noF])}</td><td>${safeText(r.date||'')}</td><td>${safeText(r.customer||'')}</td><td class="num mono">₹${fmt(r.grandTotal)}</td><td><button class="btn ghost sm" onclick="${fn}('${r.id}')">Print</button></td></tr>`).join('')}</tbody></table>`:'<div class="empty">Nothing yet.</div>';
   document.getElementById('view').innerHTML=card('My Tasks ('+tasks.length+')',tHtml)+card('My Alerts',aHtml)

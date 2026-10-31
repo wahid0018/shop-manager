@@ -1541,7 +1541,7 @@ window.APP_ENV = Object.freeze({
 </script>
 <script>
 /* App version. Bumped by tools/release.py (also updates version.json and the ?v= cache stamps in index.html). */
-const APP_VERSION='1.0.108';
+const APP_VERSION='1.0.111';
 document.title='Shop Manager — v'+APP_VERSION;
 
 </script>
@@ -1605,7 +1605,7 @@ const AppStore=(function(){
 <script>
 /* Global state containers and ID helpers */
 const DB_KEY=APP_ENV.STORAGE.DB_KEY,SUPERBASE_TABLE=APP_ENV.SUPABASE.TABLE,SUPERBASE_CREDENTIALS_KEY=APP_ENV.STORAGE.CREDENTIALS_KEY;
-const DB_ARRAYS=['products','employees','purchases','sales','services','quotations','customers','vouchers','paymentVouchers','creditNotes','todoPages','warrantyJobs','warrantyRequests','approvalRequests','repairProviders','users','renewals','salaryEntries','renewalClients','renewalEntries','recycleBin','alerts','alertAcks'];
+const DB_ARRAYS=['products','employees','purchases','sales','services','quotations','customers','vouchers','paymentVouchers','creditNotes','todoPages','warrantyJobs','warrantyRequests','approvalRequests','repairProviders','users','renewals','salaryEntries','renewalClients','renewalEntries','recycleBin','alerts','alertAcks','pushSubs'];
 const USER_CREDENTIALS={[APP_ENV.BOOTSTRAP_ADMIN.username]:APP_ENV.BOOTSTRAP_ADMIN.password};
 let DB,supabaseClient=null,supabaseChannel=null,cloudReady=false,cloudSessionConnected=false,cloudSyncInFlight=false,cloudSnapshot=null,cloudConfig={url:'',key:''},dbInitPromise=null,dbAttemptId=0,cloudAttemptDone=false,lastSavedDBSnapshot=null,lastLocalEditAt=0,localStorageAvailable=true,localRecoveryFileHandle=null,localRecoveryFileName='';
 function cid(){return 'id'+Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4)}
@@ -1633,7 +1633,7 @@ function seedDB(){return ensureManagedUsers({
   purchases:[],sales:[],services:[],salaryEntries:[],renewalClients:[],renewalEntries:[],quotations:[],customers:[],vouchers:[],paymentVouchers:[],users:[],todoPages:[{id:cid(),name:'General',tasks:[]}],warrantyJobs:[],warrantyRequests:[],approvalRequests:[],repairProviders:[],renewals:[]});}
 function normalizeDB(data){
   data=data&&typeof data==='object'?data:{};data.settings=data.settings&&typeof data.settings==='object'?data.settings:{};ensureManagedUsers(data);
-  ['customers','vouchers','paymentVouchers','creditNotes','warrantyJobs','warrantyRequests','approvalRequests','repairProviders','renewals','salaryEntries','renewalClients','renewalEntries','recycleBin','alerts','alertAcks'].forEach(k=>{if(!Array.isArray(data[k]))data[k]=[]});
+  ['customers','vouchers','paymentVouchers','creditNotes','warrantyJobs','warrantyRequests','approvalRequests','repairProviders','renewals','salaryEntries','renewalClients','renewalEntries','recycleBin','alerts','alertAcks','pushSubs'].forEach(k=>{if(!Array.isArray(data[k]))data[k]=[]});
   ['products','employees','purchases','sales','services','quotations','todoPages'].forEach(k=>{if(!Array.isArray(data[k]))data[k]=[]});
   const s=data.settings;
   if(!s.paymentVoucherPrefix)s.paymentVoucherPrefix='PV';if(!s.nextPaymentVoucherNo)s.nextPaymentVoucherNo=1;if(!Array.isArray(s.userHiddenExtra))s.userHiddenExtra=[];if(!s.voucherPrefix)s.voucherPrefix='SV';if(!s.nextVoucherNo)s.nextVoucherNo=1;
@@ -2337,8 +2337,8 @@ function runDashboard(){
   const serviceTotal = services.reduce((s,x)=>s+x.amount,0);
   const purchaseTotal = purchases.reduce((s,x)=>s+x.grandTotal,0);
   const stockValue = DB.products.reduce((s,p)=>s+p.stock*p.purchasePrice,0);
-  const lowStock = DB.products.filter(p=>p.stock<=p.reorderLevel && p.stock>=0);
-  const negativeStock = DB.products.filter(p=>p.stock<0);
+  const lowStock = DB.products.filter(p=>!p.disabled && p.stock<=p.reorderLevel && p.stock>=0);
+  const negativeStock = DB.products.filter(p=>!p.disabled && p.stock<0);
 
   const prodTally = {};
   sales.forEach(s=>s.lines.forEach(l=>{ prodTally[l.name]=(prodTally[l.name]||0)+l.qty; }));
@@ -2473,7 +2473,7 @@ function renderInventoryTable(){
       <tr>
         <td>${p.image?`<img src="${p.image}" style="width:34px;height:34px;object-fit:cover;border-radius:6px;display:block;cursor:pointer;" onclick="openImageLightbox('${p.image}','${(p.name||'').replace(/'/g,"\\'")}')">`:`<div style="width:34px;height:34px;border-radius:6px;background:#F0EDE5;"></div>`}</td>
         <td class="mono">${p.sku}</td><td>${p.brand||'—'}</td><td class="mono">${p.hsn||'—'}</td>
-        <td>${p.name}</td><td>${p.category}</td>
+        <td>${p.name}${p.disabled?' <span class="badge bad">Disabled</span>':''}</td><td>${p.category}</td>
         <td class="num mono">${p.gstPercent!=null?p.gstPercent:(DB.settings.gstPercent||18)}%</td>
         <td class="num mono">${fmt(p.purchasePrice)}</td><td class="num mono">${fmt(p.salePrice)}</td>
         <td class="num mono">${p.stock}</td><td>${stockBadge(p)}</td>
@@ -2563,6 +2563,7 @@ function openProductModal(id){
   productImageDraft = null;
   const urlVal = p.image && !p.image.startsWith('data:') ? p.image : '';
   openModal(id?'Edit Product':'Add Product', `
+<label style="display:flex;gap:6px;align-items:center;font-size:13px;margin-bottom:8px;"><input type="checkbox" id="f_disabled" ${p.disabled?'checked':''} style="width:auto;"> Disabled — hide from new invoices, vouchers and pickers (records are kept)</label>
     <div class="row"><div class="field"><label>SKU</label><input id="f_sku" value="${p.sku}"></div>
     <div class="field"><label>Brand</label><input id="f_brand" list="brandList" value="${p.brand||''}" placeholder="Type or pick a brand"></div>
     <div class="field"><label>HSN/SAC Code</label><input id="f_hsn" value="${p.hsn||''}" placeholder="e.g. 8471"></div></div>
@@ -2667,11 +2668,12 @@ function saveProduct(id){
     stock: parseInt(document.getElementById('f_stock').value)||0,
     reorderLevel: parseInt(document.getElementById('f_reorder').value)||0,
     uqc: document.getElementById('f_uqc').value||'NOS',
+    disabled: document.getElementById('f_disabled').checked,
     image,
   };
   if(currentUserRole!=='admin'){
     productImageDraft=null;
-    if(id){const cur=DB.products.find(x=>x.id===id)||{},ch={};Object.keys(data).forEach(k=>{if(k!=='purchasePrice'&&data[k]!==cur[k]&&!(cur[k]==null&&(data[k]===''||data[k]==='NOS')))ch[k]=data[k];});
+    if(id){const cur=DB.products.find(x=>x.id===id)||{},ch={};Object.keys(data).forEach(k=>{if(k!=='purchasePrice'&&data[k]!==cur[k]&&!(k==='disabled'&&!!data[k]===!!cur[k])&&!(cur[k]==null&&(data[k]===''||data[k]==='NOS')))ch[k]=data[k];});
       if(!Object.keys(ch).length){showToast('No changes to send');closeModal();return;}
       requestRegisterApproval('product',id,'update',ch);}
     else{DB.products.push({id:cid(),...data,purchasePrice:0});saveDB();showToast('Product added');}
@@ -2799,7 +2801,7 @@ function renderTodoPageBody(){
           <option>Low</option><option selected>Medium</option><option>High</option>
         </select>
       </div>
-      ${currentUserRole==='admin'?`<div class="field" style="margin:0;"><label>Assign to</label><select id="newTaskAssign">${assignOptions('')}</select></div>`:''}
+      ${currentUserRole==='admin'?`<div class="field" style="margin:0;"><label>Assign to</label><select id="newTaskAssign">${assignOptions('')}</select><label style="font-size:11.5px;margin-top:4px;display:flex;gap:5px;align-items:center;"><input type="checkbox" id="newTaskAlert" checked style="width:auto;"> Send as alert</label></div>`:''}
       <div class="field" style="margin:0;align-self:end;"><button class="btn amber" style="width:100%;" onclick="addTask()">Add Task</button></div>
     </div>
     <div style="margin-top:16px;">
@@ -2835,7 +2837,7 @@ function addTask(){
   const page = DB.todoPages.find(p=>p.id===activeTodoPageId);
   const asg=(document.getElementById('newTaskAssign')||{}).value||'';
   page.tasks.push({id:cid(), text, priority, done:false, assignedTo:asg});
-  assignAlert(asg,text,page.name);
+  if((document.getElementById('newTaskAlert')||{}).checked)assignAlert(asg,text,page.name);
   saveDB();
   renderTodoPageBody();
 }
@@ -2864,7 +2866,7 @@ function editTask(id){
       <option ${t.priority==='Medium'?'selected':''}>Medium</option>
       <option ${t.priority==='High'?'selected':''}>High</option>
     </select></div>
-    ${currentUserRole==='admin'?`<div class="field"><label>Assign to</label><select id="edit_task_assign">${assignOptions(t.assignedTo)}</select></div>`:''}
+    ${currentUserRole==='admin'?`<div class="field"><label>Assign to</label><select id="edit_task_assign">${assignOptions(t.assignedTo)}</select><label style="font-size:12px;margin-top:6px;display:flex;gap:6px;align-items:center;"><input type="checkbox" id="edit_task_alert" checked style="width:auto;"> Send as alert if assignee changed</label></div>`:''}
   `, `<button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn amber" onclick="saveTaskEdit('${id}')">Save</button>`);
 }
 function saveTaskEdit(id){
@@ -2872,7 +2874,7 @@ function saveTaskEdit(id){
   if(!text){ showToast('Task text is required'); return; }
   const page = DB.todoPages.find(p=>p.id===activeTodoPageId);
   const t = page.tasks.find(x=>x.id===id);
-  t.text = text; t.priority = document.getElementById('edit_task_priority').value; const as=document.getElementById('edit_task_assign'); if(as&&as.value!==(t.assignedTo||'')){t.assignedTo=as.value||'';t.staffDone=false;t.doneBy='';assignAlert(t.assignedTo,text,page.name);}
+  t.text = text; t.priority = document.getElementById('edit_task_priority').value; const as=document.getElementById('edit_task_assign'); if(as&&as.value!==(t.assignedTo||'')){t.assignedTo=as.value||'';t.staffDone=false;t.doneBy='';if((document.getElementById('edit_task_alert')||{}).checked)assignAlert(t.assignedTo,text,page.name);}
   saveDB(); closeModal(); renderTodoPageBody();
 }
 
@@ -3000,7 +3002,7 @@ function renderCustomersTable(){
   });
   document.getElementById('cust_tableWrap').innerHTML = `
     <table><thead><tr><th>Name</th><th>Phone</th><th>GSTIN</th><th>State</th><th>Party Ref</th><th>Address</th><th></th></tr></thead><tbody>
-    ${rows.length? rows.map(c=>`<tr><td>${c.name}</td><td class="mono">${c.phone||'—'}</td><td class="mono">${c.gstin||'—'}</td><td>${c.state?c.state+' - '+stateName(c.state):'—'}</td><td>${safeText(c.partyRef||'—')}</td><td>${c.address||'—'}</td>
+    ${rows.length? rows.map(c=>`<tr><td>${c.name}${c.disabled?' <span class="badge bad">Disabled</span>':''}</td><td class="mono">${c.phone||'—'}</td><td class="mono">${c.gstin||'—'}</td><td>${c.state?c.state+' - '+stateName(c.state):'—'}</td><td>${safeText(c.partyRef||'—')}</td><td>${c.address||'—'}</td>
       <td style="white-space:nowrap;"><button class="btn ghost sm" onclick="openCustomerModal('${c.id}')">Edit</button> <button class="btn danger sm" onclick="deleteCustomer('${c.id}')">Del</button></td></tr>`).join('') : '<tr><td colspan="7" class="empty">No customers yet.</td></tr>'}
     </tbody></table>`;
 }
@@ -3040,6 +3042,7 @@ async function fillGstinDetails(){
 function openCustomerModal(id){
   const c = id? DB.customers.find(x=>x.id===id) : {name:'',phone:'',gstin:'',address:'',state:'',partyRef:''};
   openModal(id?'Edit Customer':'Add Customer', `
+<label style="display:flex;gap:6px;align-items:center;font-size:13px;margin-bottom:8px;"><input type="checkbox" id="c_disabled" ${c.disabled?'checked':''} style="width:auto;"> Disabled — hide from new invoices, vouchers and pickers (records are kept)</label>
     <div class="field"><label>Customer / Business Name</label><input id="c_name" value="${c.name}"></div>
     <div class="row"><div class="field"><label>Phone</label><input id="c_phone" value="${c.phone||''}"></div>
     <div class="field"><label>GSTIN</label><div style="display:flex;gap:6px"><input id="c_gstin" value="${c.gstin||''}" placeholder="15-digit GSTIN (optional)" style="text-transform:uppercase" oninput="(function(i){var v=i.value.trim().toUpperCase(),st=document.getElementById('c_state');if(st&&!st.value&&v.length>=2&&stateName(v.slice(0,2)))st.value=v.slice(0,2);})(this)"><button type="button" class="btn ghost sm" id="c_gstfill" style="white-space:nowrap" onclick="fillGstinDetails()">Fill GSTIN Details</button></div></div></div>
@@ -3052,7 +3055,7 @@ function openCustomerModal(id){
 function saveCustomer(id){
   const name=document.getElementById('c_name').value.trim();
   if(!name){ showToast('Customer name is required'); return; }
-  const data={name, phone:document.getElementById('c_phone').value.trim(), gstin:document.getElementById('c_gstin').value.trim(), address:document.getElementById('c_address').value.trim(), state:document.getElementById('c_state').value, partyRef:document.getElementById('c_partyref').value.trim()};
+  const data={name, disabled:document.getElementById('c_disabled').checked, phone:document.getElementById('c_phone').value.trim(), gstin:document.getElementById('c_gstin').value.trim(), address:document.getElementById('c_address').value.trim(), state:document.getElementById('c_state').value, partyRef:document.getElementById('c_partyref').value.trim()};
   if(id&&currentUserRole!=='admin'){const cur=DB.customers.find(x=>x.id===id)||{},ch={};Object.keys(data).forEach(k=>{if(String(data[k]||'')!==String(cur[k]||''))ch[k]=data[k];});if(!Object.keys(ch).length){showToast('No changes to send');closeModal();return;}requestRegisterApproval('customer',id,'update',ch);closeModal();return;}
   if(id){ Object.assign(DB.customers.find(x=>x.id===id), data); showToast('Customer updated'); }
   else { DB.customers.push({id:cid(), ...data}); showToast('Customer added'); }
@@ -3066,8 +3069,9 @@ function deleteCustomer(id){
 }
 function customerMatches(q){
   q = (q||'').toLowerCase();
-  if(!q) return DB.customers.slice(0,8);
-  return DB.customers.filter(c=>[c.name,c.gstin,c.phone].filter(Boolean).some(v=>v.toLowerCase().includes(q))).slice(0,8);
+  const act=DB.customers.filter(c=>!c.disabled);
+  if(!q) return act.slice(0,8);
+  return act.filter(c=>[c.name,c.gstin,c.phone].filter(Boolean).some(v=>v.toLowerCase().includes(q))).slice(0,8);
 }
 function showCustomerSuggest(inputEl, kind){
   const box = document.getElementById('suggest-cust-'+kind);
@@ -3120,7 +3124,8 @@ function pickCustomer(kind, custId){
 /* ================= SEARCHABLE PRODUCT PICKER ================= */
 function productMatches(q){
   q = (q||'').toLowerCase();
-  const list = !q ? DB.products : DB.products.filter(p=>[p.name,p.brand,p.category,p.sku].filter(Boolean).some(v=>v.toLowerCase().includes(q)));
+  const act = DB.products.filter(p=>!p.disabled);
+  const list = !q ? act : act.filter(p=>[p.name,p.brand,p.category,p.sku].filter(Boolean).some(v=>v.toLowerCase().includes(q)));
   return list.slice(0,8);
 }
 function showProductSuggest(inputEl, kind, idx){
@@ -5749,7 +5754,28 @@ function saveLoginPreferences(uname,pass){
 }
 function clearKeepLoggedIn(){try{localStorage.removeItem('circuitdesk_keep_logged_in');localStorage.removeItem('circuitdesk_session');}catch(e){}}
 /* Keep me logged in: opt-in session stored on this device until manual logout; re-checked against the account list on restore */
-function askNotifyOnce(){try{if(!('Notification' in window)||Notification.permission!=='default')return;document.addEventListener('click',function(){try{Notification.requestPermission();}catch(e){}},{once:true});}catch(e){}}
+function askNotifyOnce(){try{if(!('Notification' in window))return;if(Notification.permission==='granted'){setTimeout(pushSubscribe,2500);return;}if(Notification.permission!=='default')return;document.addEventListener('click',function(){try{Promise.resolve(Notification.requestPermission()).then(p=>{if(p==='granted')pushSubscribe();});}catch(e){}},{once:true});}catch(e){}}
+/* Web Push: lets alerts reach this device even when the app is closed. Needs the Supabase sender in push-setup/ (see PUSH-SETUP.md). */
+const VAPID_PUBLIC='BOBTV1vqatgq_ZPmI4M03uUpsmZ-do1HyyvmQEzHRuSMkfHFPuPXDYVQ7shLkLBy1URyHiuVYjIQ447451svdjY';
+const pushB64=v=>{const p='='.repeat((4-v.length%4)%4),r=atob((v+p).replace(/-/g,'+').replace(/_/g,'/'));return Uint8Array.from(r,c=>c.charCodeAt(0));};
+const pushId=e=>{let h=5381;for(let i=0;i<e.length;i++)h=((h<<5)+h+e.charCodeAt(i))>>>0;return 'ps_'+h.toString(36)+e.length;};
+async function pushSubscribe(){
+  try{
+    if(!('PushManager' in window)||!navigator.serviceWorker||!('Notification' in window)||Notification.permission!=='granted')return;
+    const reg=await navigator.serviceWorker.getRegistration();if(!reg)return;
+    let sub=await reg.pushManager.getSubscription();
+    if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:pushB64(VAPID_PUBLIC)});
+    const j=sub.toJSON(),key=alertMyKey(),id=pushId(j.endpoint);DB.pushSubs=DB.pushSubs||[];
+    const cur=DB.pushSubs.find(x=>x.id===id);if(cur&&cur.userKey===key)return;
+    const row={id,userKey:key,endpoint:j.endpoint,keys:j.keys,user:currentUserName||'',at:new Date().toISOString()};
+    if(cur)Object.assign(cur,row);else DB.pushSubs.push(row);
+    saveDB();
+  }catch(e){console.warn('Push subscribe failed',e);}
+}
+async function pushUnsubscribeDevice(){
+  try{const reg=await navigator.serviceWorker.getRegistration(),sub=reg&&await reg.pushManager.getSubscription();if(!sub)return;
+    const id=pushId(sub.endpoint);if((DB.pushSubs||[]).some(x=>x.id===id)){DB.pushSubs=DB.pushSubs.filter(x=>x.id!==id);_binArm=false;saveDB();}}catch(e){}
+}
 function persistSession(){try{if(window.tempAdminSession||!document.getElementById('keepLoggedIn')?.checked)return;localStorage.setItem('circuitdesk_keep_logged_in','1');localStorage.setItem('circuitdesk_session',JSON.stringify({role:currentUserRole,userId:currentUserId,name:currentUserName}));}catch(e){}}
 async function restoreKeptSession(){
   try{
@@ -5855,6 +5881,7 @@ async function attemptLogin(){
   }catch(error){console.error('Login verification failed',error);errEl.textContent=error.message||'Could not verify account';errEl.style.display='block';}
 }
 function logoutUser(){
+  pushUnsubscribeDevice();
   clearKeepLoggedIn();
   sessionStorage.removeItem('circuitdesk_role');
   sessionStorage.removeItem('circuitdesk_user_id');
@@ -6686,7 +6713,7 @@ function gstr1SaveFile(name,blob){const a=document.createElement('a');a.href=URL
   function ensureBell(){if(document.getElementById('alertBell'))return;var host=document.getElementById('approvalTopNotification');if(!host||!host.parentNode)return;var b=document.createElement('button');b.id='alertBell';b.type='button';b.title='My alerts';b.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9a6 6 0 0 1 12 0c0 6 2 7 2 7H4s2-1 2-7"/><path d="M10 20a2 2 0 0 0 4 0"/></svg><span class="cnt">0</span>';b.onclick=alertOpenList;host.parentNode.insertBefore(b,host);}
   function paintBell(n){ensureBell();var b=document.getElementById('alertBell');if(!b)return;b.classList.toggle('has',n>0);b.querySelector('.cnt').textContent=n;}
   function sysNotify(a){try{if(!('Notification' in window)||Notification.permission!=='granted'||!(document.hidden||isMobileLayout()))return;var o={body:a.message||'',tag:'alert-'+a.id,requireInteraction:true,vibrate:[300,150,300]};if(navigator.serviceWorker&&navigator.serviceWorker.getRegistration){navigator.serviceWorker.getRegistration().then(function(r){if(r)r.showNotification('🔔 '+a.title,o);else new Notification('🔔 '+a.title,o);}).catch(function(){new Notification('🔔 '+a.title,o);});}else new Notification('🔔 '+a.title,o);}catch(e){}}
-  window.alertEnableSystem=function(){try{if(!('Notification' in window)){showToast('This browser does not support system notifications');return;}Notification.requestPermission().then(function(p){showToast(p==='granted'?'Phone/desktop notifications enabled':'Notifications not allowed');refreshModal();});}catch(e){}};
+  window.alertEnableSystem=function(){try{if(!('Notification' in window)){showToast('This browser does not support system notifications');return;}Notification.requestPermission().then(function(p){showToast(p==='granted'?'Phone/desktop notifications enabled':'Notifications not allowed');if(p==='granted')pushSubscribe();refreshModal();});}catch(e){}};
 
   function showPop(list){var old=document.getElementById('alertPop');if(!list.length){if(old)old.remove();return;}
     var a=list[0];if(!old){old=document.createElement('div');old.id='alertPop';document.body.appendChild(old);}

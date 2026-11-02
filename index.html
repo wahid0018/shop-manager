@@ -1542,7 +1542,7 @@ window.APP_ENV = Object.freeze({
 </script>
 <script>
 /* App version. Bumped by tools/release.py (also updates version.json and the ?v= cache stamps in index.html). */
-const APP_VERSION='1.0.115';
+const APP_VERSION='1.0.116';
 document.title='Shop Manager — v'+APP_VERSION;
 
 </script>
@@ -3621,6 +3621,11 @@ function renderPurchaseRegister(){
   renderPurchaseRegisterTable();
 }
 let purchaseRegPaidOpen = false;
+/* register totals (v1.0.116): sums of the rows currently shown */
+function regSums(rows,sale){const t={n:rows.length,total:0,paid:0,ded:0,due:0};rows.forEach(r=>{const g=+r.grandTotal||0,p=+r.paidAmount||0,d=sale?(+r.deduction||0):0;t.total+=g;t.paid+=p;t.ded+=d;t.due+=g-p-d;});return t;}
+function regSumBar(rows,sale,label){const t=regSums(rows,sale),c=(k,v,cls)=>`<span style="display:inline-block;margin:0 14px 4px 0;"><span style="font-size:11px;color:#6b6554;text-transform:uppercase;">${k}</span><br><b class="mono ${cls||''}">${v}</b></span>`;
+  return `<div style="padding:10px 16px;border-bottom:1px solid var(--line-light);background:rgba(0,0,0,.02);">${c(label,t.n)}${c('Total','₹'+fmt(t.total))}${c('Paid','₹'+fmt(t.paid))}${sale?c('Deduction','₹'+fmt(t.ded)):''}${c('Due','₹'+fmt(t.due),t.due>0.004?'bad':'')}</div>`;}
+function regFoot(rows,sale){if(!rows.length)return '';const t=regSums(rows,sale);return `<tfoot><tr style="font-weight:700;"><td colspan="${sale?6:5}">Total (${t.n})</td><td class="num mono">₹${fmt(t.total)}</td><td class="num mono">₹${fmt(t.paid)}</td>${sale?`<td class="num mono">₹${fmt(t.ded)}</td>`:''}<td class="num mono">₹${fmt(t.due)}</td><td colspan="${sale?2:2}"></td></tr></tfoot>`;}
 function renderPurchaseRegisterTable(){
   const search = (document.getElementById('pr_search').value||'').toLowerCase();
   const statusFilter = document.getElementById('pr_status').value,_dr=regDate('pr');
@@ -3647,13 +3652,13 @@ function renderPurchaseRegisterTable(){
   };
   const notPaid = rows.filter(p=>purchasePaymentStatus(p)!=='Paid');
   const paid = rows.filter(p=>purchasePaymentStatus(p)==='Paid');
-  document.getElementById('pr_tableWrap').innerHTML = `
+  document.getElementById('pr_tableWrap').innerHTML = regSumBar(rows,false,'Purchases')+`
     <table><thead>${headHtml}</thead><tbody>
     ${notPaid.length? notPaid.map(rowHtml).join('') : '<tr><td colspan="10" class="empty">No unpaid or partial purchases.</td></tr>'}
-    </tbody></table>
+    </tbody>${regFoot(notPaid,false)}</table>
     <div style="padding:12px 16px;border-top:1px solid var(--line-light);">
       <button class="btn ghost sm" onclick="purchaseRegPaidOpen=!purchaseRegPaidOpen; renderPurchaseRegisterTable();">${purchaseRegPaidOpen?'▾':'▸'} Paid Purchases (${paid.length})</button>
-      ${purchaseRegPaidOpen?`<div style="margin-top:10px;overflow-x:auto;"><table><thead>${headHtml}</thead><tbody>${paid.length?paid.map(rowHtml).join(''):'<tr><td colspan="10" class="empty">No paid purchases.</td></tr>'}</tbody></table></div>`:''}
+      ${purchaseRegPaidOpen?`<div style="margin-top:10px;overflow-x:auto;"><table><thead>${headHtml}</thead><tbody>${paid.length?paid.map(rowHtml).join(''):'<tr><td colspan="10" class="empty">No paid purchases.</td></tr>'}</tbody>${regFoot(paid,false)}</table></div>`:''}
     </div>`;
 }
 function updateRegisterField(entity,id,field,value,renderer){const r=registerRecords(entity).find(x=>x.id===id);if(!r)return;const n=Number(value);if(!Number.isFinite(n)||n<0){showToast('Enter a valid amount');renderer();return;}const total=+(entity==='service'?r.amount:r.grandTotal)||0,paid=field==='paidAmount'?n:(+r.paidAmount||0),deduction=field==='deduction'?n:(+r.deduction||0);if(paid+deduction>total+.004){showToast('Paid amount and deduction cannot exceed the total');renderer();return;}if(currentUserRole!=='admin'){requestRegisterApproval(entity,id,'update',{[field]:n});renderer();return;}r[field]=n;saveDB();showToast(field==='paidAmount'?'Payment updated':'Deduction updated');renderer();}
@@ -4761,13 +4766,13 @@ function renderSalesRegisterTable(){
   };
   const notPaid = rows.filter(s=>paymentStatus(s)!=='Paid');
   const paid = rows.filter(s=>paymentStatus(s)==='Paid');
-  document.getElementById('sr_tableWrap').innerHTML = `
+  document.getElementById('sr_tableWrap').innerHTML = regSumBar(rows,true,'Invoices')+`
     <table><thead>${headHtml}</thead><tbody>
     ${notPaid.length? notPaid.map(rowHtml).join('') : '<tr><td colspan="12" class="empty">No unpaid or partial invoices.</td></tr>'}
-    </tbody></table>
+    </tbody>${regFoot(notPaid,true)}</table>
     <div style="padding:12px 16px;border-top:1px solid var(--line-light);">
       <button class="btn ghost sm" onclick="salesRegPaidOpen=!salesRegPaidOpen; renderSalesRegisterTable();">${salesRegPaidOpen?'▾':'▸'} Paid Invoices (${paid.length})</button>
-      ${salesRegPaidOpen?`<div style="margin-top:10px;overflow-x:auto;"><table><thead>${headHtml}</thead><tbody>${paid.length?paid.map(rowHtml).join(''):'<tr><td colspan="12" class="empty">No paid invoices.</td></tr>'}</tbody></table></div>`:''}
+      ${salesRegPaidOpen?`<div style="margin-top:10px;overflow-x:auto;"><table><thead>${headHtml}</thead><tbody>${paid.length?paid.map(rowHtml).join(''):'<tr><td colspan="12" class="empty">No paid invoices.</td></tr>'}</tbody>${regFoot(paid,true)}</table></div>`:''}
     </div>`;
 }
 function exportSelectedSales(){

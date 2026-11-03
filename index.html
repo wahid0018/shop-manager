@@ -1388,37 +1388,37 @@ html body .modal-bg{backdrop-filter:blur(2px);}
 </style>
 
 <style id="daisy-skin">
-/* v1.0.117 daisyUI-style skin (free, MIT-licensed design language; no library or network needed).
+/* v1.0.121 calm professional skin (daisyUI-style structure; muted palette, small radii; no library or network needed).
    Applies only while Theme = "daisyUI" (light + dark). Other themes are untouched. Screen only, so printing is unchanged. */
 @media screen{
-html[data-theme="daisy"]{--b1:#ffffff;--b2:#f2f2f2;--b3:#e5e6e6;--bc:#1f2937;--p:#570df8;--pc:#ffffff;--n:#2b3440;--su:#36d399;--wa:#fbbd23;--er:#f87272;--in:#3abff8;--box:1rem;--fld:.5rem;
-  --ink:var(--bc);--panel:var(--n);--paper:var(--b2);--paper-dim:var(--b1);--line:var(--b3);--line-light:var(--b3);--text-soft:#6b7280;--amber:var(--p);--amber-dim:#4506cb;--teal:#1dcdbc;--red:var(--er);--theme-accent:var(--p);}
-html[data-theme="daisy"][data-dark-mode="1"]{--b1:#1d232a;--b2:#191e24;--b3:#2a323c;--bc:#d4d9e3;--p:#7c4dff;--n:#15191e;--text-soft:#9aa3b2;--line:#2a323c;--line-light:#2a323c;}
+html[data-theme="daisy"]{--b1:#ffffff;--b2:#f4f5f7;--b3:#e3e6ea;--bc:#2f3b4a;--p:#4a6fa5;--pc:#ffffff;--n:#34465c;--su:#5fae8a;--wa:#d9a441;--er:#c9605a;--in:#6a9bc3;--box:6px;--fld:4px;
+  --ink:var(--bc);--panel:var(--n);--paper:var(--b2);--paper-dim:var(--b1);--line:var(--b3);--line-light:var(--b3);--text-soft:#64707f;--amber:var(--p);--amber-dim:#3b5a87;--teal:#5fae8a;--red:var(--er);--theme-accent:var(--p);}
+html[data-theme="daisy"][data-dark-mode="1"]{--b1:#232a33;--b2:#1d232a;--b3:#313a46;--bc:#d3d9e0;--p:#6f93c7;--n:#171c22;--text-soft:#9aa5b3;--line:#313a46;--line-light:#313a46;}
 html[data-theme="daisy"] body{background:var(--b2)!important;color:var(--bc)!important;}
 html[data-theme="daisy"] body #main{background:var(--b2)!important;}
 html[data-theme="daisy"] body .login-brand-title,html[data-theme="daisy"] body .login-card h1,html[data-theme="daisy"] body .login-card h2{font-family:'Inter',sans-serif!important;font-weight:700;color:var(--bc)!important;}
 html[data-theme="daisy"] body h1,html[data-theme="daisy"] body h2,html[data-theme="daisy"] body h3,html[data-theme="daisy"] body .disp{font-family:'Inter',sans-serif;font-weight:700;letter-spacing:-.01em;color:var(--bc)!important;}
 /* card */
-html[data-theme="daisy"] body .panel,html[data-theme="daisy"] body .card{background:var(--b1)!important;color:var(--bc)!important;border:1px solid var(--b3)!important;border-radius:var(--box);box-shadow:0 1px 2px rgba(0,0,0,.05),0 1px 3px rgba(0,0,0,.04);overflow:hidden;}
+html[data-theme="daisy"] body .panel,html[data-theme="daisy"] body .card{background:var(--b1)!important;color:var(--bc)!important;border:1px solid var(--b3)!important;border-radius:var(--box);box-shadow:0 1px 2px rgba(30,45,65,.06);overflow:hidden;}
 html[data-theme="daisy"] body .panel-head{background:transparent!important;border-bottom:1px solid var(--b3)!important;}
 html[data-theme="daisy"] body .panel-head h3{font-size:15px;}
 /* buttons */
-html[data-theme="daisy"] body .btn{border-radius:var(--fld);font-weight:600;text-transform:none;letter-spacing:0;border:1px solid transparent;box-shadow:0 1px 1px rgba(0,0,0,.06);background:var(--n);color:#fff!important;}
-html[data-theme="daisy"] body .btn:hover{filter:brightness(1.12);}
+html[data-theme="daisy"] body .btn{border-radius:var(--fld);font-weight:600;text-transform:none;letter-spacing:0;border:1px solid transparent;box-shadow:none;background:var(--n);color:#fff!important;}
+html[data-theme="daisy"] body .btn:hover{filter:brightness(1.08);}
 html[data-theme="daisy"] body .btn.sm{padding:5px 11px;font-size:12.5px;min-height:30px;}
 html[data-theme="daisy"] body .btn.amber{background:var(--p)!important;color:var(--pc)!important;border-color:var(--p);}
 html[data-theme="daisy"] body .btn.ghost{background:var(--b1)!important;color:var(--bc)!important;border:1px solid var(--b3)!important;box-shadow:none;}
 html[data-theme="daisy"] body .btn.ghost:hover{background:var(--b2)!important;filter:none;border-color:color-mix(in srgb,var(--bc) 30%,transparent)!important;}
-html[data-theme="daisy"] body .btn.danger{background:var(--er)!important;color:#470000!important;border-color:var(--er);}
+html[data-theme="daisy"] body .btn.danger{background:var(--er)!important;color:#fff!important;border-color:var(--er);}
 html[data-theme="daisy"] body .btn:focus-visible{outline:2px solid var(--p);outline-offset:2px;}
 /* badge (soft) */
-html[data-theme="daisy"] body .badge:not(#invoiceSheet .badge){border-radius:9999px;padding:2px 10px;font-size:11.5px;font-weight:600;background:color-mix(in srgb,var(--bc) 10%,transparent);color:var(--bc);}
-html[data-theme="daisy"] body .badge.ok:not(#invoiceSheet .badge){background:color-mix(in srgb,var(--su) 22%,transparent);color:#0b7a4b;}
-html[data-theme="daisy"] body .badge.warn:not(#invoiceSheet .badge),html[data-theme="daisy"] body .badge.partial:not(#invoiceSheet .badge){background:color-mix(in srgb,var(--wa) 26%,transparent);color:#8a5a00;}
-html[data-theme="daisy"] body .badge.bad:not(#invoiceSheet .badge){background:color-mix(in srgb,var(--er) 22%,transparent);color:#b42323;}
-html[data-theme="daisy"][data-dark-mode="1"] body .badge.ok:not(#invoiceSheet .badge){color:#6ee7b7;}
-html[data-theme="daisy"][data-dark-mode="1"] body .badge.warn:not(#invoiceSheet .badge),html[data-theme="daisy"][data-dark-mode="1"] body .badge.partial:not(#invoiceSheet .badge){color:#fcd34d;}
-html[data-theme="daisy"][data-dark-mode="1"] body .badge.bad:not(#invoiceSheet .badge){color:#fca5a5;}
+html[data-theme="daisy"] body .badge:not(#invoiceSheet .badge){border-radius:4px;padding:2px 8px;font-size:11.5px;font-weight:600;background:color-mix(in srgb,var(--bc) 10%,transparent);color:var(--bc);}
+html[data-theme="daisy"] body .badge.ok:not(#invoiceSheet .badge){background:color-mix(in srgb,var(--su) 22%,transparent);color:#2f7d5b;}
+html[data-theme="daisy"] body .badge.warn:not(#invoiceSheet .badge),html[data-theme="daisy"] body .badge.partial:not(#invoiceSheet .badge){background:color-mix(in srgb,var(--wa) 26%,transparent);color:#7d5a14;}
+html[data-theme="daisy"] body .badge.bad:not(#invoiceSheet .badge){background:color-mix(in srgb,var(--er) 22%,transparent);color:#a8443f;}
+html[data-theme="daisy"][data-dark-mode="1"] body .badge.ok:not(#invoiceSheet .badge){color:#8fd1b3;}
+html[data-theme="daisy"][data-dark-mode="1"] body .badge.warn:not(#invoiceSheet .badge),html[data-theme="daisy"][data-dark-mode="1"] body .badge.partial:not(#invoiceSheet .badge){color:#e5c274;}
+html[data-theme="daisy"][data-dark-mode="1"] body .badge.bad:not(#invoiceSheet .badge){color:#e5a29d;}
 /* inputs */
 html[data-theme="daisy"] body input:not([type=checkbox]):not([type=radio]):not([type=file]):not([type=range]),html[data-theme="daisy"] body select,html[data-theme="daisy"] body textarea{background:var(--b1)!important;color:var(--bc)!important;border:1px solid color-mix(in srgb,var(--bc) 22%,transparent)!important;border-radius:var(--fld);}
 html[data-theme="daisy"] body input:focus,html[data-theme="daisy"] body select:focus,html[data-theme="daisy"] body textarea:focus{outline:2px solid color-mix(in srgb,var(--p) 55%,transparent);outline-offset:1px;border-color:var(--p)!important;}
@@ -1432,8 +1432,8 @@ html[data-theme="daisy"] body tbody tr:hover td:not(#invoiceSheet td){background
 html[data-theme="daisy"] body tfoot td{background:var(--b2)!important;font-weight:700;}
 html[data-theme="daisy"] body .empty{color:var(--text-soft)!important;}
 /* modal */
-html[data-theme="daisy"] body .modal-bg{background:rgba(15,20,30,.5);backdrop-filter:blur(2px);}
-html[data-theme="daisy"] body .modal{background:var(--b1)!important;color:var(--bc)!important;border:1px solid var(--b3)!important;border-radius:var(--box);box-shadow:0 25px 50px -12px rgba(0,0,0,.35);}
+html[data-theme="daisy"] body .modal-bg{background:rgba(25,35,50,.45);}
+html[data-theme="daisy"] body .modal{background:var(--b1)!important;color:var(--bc)!important;border:1px solid var(--b3)!important;border-radius:var(--box);box-shadow:0 12px 32px -8px rgba(20,30,45,.28);}
 html[data-theme="daisy"] body .modal-head{background:var(--b1)!important;color:var(--bc)!important;border-bottom:1px solid var(--b3)!important;}
 html[data-theme="daisy"] body .modal-foot{background:var(--b2)!important;border-top:1px solid var(--b3)!important;}
 /* navbar */
@@ -1447,17 +1447,30 @@ html[data-theme="daisy"] body #sidebar .brand .name{color:#fff!important;font-fa
 html[data-theme="daisy"] body #sidebar .navlabel{color:#9ca3af!important;font-weight:700;}
 html[data-theme="daisy"] body #sidebar .navbtn{color:#d1d5db!important;border-radius:var(--fld);font-weight:500;}
 html[data-theme="daisy"] body #sidebar .navbtn:hover{background:rgba(255,255,255,.08)!important;color:#fff!important;}
-html[data-theme="daisy"] body #sidebar .navbtn.active{background:var(--p)!important;color:#fff!important;font-weight:600;box-shadow:0 4px 12px -4px color-mix(in srgb,var(--p) 70%,transparent);}
+html[data-theme="daisy"] body #sidebar .navbtn.active{background:var(--p)!important;color:#fff!important;font-weight:600;box-shadow:none;}
 html[data-theme="daisy"] body #sidebar .navbtn.active .ic{background:transparent!important;color:#fff!important;opacity:1;}
 /* alert (toast) */
-html[data-theme="daisy"] body .toast{background:var(--n);color:#fff;border-radius:var(--box);border:1px solid rgba(255,255,255,.08);box-shadow:0 10px 30px -8px rgba(0,0,0,.4);}
+html[data-theme="daisy"] body .toast{background:var(--n);color:#fff;border-radius:var(--box);border:1px solid rgba(255,255,255,.08);box-shadow:0 6px 18px -6px rgba(0,0,0,.35);}
 /* hero (login) */
-html[data-theme="daisy"] body #loginScreen{background:linear-gradient(135deg,#2b3440 0%,#3b2a8f 70%,#570df8 130%)!important;}
-html[data-theme="daisy"] body .login-card{background:var(--b1)!important;color:var(--bc)!important;border-radius:1.25rem;box-shadow:0 25px 50px -12px rgba(0,0,0,.45);border:1px solid var(--b3);}
+html[data-theme="daisy"] body #loginScreen{background:linear-gradient(135deg,#2c3a4b 0%,#3a516d 100%)!important;}
+html[data-theme="daisy"] body .login-card{background:var(--b1)!important;color:var(--bc)!important;border-radius:8px;box-shadow:0 10px 30px -10px rgba(10,20,35,.45);border:1px solid var(--b3);}
 html[data-theme="daisy"] body .login-card label,html[data-theme="daisy"] body .login-card p{color:var(--bc)!important;}
 html[data-theme="daisy"] body .suggest-item:hover{background:color-mix(in srgb,var(--p) 12%,transparent);}
 html[data-theme="daisy"] ::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--bc) 25%,transparent);}
 html[data-theme="daisy"] body a{color:var(--p);}
+/* small, uniform corner radii (overrides older rounded rules) */
+html[data-theme="daisy"] body :is(.card,.panel){border-radius:6px!important;}
+html[data-theme="daisy"] body :is(input,select,textarea,.btn,.navbtn,.suggest-item,.theme-option,.collapse-toggle){border-radius:4px!important;}
+html[data-theme="daisy"] body :is(.modal,.login-card,.sov-card){border-radius:8px!important;}
+html[data-theme="daisy"] body :is(.toast,.alert,#alertPop .ap){border-radius:6px!important;}
+html[data-theme="daisy"] body .badge{border-radius:4px!important;}
+html[data-theme="daisy"] body #sidebar .brand .dot,html[data-theme="daisy"] body #sidebar .brand .mark>*:first-child{border-radius:4px!important;}
+html[data-theme="daisy"] #loginScreen .login-card{border-radius:8px!important;}
+html[data-theme="daisy"] #loginScreen :is(input,select,button,.btn,.login-mark,.login-logo,[class*="mark"],[class*="logo"]){border-radius:4px!important;}
+html[data-theme="daisy"] #sidebar :is(.navbtn,.logout-contrast,.btn,.collapse-toggle){border-radius:4px!important;}
+html[data-theme="daisy"] #loginScreen :is(#databaseGate,.login-card>div:first-child>div:first-child){border-radius:4px!important;}
+html[data-theme="daisy"] #dashboardOut :is(.stat,.card){border-radius:6px!important;}
+html[data-theme="daisy"] :is(.stat .foot,#dashboardOut .stat .foot,.approval-topbar,.bc-chip){border-radius:4px!important;}
 }
 </style>
 </head>
@@ -1615,7 +1628,7 @@ window.APP_ENV = Object.freeze({
 </script>
 <script>
 /* App version. Bumped by tools/release.py (also updates version.json and the ?v= cache stamps in index.html). */
-const APP_VERSION='1.0.119';
+const APP_VERSION='1.0.121';
 document.title='Shop Manager — v'+APP_VERSION;
 
 </script>
@@ -1815,11 +1828,16 @@ function hydrateFromCloudRows(rows){
    2) Every save is read back from the cloud and compared; until then the change is flagged "unsynced" and kept on this device.
    3) Unsynced records are merged back (never overwritten) when the cloud reconnects or data is refreshed. */
 const DIRTY_KEY='sm_unsynced_v1',BASE_KEY='sm_base_v1';
+let _rtMissed=false;const _rtSeen={};
 const smHash=str=>{let h=5381;str=String(str||'');for(let i=0;i<str.length;i++)h=((h<<5)+h+str.charCodeAt(i))>>>0;return h.toString(36)+str.length;};
 const smStable=o=>o&&typeof o==='object'?Array.isArray(o)?'['+o.map(smStable).join(',')+']':'{'+Object.keys(o).sort().map(k=>JSON.stringify(k)+':'+smStable(o[k])).join(',')+'}':JSON.stringify(o);
 function isDirty(){try{return !!localStorage.getItem(DIRTY_KEY);}catch(e){return false;}}
 function markDirty(on){try{if(on)localStorage.setItem(DIRTY_KEY,String(Date.now()));else localStorage.removeItem(DIRTY_KEY);}catch(e){}}
 function saveBase(map){try{const o={};map.forEach((v,k)=>{o[k]=smHash(v);});localStorage.setItem(BASE_KEY,JSON.stringify(o));}catch(e){}}
+function rtCatchUp(){ /* remote changes that arrived while a save was pending: fetch them once the save is confirmed, without disturbing typing */
+  setTimeout(()=>{const a=document.activeElement,busy=(a&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)&&a.closest('#view,.modal'))||[...document.querySelectorAll('.modal-bg')].some(m=>getComputedStyle(m).display!=='none'&&m.offsetParent!==null);
+    if(isDirty())return;if(busy){_rtMissed=true;setTimeout(()=>{if(_rtMissed&&!isDirty()){_rtMissed=false;rtCatchUp();}},4000);return;}pullCloudDataToLocal(true);},300);
+}
 async function fetchAllCloudRows(client){
   const PAGE=1000,sel=()=>client.from(SUPERBASE_TABLE).select('id,table_name,data,updated_at,deleted',{count:'exact'}).eq('deleted',false).order('id',{ascending:true});
   const first=await sel().range(0,PAGE-1);if(first.error)throw first.error;
@@ -1879,9 +1897,17 @@ function subscribeSuperbaseRealtime(){
   if(!supabaseClient||supabaseChannel)return;
   supabaseChannel=supabaseClient.channel('circuitdesk-live-data').on('postgres_changes',{event:'*',schema:'public',table:SUPERBASE_TABLE},payload=>{
     const r=payload.new||payload.old;if(!r)return;
+    /* v1.0.120: an incoming event must never overwrite a local change that is not confirmed yet (this is how a just-typed paid amount could be reverted by the echo of the previous save) */
+    if(cloudSyncInFlight||isDirty()){_rtMissed=true;return;}
     if(!cloudSnapshot)cloudSnapshot=cloudRecordMap(DB);const key=String(r.table_name)+':'+String(r.id);
-    if(!(payload.eventType==='DELETE'||r.deleted)&&cloudSnapshot.get(key)===JSON.stringify({id:String(r.id),table_name:r.table_name,data:r.data}))return;
-    if(payload.eventType==='DELETE'||r.deleted){applyCloudRecordToDB(r.table_name,r.id,null);cloudSnapshot.delete(key)}else{applyCloudRecordToDB(r.table_name,r.id,r.data);cloudSnapshot.set(key,JSON.stringify({id:String(r.id),table_name:r.table_name,data:r.data}))}
+    const gone=payload.eventType==='DELETE'||r.deleted;
+    if(!gone){
+      if(r.updated_at&&_rtSeen[key]&&Date.parse(r.updated_at)<_rtSeen[key])return; /* older than what this device already wrote/applied */
+      const cur=r.table_name==='settings'?DB.settings:(DB[r.table_name]||[]).find(x=>String(x.id)===String(r.id));
+      if(cur&&smStable(cur)===smStable(r.data)){cloudSnapshot.set(key,JSON.stringify({id:String(r.id),table_name:r.table_name,data:r.data}));return;}
+    }
+    if(r.updated_at)_rtSeen[key]=Date.parse(r.updated_at)||0;
+    if(gone){applyCloudRecordToDB(r.table_name,r.id,null);cloudSnapshot.delete(key)}else{applyCloudRecordToDB(r.table_name,r.id,r.data);cloudSnapshot.set(key,JSON.stringify({id:String(r.id),table_name:r.table_name,data:r.data}))}
     renderCurrentPageAfterCloudChange();updateApprovalNotifications();
   }).subscribe();
 }
@@ -1908,6 +1934,7 @@ async function _doSyncCloud(){
   const before=cloudSnapshot||new Map(),after=cloudRecordMap(DB),upserts=[],deletes=[];
   for(const [key,val] of after){if(before.get(key)!==val){const o=JSON.parse(val);upserts.push({id:o.id,table_name:o.table_name,data:o.data,deleted:false,updated_at:new Date().toISOString()})}}
   for(const key of before.keys())if(!after.has(key)){const [table,...rest]=key.split(':');deletes.push({id:rest.join(':'),table_name:table,data:{},deleted:true,updated_at:new Date().toISOString()})}
+  [...upserts,...deletes].forEach(u=>{_rtSeen[u.table_name+':'+u.id]=Date.parse(u.updated_at);});
   if(!upserts.length&&!deletes.length){if(lastLocalEditAt===t0)markDirty(false);return true;}
   cloudSyncInFlight=true;
   try{
@@ -1918,7 +1945,7 @@ async function _doSyncCloud(){
     for(let i=0;i<all.length;i+=100){const ids=all.slice(i,i+100).map(r=>r.id);const {data,error}=await supabaseClient.from(SUPERBASE_TABLE).select('id,deleted,data').in('id',ids);if(error)throw error;(data||[]).forEach(r=>got.set(String(r.id),r))}
     const bad=all.filter(r=>{const g=got.get(String(r.id));return !g||!!g.deleted!==!!r.deleted||(!r.deleted&&smStable(g.data)!==smStable(r.data))});
     if(bad.length)throw new Error(bad.length+' record(s) could not be verified on the cloud database');
-    cloudSnapshot=after;saveBase(after);if(lastLocalEditAt===t0)markDirty(false);cloudStatusText();setTopbarSyncStatus('Superbase synced · '+after.size+' records · confirmed '+new Date().toLocaleTimeString('en-IN'),true);
+    cloudSnapshot=after;saveBase(after);if(lastLocalEditAt===t0){markDirty(false);if(_rtMissed){_rtMissed=false;rtCatchUp();}}cloudStatusText();setTopbarSyncStatus('Superbase synced · '+after.size+' records · confirmed '+new Date().toLocaleTimeString('en-IN'),true);
     return true;
   }catch(e){console.error('Superbase sync failed',e);setTopbarSyncStatus('⚠ NOT SAVED to the cloud — kept on this device, retrying',false);showSyncFatal(e);return false}
   finally{cloudSyncInFlight=false}
@@ -5049,7 +5076,7 @@ function exportSelectedServices(){
 <script>
 /* Theme, dark mode and UI scale */
 /* ================= SETTINGS ================= */
-const THEME_OPTIONS=[{id:'daisy',name:'daisyUI',mode:'Light / Dark',swatches:['#f2f2f2','#2b3440','#570df8','#36d399']},{id:'classic',name:'Classic',mode:'Light',swatches:['#F6F4EF','#181B20','#F5A623','#3FB8A6']},{id:'midnight',name:'Midnight',mode:'Dark',swatches:['#0b0f14','#161b22','#58a6ff','#3fb950']},{id:'slate',name:'Slate',mode:'Dark / Light',swatches:['#edf1f5','#18212b','#7c9cff','#35b9a5']},{id:'forest',name:'Forest',mode:'Pastel / Dark',swatches:['#edf5ef','#10231d','#9bcf73','#45bfa5']},{id:'ocean',name:'Ocean',mode:'Pastel / Dark',swatches:['#edf8fb','#092331','#55c6d9','#4fc3a1']},{id:'rose',name:'Rose',mode:'Pastel / Dark',swatches:['#fff3f7','#2a1b24','#e79ab7','#62b9a6']},{id:'lavender',name:'Lavender',mode:'Pastel / Dark',swatches:['#f5f1fb','#211b2b','#b49cff','#63bea9']},{id:'sand',name:'Sand',mode:'Warm / Dark',swatches:['#faf5e9','#29231b','#dca85a','#62ad98']},{id:'mint',name:'Mint',mode:'Pastel / Dark',swatches:['#effaf6','#172622','#69c7a8','#55bca0']},{id:'graphite',name:'Graphite',mode:'Dark / Light',swatches:['#e8eaed','#17191c','#f0b44d','#43b7a4']},{id:'contrast',name:'High Contrast',mode:'Light',swatches:['#fff','#000','#0057ff','#007a5e']}];
+const THEME_OPTIONS=[{id:'daisy',name:'Professional',mode:'Light / Dark',swatches:['#f4f5f7','#34465c','#4a6fa5','#5fae8a']},{id:'classic',name:'Classic',mode:'Light',swatches:['#F6F4EF','#181B20','#F5A623','#3FB8A6']},{id:'midnight',name:'Midnight',mode:'Dark',swatches:['#0b0f14','#161b22','#58a6ff','#3fb950']},{id:'slate',name:'Slate',mode:'Dark / Light',swatches:['#edf1f5','#18212b','#7c9cff','#35b9a5']},{id:'forest',name:'Forest',mode:'Pastel / Dark',swatches:['#edf5ef','#10231d','#9bcf73','#45bfa5']},{id:'ocean',name:'Ocean',mode:'Pastel / Dark',swatches:['#edf8fb','#092331','#55c6d9','#4fc3a1']},{id:'rose',name:'Rose',mode:'Pastel / Dark',swatches:['#fff3f7','#2a1b24','#e79ab7','#62b9a6']},{id:'lavender',name:'Lavender',mode:'Pastel / Dark',swatches:['#f5f1fb','#211b2b','#b49cff','#63bea9']},{id:'sand',name:'Sand',mode:'Warm / Dark',swatches:['#faf5e9','#29231b','#dca85a','#62ad98']},{id:'mint',name:'Mint',mode:'Pastel / Dark',swatches:['#effaf6','#172622','#69c7a8','#55bca0']},{id:'graphite',name:'Graphite',mode:'Dark / Light',swatches:['#e8eaed','#17191c','#f0b44d','#43b7a4']},{id:'contrast',name:'High Contrast',mode:'Light',swatches:['#fff','#000','#0057ff','#007a5e']}];
 function themeStorageKey(){const u=currentUserId||sessionStorage.getItem('circuitdesk_user_id')||'admin';return 'shop_manager_theme_v1_'+String(u)}
 function getCurrentTheme(){return document.documentElement.getAttribute('data-theme')||localStorage.getItem(themeStorageKey())||DB.settings?.uiTheme||'daisy'}
 function darkModeStorageKey(){const u=currentUserId||sessionStorage.getItem('circuitdesk_user_id')||'admin';return 'shop_manager_dark_mode_v1_'+String(u)}

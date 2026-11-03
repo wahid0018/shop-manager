@@ -1387,6 +1387,79 @@ html body .modal-bg{backdrop-filter:blur(2px);}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;}}
 </style>
 
+<style id="daisy-skin">
+/* v1.0.117 daisyUI-style skin (free, MIT-licensed design language; no library or network needed).
+   Applies only while Theme = "daisyUI" (light + dark). Other themes are untouched. Screen only, so printing is unchanged. */
+@media screen{
+html[data-theme="daisy"]{--b1:#ffffff;--b2:#f2f2f2;--b3:#e5e6e6;--bc:#1f2937;--p:#570df8;--pc:#ffffff;--n:#2b3440;--su:#36d399;--wa:#fbbd23;--er:#f87272;--in:#3abff8;--box:1rem;--fld:.5rem;
+  --ink:var(--bc);--panel:var(--n);--paper:var(--b2);--paper-dim:var(--b1);--line:var(--b3);--line-light:var(--b3);--text-soft:#6b7280;--amber:var(--p);--amber-dim:#4506cb;--teal:#1dcdbc;--red:var(--er);--theme-accent:var(--p);}
+html[data-theme="daisy"][data-dark-mode="1"]{--b1:#1d232a;--b2:#191e24;--b3:#2a323c;--bc:#d4d9e3;--p:#7c4dff;--n:#15191e;--text-soft:#9aa3b2;--line:#2a323c;--line-light:#2a323c;}
+html[data-theme="daisy"] body{background:var(--b2)!important;color:var(--bc)!important;}
+html[data-theme="daisy"] body #main{background:var(--b2)!important;}
+html[data-theme="daisy"] body .login-brand-title,html[data-theme="daisy"] body .login-card h1,html[data-theme="daisy"] body .login-card h2{font-family:'Inter',sans-serif!important;font-weight:700;color:var(--bc)!important;}
+html[data-theme="daisy"] body h1,html[data-theme="daisy"] body h2,html[data-theme="daisy"] body h3,html[data-theme="daisy"] body .disp{font-family:'Inter',sans-serif;font-weight:700;letter-spacing:-.01em;color:var(--bc)!important;}
+/* card */
+html[data-theme="daisy"] body .panel,html[data-theme="daisy"] body .card{background:var(--b1)!important;color:var(--bc)!important;border:1px solid var(--b3)!important;border-radius:var(--box);box-shadow:0 1px 2px rgba(0,0,0,.05),0 1px 3px rgba(0,0,0,.04);overflow:hidden;}
+html[data-theme="daisy"] body .panel-head{background:transparent!important;border-bottom:1px solid var(--b3)!important;}
+html[data-theme="daisy"] body .panel-head h3{font-size:15px;}
+/* buttons */
+html[data-theme="daisy"] body .btn{border-radius:var(--fld);font-weight:600;text-transform:none;letter-spacing:0;border:1px solid transparent;box-shadow:0 1px 1px rgba(0,0,0,.06);background:var(--n);color:#fff!important;}
+html[data-theme="daisy"] body .btn:hover{filter:brightness(1.12);}
+html[data-theme="daisy"] body .btn.sm{padding:5px 11px;font-size:12.5px;min-height:30px;}
+html[data-theme="daisy"] body .btn.amber{background:var(--p)!important;color:var(--pc)!important;border-color:var(--p);}
+html[data-theme="daisy"] body .btn.ghost{background:var(--b1)!important;color:var(--bc)!important;border:1px solid var(--b3)!important;box-shadow:none;}
+html[data-theme="daisy"] body .btn.ghost:hover{background:var(--b2)!important;filter:none;border-color:color-mix(in srgb,var(--bc) 30%,transparent)!important;}
+html[data-theme="daisy"] body .btn.danger{background:var(--er)!important;color:#470000!important;border-color:var(--er);}
+html[data-theme="daisy"] body .btn:focus-visible{outline:2px solid var(--p);outline-offset:2px;}
+/* badge (soft) */
+html[data-theme="daisy"] body .badge:not(#invoiceSheet .badge){border-radius:9999px;padding:2px 10px;font-size:11.5px;font-weight:600;background:color-mix(in srgb,var(--bc) 10%,transparent);color:var(--bc);}
+html[data-theme="daisy"] body .badge.ok:not(#invoiceSheet .badge){background:color-mix(in srgb,var(--su) 22%,transparent);color:#0b7a4b;}
+html[data-theme="daisy"] body .badge.warn:not(#invoiceSheet .badge),html[data-theme="daisy"] body .badge.partial:not(#invoiceSheet .badge){background:color-mix(in srgb,var(--wa) 26%,transparent);color:#8a5a00;}
+html[data-theme="daisy"] body .badge.bad:not(#invoiceSheet .badge){background:color-mix(in srgb,var(--er) 22%,transparent);color:#b42323;}
+html[data-theme="daisy"][data-dark-mode="1"] body .badge.ok:not(#invoiceSheet .badge){color:#6ee7b7;}
+html[data-theme="daisy"][data-dark-mode="1"] body .badge.warn:not(#invoiceSheet .badge),html[data-theme="daisy"][data-dark-mode="1"] body .badge.partial:not(#invoiceSheet .badge){color:#fcd34d;}
+html[data-theme="daisy"][data-dark-mode="1"] body .badge.bad:not(#invoiceSheet .badge){color:#fca5a5;}
+/* inputs */
+html[data-theme="daisy"] body input:not([type=checkbox]):not([type=radio]):not([type=file]):not([type=range]),html[data-theme="daisy"] body select,html[data-theme="daisy"] body textarea{background:var(--b1)!important;color:var(--bc)!important;border:1px solid color-mix(in srgb,var(--bc) 22%,transparent)!important;border-radius:var(--fld);}
+html[data-theme="daisy"] body input:focus,html[data-theme="daisy"] body select:focus,html[data-theme="daisy"] body textarea:focus{outline:2px solid color-mix(in srgb,var(--p) 55%,transparent);outline-offset:1px;border-color:var(--p)!important;}
+html[data-theme="daisy"] body input[type=checkbox],html[data-theme="daisy"] body input[type=radio]{accent-color:var(--p);}
+html[data-theme="daisy"] body .field label,html[data-theme="daisy"] body label{color:var(--bc)!important;font-weight:600;}
+/* table */
+html[data-theme="daisy"] body table:not(#invoiceSheet table){border-collapse:separate;border-spacing:0;}
+html[data-theme="daisy"] body th:not(#invoiceSheet th){background:var(--b2)!important;color:var(--text-soft)!important;font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;font-weight:700;border-bottom:1px solid var(--b3)!important;}
+html[data-theme="daisy"] body td:not(#invoiceSheet td){color:var(--bc)!important;border-bottom:1px solid var(--b3)!important;}
+html[data-theme="daisy"] body tbody tr:hover td:not(#invoiceSheet td){background:color-mix(in srgb,var(--bc) 5%,transparent)!important;}
+html[data-theme="daisy"] body tfoot td{background:var(--b2)!important;font-weight:700;}
+html[data-theme="daisy"] body .empty{color:var(--text-soft)!important;}
+/* modal */
+html[data-theme="daisy"] body .modal-bg{background:rgba(15,20,30,.5);backdrop-filter:blur(2px);}
+html[data-theme="daisy"] body .modal{background:var(--b1)!important;color:var(--bc)!important;border:1px solid var(--b3)!important;border-radius:var(--box);box-shadow:0 25px 50px -12px rgba(0,0,0,.35);}
+html[data-theme="daisy"] body .modal-head{background:var(--b1)!important;color:var(--bc)!important;border-bottom:1px solid var(--b3)!important;}
+html[data-theme="daisy"] body .modal-foot{background:var(--b2)!important;border-top:1px solid var(--b3)!important;}
+/* navbar */
+html[data-theme="daisy"] body header.topbar{background:var(--b1)!important;color:var(--bc)!important;border-bottom:1px solid var(--b3)!important;box-shadow:0 1px 2px rgba(0,0,0,.04);}
+html[data-theme="daisy"] body .topbar h1{color:var(--bc)!important;font-weight:700;}
+html[data-theme="daisy"] body .topbar .crumb{color:var(--text-soft)!important;}
+/* menu (sidebar) */
+html[data-theme="daisy"] body #sidebar{background:var(--n)!important;color:#e5e7eb!important;border-right:1px solid rgba(255,255,255,.06)!important;}
+html[data-theme="daisy"] body #sidebar .brand{border-color:rgba(255,255,255,.08)!important;}
+html[data-theme="daisy"] body #sidebar .brand .name{color:#fff!important;font-family:'Inter',sans-serif;}
+html[data-theme="daisy"] body #sidebar .navlabel{color:#9ca3af!important;font-weight:700;}
+html[data-theme="daisy"] body #sidebar .navbtn{color:#d1d5db!important;border-radius:var(--fld);font-weight:500;}
+html[data-theme="daisy"] body #sidebar .navbtn:hover{background:rgba(255,255,255,.08)!important;color:#fff!important;}
+html[data-theme="daisy"] body #sidebar .navbtn.active{background:var(--p)!important;color:#fff!important;font-weight:600;box-shadow:0 4px 12px -4px color-mix(in srgb,var(--p) 70%,transparent);}
+html[data-theme="daisy"] body #sidebar .navbtn.active .ic{background:transparent!important;color:#fff!important;opacity:1;}
+/* alert (toast) */
+html[data-theme="daisy"] body .toast{background:var(--n);color:#fff;border-radius:var(--box);border:1px solid rgba(255,255,255,.08);box-shadow:0 10px 30px -8px rgba(0,0,0,.4);}
+/* hero (login) */
+html[data-theme="daisy"] body #loginScreen{background:linear-gradient(135deg,#2b3440 0%,#3b2a8f 70%,#570df8 130%)!important;}
+html[data-theme="daisy"] body .login-card{background:var(--b1)!important;color:var(--bc)!important;border-radius:1.25rem;box-shadow:0 25px 50px -12px rgba(0,0,0,.45);border:1px solid var(--b3);}
+html[data-theme="daisy"] body .login-card label,html[data-theme="daisy"] body .login-card p{color:var(--bc)!important;}
+html[data-theme="daisy"] body .suggest-item:hover{background:color-mix(in srgb,var(--p) 12%,transparent);}
+html[data-theme="daisy"] ::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--bc) 25%,transparent);}
+html[data-theme="daisy"] body a{color:var(--p);}
+}
+</style>
 </head>
 <body>
 <div id="loginScreen" style="position:fixed;inset:0;background:var(--ink);display:flex;align-items:center;justify-content:center;z-index:2000;">
@@ -1542,7 +1615,7 @@ window.APP_ENV = Object.freeze({
 </script>
 <script>
 /* App version. Bumped by tools/release.py (also updates version.json and the ?v= cache stamps in index.html). */
-const APP_VERSION='1.0.116';
+const APP_VERSION='1.0.119';
 document.title='Shop Manager — v'+APP_VERSION;
 
 </script>
@@ -1737,6 +1810,42 @@ function hydrateFromCloudRows(rows){
   (rows||[]).forEach(r=>{if(!r||r.deleted)return;if(r.table_name==='settings')next.settings=r.data||{};else if(DB_ARRAYS.includes(r.table_name))next[r.table_name].push(r.data)});
   return normalizeDB(next);
 }
+/* ---- v1.0.119 save safety ----
+   1) Cloud loads read EVERY page (Supabase returns max ~1000 rows per request) and refuse to continue if the count does not match.
+   2) Every save is read back from the cloud and compared; until then the change is flagged "unsynced" and kept on this device.
+   3) Unsynced records are merged back (never overwritten) when the cloud reconnects or data is refreshed. */
+const DIRTY_KEY='sm_unsynced_v1',BASE_KEY='sm_base_v1';
+const smHash=str=>{let h=5381;str=String(str||'');for(let i=0;i<str.length;i++)h=((h<<5)+h+str.charCodeAt(i))>>>0;return h.toString(36)+str.length;};
+const smStable=o=>o&&typeof o==='object'?Array.isArray(o)?'['+o.map(smStable).join(',')+']':'{'+Object.keys(o).sort().map(k=>JSON.stringify(k)+':'+smStable(o[k])).join(',')+'}':JSON.stringify(o);
+function isDirty(){try{return !!localStorage.getItem(DIRTY_KEY);}catch(e){return false;}}
+function markDirty(on){try{if(on)localStorage.setItem(DIRTY_KEY,String(Date.now()));else localStorage.removeItem(DIRTY_KEY);}catch(e){}}
+function saveBase(map){try{const o={};map.forEach((v,k)=>{o[k]=smHash(v);});localStorage.setItem(BASE_KEY,JSON.stringify(o));}catch(e){}}
+async function fetchAllCloudRows(client){
+  const PAGE=1000,sel=()=>client.from(SUPERBASE_TABLE).select('id,table_name,data,updated_at,deleted',{count:'exact'}).eq('deleted',false).order('id',{ascending:true});
+  const first=await sel().range(0,PAGE-1);if(first.error)throw first.error;
+  let rows=(first.data||[]).slice();const total=typeof first.count==='number'?first.count:rows.length;
+  let guard=0;
+  while(rows.length<total&&guard++<200){
+    const r=await sel().range(rows.length,rows.length+PAGE-1);if(r.error)throw r.error;
+    if(!r.data||!r.data.length)break;rows=rows.concat(r.data);
+  }
+  if(rows.length<total)throw new Error('Cloud data incomplete: loaded '+rows.length+' of '+total+' records');
+  return rows;
+}
+function mergeUnsynced(cloudDB,localDB){
+  let base={};try{base=JSON.parse(localStorage.getItem(BASE_KEY)||'{}');}catch(e){}
+  const hasBase=Object.keys(base).length>0,lm=cloudRecordMap(localDB);let kept=0;
+  DB_ARRAYS.forEach(t=>{
+    const cArr=cloudDB[t]||(cloudDB[t]=[]),cIdx=new Map(cArr.map((r,i)=>[String(r&&r.id),i])),lArr=localDB[t]||[],lIds=new Set(lArr.map(r=>String(r&&r.id)));
+    lArr.forEach(r=>{if(!r||r.id==null)return;const k=t+':'+r.id,i=cIdx.get(String(r.id));
+      if(i===undefined){if(!(k in base)){cArr.push(r);kept++;}}            /* created on this device, never reached the cloud */
+      else if(hasBase&&base[k]!==smHash(lm.get(k))){cArr[i]=r;kept++;}}); /* edited on this device since the last confirmed save */
+    if(hasBase)for(let j=cArr.length-1;j>=0;j--){const id=String(cArr[j]&&cArr[j].id);if(!lIds.has(id)&&((t+':'+id) in base)){cArr.splice(j,1);kept++;}} /* deleted on this device */
+  });
+  const cs=cloudDB.settings=cloudDB.settings||{},ls=localDB.settings||{};
+  Object.keys(ls).forEach(k=>{if(/^next.*No$/.test(k)&&(+ls[k]||0)>(+cs[k]||0))cs[k]=ls[k];}); /* numbering never goes backwards */
+  return {db:cloudDB,kept};
+}
 async function initSuperbaseCloud(showErrors=false,attemptId=0){
   const c=getSuperbaseConfig();cloudConfig=c;cloudReady=false;cloudStatusText();
   if(!c.url||!c.key||!window.supabase?.createClient)return false;
@@ -1746,15 +1855,16 @@ async function initSuperbaseCloud(showErrors=false,attemptId=0){
     return false;
   }
   try{
-    const client=window.supabase.createClient(c.url,c.key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true},db:{timeout:4500}});
+    const client=window.supabase.createClient(c.url,c.key,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true},db:{timeout:12000}});
     if(attemptId&&attemptId!==dbAttemptId)return false;
     /* One cloud request instead of probe + full request: this is materially faster at startup. */
-    const full=await client.from(SUPERBASE_TABLE).select('id,table_name,data,updated_at,deleted').eq('deleted',false);
-    if(full.error)throw full.error;
+    const full={data:await fetchAllCloudRows(client)};
     if(attemptId&&attemptId!==dbAttemptId)return false;
     supabaseClient=client;cloudReady=true;cloudSessionConnected=true;cloudAttemptDone=true;
-    if(Array.isArray(full.data)&&full.data.length){DB=hydrateFromCloudRows(full.data);DB.settings.supabaseUrl=c.url;DB.settings.supabaseAnonKey=c.key;DB.settings.superbaseUrl=c.url;DB.settings.superbaseKey=c.key;updateBranding();if(currentUserRole)renderCurrentPageAfterCloudChange()}
-    cloudSnapshot=cloudRecordMap(DB);lastSavedDBSnapshot=cloneDB(DB);try{localStorage.setItem(DB_KEY,JSON.stringify(DB))}catch(e){}subscribeSuperbaseRealtime();cloudStatusText();setTopbarSyncStatus('Superbase connected · Realtime active',true);endTempAdminSession();return true;
+    let cloudOnly=null,mergedKept=0;
+    if(Array.isArray(full.data)&&full.data.length){const cloudDB=hydrateFromCloudRows(full.data);cloudOnly=cloudRecordMap(cloudDB);if(isDirty()){const m=mergeUnsynced(cloudDB,DB);DB=normalizeDB(m.db);mergedKept=m.kept;}else DB=cloudDB;DB.settings.supabaseUrl=c.url;DB.settings.supabaseAnonKey=c.key;DB.settings.superbaseUrl=c.url;DB.settings.superbaseKey=c.key;updateBranding();if(currentUserRole)renderCurrentPageAfterCloudChange()}
+    cloudSnapshot=cloudOnly||cloudRecordMap(DB);saveBase(cloudSnapshot);lastSavedDBSnapshot=cloneDB(DB);try{localStorage.setItem(DB_KEY,JSON.stringify(DB))}catch(e){}subscribeSuperbaseRealtime();
+    if(mergedKept>0){markDirty(true);setTimeout(()=>{syncCloudNow().then(ok=>{if(ok){showSavedOk();showToast('Records saved on this device earlier were uploaded to the cloud ('+mergedKept+')');}});},400);}else markDirty(false);cloudStatusText();setTopbarSyncStatus('Superbase connected · Realtime active',true);endTempAdminSession();return true;
   }catch(e){
     const noInternet=(typeof navigator!=='undefined'&&navigator.onLine===false)||/Failed to fetch|NetworkError|network request failed|ERR_INTERNET_DISCONNECTED|ERR_NETWORK/i.test(String(e?.message||e));
     if(!attemptId||attemptId===dbAttemptId){cloudReady=false;cloudSessionConnected=false;cloudAttemptDone=true;cloudStatusText();
@@ -1794,22 +1904,23 @@ async function syncCloudNow(){
   try{return await _syncP}finally{_syncP=null}
 }
 async function _doSyncCloud(){
+  const t0=lastLocalEditAt;
   const before=cloudSnapshot||new Map(),after=cloudRecordMap(DB),upserts=[],deletes=[];
   for(const [key,val] of after){if(before.get(key)!==val){const o=JSON.parse(val);upserts.push({id:o.id,table_name:o.table_name,data:o.data,deleted:false,updated_at:new Date().toISOString()})}}
   for(const key of before.keys())if(!after.has(key)){const [table,...rest]=key.split(':');deletes.push({id:rest.join(':'),table_name:table,data:{},deleted:true,updated_at:new Date().toISOString()})}
-  if(!upserts.length&&!deletes.length)return true;
+  if(!upserts.length&&!deletes.length){if(lastLocalEditAt===t0)markDirty(false);return true;}
   cloudSyncInFlight=true;
   try{
     if(upserts.length){const {error}=await supabaseClient.from(SUPERBASE_TABLE).upsert(upserts,{onConflict:'id'});if(error)throw error}
     if(deletes.length){const {error}=await supabaseClient.from(SUPERBASE_TABLE).upsert(deletes,{onConflict:'id'});if(error)throw error}
     saveOvStage('Verifying on cloud…');
     const all=[...upserts,...deletes],got=new Map();
-    for(let i=0;i<all.length;i+=100){const ids=all.slice(i,i+100).map(r=>r.id);const {data,error}=await supabaseClient.from(SUPERBASE_TABLE).select('id,deleted').in('id',ids);if(error)throw error;(data||[]).forEach(r=>got.set(String(r.id),r))}
-    const bad=all.filter(r=>{const g=got.get(String(r.id));return !g||!!g.deleted!==!!r.deleted});
+    for(let i=0;i<all.length;i+=100){const ids=all.slice(i,i+100).map(r=>r.id);const {data,error}=await supabaseClient.from(SUPERBASE_TABLE).select('id,deleted,data').in('id',ids);if(error)throw error;(data||[]).forEach(r=>got.set(String(r.id),r))}
+    const bad=all.filter(r=>{const g=got.get(String(r.id));return !g||!!g.deleted!==!!r.deleted||(!r.deleted&&smStable(g.data)!==smStable(r.data))});
     if(bad.length)throw new Error(bad.length+' record(s) could not be verified on the cloud database');
-    cloudSnapshot=after;cloudStatusText();setTopbarSyncStatus('Superbase synced · '+after.size+' records',true);
+    cloudSnapshot=after;saveBase(after);if(lastLocalEditAt===t0)markDirty(false);cloudStatusText();setTopbarSyncStatus('Superbase synced · '+after.size+' records · confirmed '+new Date().toLocaleTimeString('en-IN'),true);
     return true;
-  }catch(e){console.error('Superbase sync failed',e);showSyncFatal(e);return false}
+  }catch(e){console.error('Superbase sync failed',e);setTopbarSyncStatus('⚠ NOT SAVED to the cloud — kept on this device, retrying',false);showSyncFatal(e);return false}
   finally{cloudSyncInFlight=false}
 }
 function saveOvEl(){let o=document.getElementById('saveOv');if(!o){o=document.createElement('div');o.id='saveOv';o.className='no-print';document.body.appendChild(o);}return o;}
@@ -1820,7 +1931,12 @@ function showSyncFatal(e){const o=saveOvEl();o.dataset.state='fail';const m=Stri
   o.innerHTML='<div class="sov-card sov-fail"><svg class="sov-tick sov-x" viewBox="0 0 52 52"><circle cx="26" cy="26" r="23"/><path d="M18 18l16 16M34 18L18 34"/></svg><div class="sov-title">FATAL: Superbase sync failed</div><div class="sov-sub">Not saved — your last change is not on the cloud database. Entry is disabled until it is saved.</div><div class="sov-err">'+safeText(m)+'</div><div class="sov-btns"><button class="btn amber sm" onclick="retrySaveFromOverlay()">Try saving again</button><button class="btn ghost sm" onclick="location.reload()">Reload app</button></div></div>';}
 async function retrySaveFromOverlay(){showSaving();const ok=await syncCloudNow();if(ok)showSavedOk();}
 function trackSave(p){_saveBusy++;showSaving();p.then(ok=>{_saveBusy--;if(_saveBusy===0&&ok)showSavedOk();}).catch(()=>{_saveBusy--;});}
-function saveDB(){lastLocalEditAt=Date.now();lastSavedDBSnapshot=cloneDB(DB);updateApprovalNotifications();if(cloudReady){trackSave(syncCloudNow());return}try{localStorage.setItem(DB_KEY,JSON.stringify(DB))}catch(e){console.error('Local recovery save failed',e)}}
+let _noCloudWarnAt=0;
+function saveDB(){lastLocalEditAt=Date.now();lastSavedDBSnapshot=cloneDB(DB);updateApprovalNotifications();markDirty(true);try{localStorage.setItem(DB_KEY,JSON.stringify(DB))}catch(e){console.error('Local recovery save failed',e)}
+  if(cloudReady){trackSave(syncCloudNow());return}
+  if(Date.now()-_noCloudWarnAt>8000){_noCloudWarnAt=Date.now();setTopbarSyncStatus('⚠ NOT SAVED to the cloud — saved on this device only',false);try{showToast('⚠ Not saved to the cloud database (no connection). Saved on this device only; it uploads automatically when the database reconnects.');}catch(e){}}}
+setInterval(()=>{if(cloudReady&&isDirty()&&!_syncP&&_saveBusy===0)syncCloudNow().then(ok=>{if(ok)showSavedOk();});},20000);
+window.addEventListener('beforeunload',e=>{if(cloudReady&&(isDirty()||_saveBusy>0)){e.preventDefault();e.returnValue='';}});
 async function pushLocalDataToSupabase(){
   if(!cloudReady||!supabaseClient){showToast('Connect Superbase first');return}
   const map=cloudRecordMap(DB),rows=[...map.values()].map(v=>{const o=JSON.parse(v);return {id:o.id,table_name:o.table_name,data:o.data,deleted:false,updated_at:new Date().toISOString()}});
@@ -1837,7 +1953,8 @@ async function refreshData(){
 }
 async function pullCloudDataToLocal(silent=false){
   if(!cloudReady||!supabaseClient){if(!silent)showToast('Superbase is not connected');return false}
-  try{const {data,error}=await supabaseClient.from(SUPERBASE_TABLE).select('id,table_name,data,updated_at,deleted').eq('deleted',false);if(error)throw error;if(!data?.length){if(!silent)showToast('Superbase database is empty');return false}DB=hydrateFromCloudRows(data);cloudSnapshot=cloudRecordMap(DB);lastSavedDBSnapshot=cloneDB(DB);updateBranding();renderCurrentPageAfterCloudChange();if(!silent)showToast('Superbase data downloaded');return true}catch(e){if(!silent)showToast('Could not download Superbase data: '+(e.message||e));return false}
+  if(isDirty()){const ok=await syncCloudNow();if(!ok){showToast('Not refreshed: your latest changes are not saved to the cloud yet. Retry saving first.');return false}}
+  try{const data=await fetchAllCloudRows(supabaseClient);if(!data?.length){if(!silent)showToast('Superbase database is empty');return false}DB=hydrateFromCloudRows(data);cloudSnapshot=cloudRecordMap(DB);lastSavedDBSnapshot=cloneDB(DB);updateBranding();renderCurrentPageAfterCloudChange();if(!silent)showToast('Superbase data downloaded');return true}catch(e){if(!silent)showToast('Could not download Superbase data: '+(e.message||e));return false}
 }
 async function saveSuperbaseSettings(){
   const url=document.getElementById('st_sb_url')?.value.trim()||'',key=document.getElementById('st_sb_key')?.value.trim()||'';
@@ -1847,11 +1964,11 @@ async function saveSuperbaseSettings(){
   DB.settings=DB.settings||{};DB.settings.supabaseUrl=url;DB.settings.supabaseAnonKey=key;DB.settings.superbaseUrl=url;DB.settings.superbaseKey=key;
   try{localStorage.setItem(DB_KEY,JSON.stringify(DB))}catch(e){console.warn('Application data save failed',e)}
   cloudAttemptDone=false;dbAttemptId++;supabaseClient=null;cloudReady=false;cloudSessionConnected=false;cloudSnapshot=null;
-  const ok=await Promise.race([initSuperbaseCloud(true,dbAttemptId),new Promise(resolve=>setTimeout(()=>resolve(false),5000))]);
+  const ok=await Promise.race([initSuperbaseCloud(true,dbAttemptId),new Promise(resolve=>setTimeout(()=>resolve(false),15000))]);
   if(ok){showToast('Superbase credentials saved and connected')}else{updateDatabaseGate(false,'⚠ Superbase connection failed. Credentials are saved; Admin recovery mode is active.');showToast('Credentials saved. Superbase connection failed — check URL/key and try Test Connection.')}
   return ok;
 }
-async function testSuperbaseConnection(){const id=++dbAttemptId;if(typeof navigator!=='undefined'&&navigator.onLine===false){updateDatabaseGate(false,'⚠ No internet access. Local recovery database is active — Admin login is available.');setTopbarSyncStatus('No internet access · local admin recovery mode',false);showToast('No internet access.');return false}const ok=await Promise.race([initSuperbaseCloud(true,id),new Promise(resolve=>setTimeout(()=>resolve(false),5000))]);if(ok)showToast('Superbase connection successful');else if(typeof navigator!=='undefined'&&navigator.onLine===false)showToast('No internet access.');else if(id===dbAttemptId)showToast('Superbase connection failed or timed out after 5 seconds.');return ok}
+async function testSuperbaseConnection(){const id=++dbAttemptId;if(typeof navigator!=='undefined'&&navigator.onLine===false){updateDatabaseGate(false,'⚠ No internet access. Local recovery database is active — Admin login is available.');setTopbarSyncStatus('No internet access · local admin recovery mode',false);showToast('No internet access.');return false}const ok=await Promise.race([initSuperbaseCloud(true,id),new Promise(resolve=>setTimeout(()=>resolve(false),15000))]);if(ok)showToast('Superbase connection successful');else if(typeof navigator!=='undefined'&&navigator.onLine===false)showToast('No internet access.');else if(id===dbAttemptId)showToast('Superbase connection failed or timed out.');return ok}
 function startSharedUpdateMonitor(){setTopbarSyncStatus(cloudReady?'Superbase connected · Realtime active':'Superbase unavailable · local admin recovery mode',cloudReady)}
 function getPendingApprovalCount(){const register=(DB.approvalRequests||[]).filter(r=>r&&r.status==='Pending').length;const warranty=(DB.warrantyRequests||[]).filter(r=>r&&r.status==='Pending').length;return register+warranty}
 function updateApprovalNotifications(){const count=getPendingApprovalCount();const side=document.getElementById('approvalSideBadge');if(side){side.textContent=count;side.style.display=currentUserRole==='admin'&&count>0?'inline-flex':'none'}const top=document.getElementById('approvalTopNotification');if(top)top.innerHTML=currentUserRole==='admin'&&count>0?`<button class="approval-topbar" type="button" onclick="route('approvals')" title="Open pending approvals">🔔 Pending approvals <span class="approval-badge">${count}</span></button>`:''}
@@ -1868,7 +1985,7 @@ async function initializeDatabaseGate(){
     updateDatabaseGate(false,'Connecting to Superbase…');setTopbarSyncStatus('Connecting to Superbase…',false);cloudAttemptDone=false;
     if(cloudConfigured()){
       if(typeof navigator!=='undefined'&&navigator.onLine===false){cloudAttemptDone=true;dbAttemptId++;await activateLocalRecovery('⚠ No internet access.');return false;}
-      const cloudOK=await withTimeout(initSuperbaseCloud(false,id),4500);
+      const cloudOK=await withTimeout(initSuperbaseCloud(false,id),15000);
       cloudAttemptDone=true;
       if(cloudOK&&id===dbAttemptId){updateDatabaseGate(true,'✓ Superbase connected · cloud database ready.');return true}
       dbAttemptId++;
@@ -2749,7 +2866,7 @@ function renderTodos(){
         <div class="row" style="gap:8px;margin:0;">
           <div class="field" style="margin:0;"><input id="newPageName" placeholder="New page name…" style="width:160px;"></div>
           <button class="btn ghost sm" onclick="addTodoPage()">+ Add Page</button>
-          <button class="btn ghost sm" onclick="gtOpen()">🔄 Google Tasks${_gtNeedAuth?' (reconnect)':''}</button>
+          <button class="btn ghost sm" onclick="gtOpen()">🔄 Google Tasks</button>
         </div>
       </div>
       <div class="panel-body" id="todoPageBody"></div>
@@ -2900,13 +3017,11 @@ async function gtApi(method,path,body){
 const gtHash=t=>[t.text,t.done?1:0,t.priority].join('|');
 const gtBody=t=>({title:t.text,notes:'Priority: '+t.priority,status:t.done?'completed':'needsAction',completed:t.done?undefined:null});
 function gtFromRemote(x){const m=/Priority:\s*(High|Medium|Low)/i.exec(x.notes||'');return{text:x.title||'',done:x.status==='completed',priority:m?m[1][0].toUpperCase()+m[1].slice(1).toLowerCase():'Medium'};}
-async function gtSync(auto){
-  if(_gtBusy)return;_gtBusy=true;const bg=auto===true||auto==='kick',st=document.getElementById('gtStatus'),say=m=>{if(st)st.textContent=m;};
+async function gtSync(){
+  if(_gtBusy)return;_gtBusy=true;const st=document.getElementById('gtStatus'),say=m=>{if(st)st.textContent=m;};
   try{
-    const cv=document.getElementById('gtClientId');if(cv&&!bg){DB.settings.googleClientId=cv.value.trim();saveDB();}
-    if(!bg)say('Signing in to Google…');
-    try{await gtGetToken(auto===true);}catch(e){if(bg){_gtNeedAuth=true;if(auto==='kick')showToast('Google Tasks: sign-in needed — open 🔄 Google Tasks and press Connect');return;}throw e;}
-    _gtNeedAuth=false;if(!bg)say('Syncing…');
+    const cv=document.getElementById('gtClientId');if(cv){DB.settings.googleClientId=cv.value.trim();saveDB();}
+    say('Signing in to Google…');await gtGetToken();say('Syncing…');
     const S=DB.settings;let pulled=0,pushed=0;const before=JSON.stringify([DB.todoPages,S.gtDeleted]);
     for(const d of (S.gtDeleted||[]))await gtApi('DELETE',d.id?`lists/${d.l}/tasks/${d.id}`:`users/@me/lists/${d.l}`);
     S.gtDeleted=[];
@@ -2928,31 +3043,20 @@ async function gtSync(auto){
       for(const x of rem)if(x.title&&!p.tasks.some(t=>t.gtId===x.id)){const t={id:cid(),...gtFromRemote(x),gtId:x.id};t.gtHash=gtHash(t);p.tasks.push(t);pulled++;}
     }
     _gtLast=new Date().toLocaleString('en-IN');
-    if(JSON.stringify([DB.todoPages,S.gtDeleted])!==before){S.gtLastSync=_gtLast;_gtSaving=true;try{saveDB();}finally{_gtSaving=false;}}
-    try{localStorage.setItem('gt_auto','1');}catch(e){}
-    _gtSnap=JSON.stringify(DB.todoPages);
-    say(`Live sync on · ${pushed} sent, ${pulled} received · ${_gtLast}`);
+    if(JSON.stringify([DB.todoPages,S.gtDeleted])!==before){S.gtLastSync=_gtLast;saveDB();}
+    say(`Done · ${pushed} sent to Google, ${pulled} received · ${_gtLast}`);
     if(document.getElementById('todoPageBody')){renderTodoPageTabs();renderTodoPageBody();}
   }catch(e){say('Sync failed: '+(e.message||e));}
-  finally{_gtBusy=false;if(_gtDirty){_gtDirty=false;setTimeout(()=>{if(gtAutoOn()&&!_gtNeedAuth)gtSync('kick');},100);}}
+  finally{_gtBusy=false;}
 }
-/* Live sync: polls Google every 30s and pushes local to-do changes ~3s after they are saved.
-   shortcut: Google Tasks has no push for web apps (polling only); the sign-in token expires hourly, renewal is silent when the browser allows, otherwise on the next tap. */
-let _gtDirty=false,_gtNeedAuth=false,_gtClick=false,_gtSnap='',_gtLast='',_gtSaving=false,_gtKickT=0;
-const gtAutoOn=()=>{try{return localStorage.getItem('gt_auto')==='1'&&!!DB.settings.googleClientId&&document.getElementById('app')?.classList.contains('authed');}catch(e){return false;}};
-function gtArmClickUnused(){if(_gtClick)return;_gtClick=true;document.addEventListener('click',function(){_gtClick=false;if(gtAutoOn())gtSync(false).then(()=>{});},{once:true});if(typeof showToast==='function')showToast('Google Tasks: tap anywhere to renew the Google sign-in (live sync paused)');}
-function gtKick(){if(_gtSaving||!gtAutoOn())return;if(_gtBusy){_gtDirty=true;return;}try{if(JSON.stringify(DB.todoPages)===_gtSnap)return;}catch(e){return;}clearTimeout(_gtKickT);_gtKickT=setTimeout(()=>{if(gtAutoOn())gtSync('kick');},250);}
-(function(){const _sd=saveDB;saveDB=function(){const r=_sd.apply(this,arguments);try{gtKick();}catch(e){}return r;};})();
-setInterval(()=>{if(gtAutoOn()&&!_gtNeedAuth&&!document.hidden)gtSync(true);},30000);
-document.addEventListener('visibilitychange',()=>{if(!document.hidden&&gtAutoOn()&&!_gtNeedAuth)gtSync(true);});
-setTimeout(()=>{if(gtAutoOn())gtSync(true);},4000);
+/* Google Tasks syncs only when the user presses the button in the To-Do list (no background polling or automatic requests). */
 function gtOpen(){
   gtLoadGis().catch(()=>{});
   const S=DB.settings;
   openModal('Google Tasks sync',`
     <div class="field"><label>Google OAuth Client ID</label><input id="gtClientId" placeholder="123456-abc.apps.googleusercontent.com" value="${safeText(S.googleClientId||'')}"></div>
     <div id="gtStatus" style="font-size:12.5px;margin:8px 0;color:#6b6554;">${S.gtLastSync?'Last sync: '+safeText(S.gtLastSync):'Not synced yet.'}</div>
-    <p style="font-size:12.5px;color:#6b6554;line-height:1.5;">Each To-Do page = one Google Tasks list. Two-way and live: after the first connect, local changes go to Google instantly (no button) and Google changes arrive within ~30 seconds while the app is open (local change wins if both changed). Turn it on on one device only. Priority is kept in the Google task notes.</p>
+    <p style="font-size:12.5px;color:#6b6554;line-height:1.5;">Each To-Do page = one Google Tasks list. Two-way, only when you press the button: new, edited, completed and deleted tasks go both ways (local change wins if both changed). Nothing syncs in the background. Priority is kept in the Google task notes.</p>
     <details style="font-size:12.5px;line-height:1.6;"><summary><b>How to link (one-time, free)</b></summary><ol style="padding-left:18px;margin:6px 0;">
       <li>Open <b>console.cloud.google.com</b> signed in with the Google account whose Tasks you want; create a project.</li>
       <li>APIs &amp; Services → Library → search <b>Google Tasks API</b> → Enable.</li>
@@ -4945,12 +5049,12 @@ function exportSelectedServices(){
 <script>
 /* Theme, dark mode and UI scale */
 /* ================= SETTINGS ================= */
-const THEME_OPTIONS=[{id:'classic',name:'Classic',mode:'Light',swatches:['#F6F4EF','#181B20','#F5A623','#3FB8A6']},{id:'midnight',name:'Midnight',mode:'Dark',swatches:['#0b0f14','#161b22','#58a6ff','#3fb950']},{id:'slate',name:'Slate',mode:'Dark / Light',swatches:['#edf1f5','#18212b','#7c9cff','#35b9a5']},{id:'forest',name:'Forest',mode:'Pastel / Dark',swatches:['#edf5ef','#10231d','#9bcf73','#45bfa5']},{id:'ocean',name:'Ocean',mode:'Pastel / Dark',swatches:['#edf8fb','#092331','#55c6d9','#4fc3a1']},{id:'rose',name:'Rose',mode:'Pastel / Dark',swatches:['#fff3f7','#2a1b24','#e79ab7','#62b9a6']},{id:'lavender',name:'Lavender',mode:'Pastel / Dark',swatches:['#f5f1fb','#211b2b','#b49cff','#63bea9']},{id:'sand',name:'Sand',mode:'Warm / Dark',swatches:['#faf5e9','#29231b','#dca85a','#62ad98']},{id:'mint',name:'Mint',mode:'Pastel / Dark',swatches:['#effaf6','#172622','#69c7a8','#55bca0']},{id:'graphite',name:'Graphite',mode:'Dark / Light',swatches:['#e8eaed','#17191c','#f0b44d','#43b7a4']},{id:'contrast',name:'High Contrast',mode:'Light',swatches:['#fff','#000','#0057ff','#007a5e']}];
+const THEME_OPTIONS=[{id:'daisy',name:'daisyUI',mode:'Light / Dark',swatches:['#f2f2f2','#2b3440','#570df8','#36d399']},{id:'classic',name:'Classic',mode:'Light',swatches:['#F6F4EF','#181B20','#F5A623','#3FB8A6']},{id:'midnight',name:'Midnight',mode:'Dark',swatches:['#0b0f14','#161b22','#58a6ff','#3fb950']},{id:'slate',name:'Slate',mode:'Dark / Light',swatches:['#edf1f5','#18212b','#7c9cff','#35b9a5']},{id:'forest',name:'Forest',mode:'Pastel / Dark',swatches:['#edf5ef','#10231d','#9bcf73','#45bfa5']},{id:'ocean',name:'Ocean',mode:'Pastel / Dark',swatches:['#edf8fb','#092331','#55c6d9','#4fc3a1']},{id:'rose',name:'Rose',mode:'Pastel / Dark',swatches:['#fff3f7','#2a1b24','#e79ab7','#62b9a6']},{id:'lavender',name:'Lavender',mode:'Pastel / Dark',swatches:['#f5f1fb','#211b2b','#b49cff','#63bea9']},{id:'sand',name:'Sand',mode:'Warm / Dark',swatches:['#faf5e9','#29231b','#dca85a','#62ad98']},{id:'mint',name:'Mint',mode:'Pastel / Dark',swatches:['#effaf6','#172622','#69c7a8','#55bca0']},{id:'graphite',name:'Graphite',mode:'Dark / Light',swatches:['#e8eaed','#17191c','#f0b44d','#43b7a4']},{id:'contrast',name:'High Contrast',mode:'Light',swatches:['#fff','#000','#0057ff','#007a5e']}];
 function themeStorageKey(){const u=currentUserId||sessionStorage.getItem('circuitdesk_user_id')||'admin';return 'shop_manager_theme_v1_'+String(u)}
-function getCurrentTheme(){return document.documentElement.getAttribute('data-theme')||localStorage.getItem(themeStorageKey())||DB.settings?.uiTheme||'classic'}
+function getCurrentTheme(){return document.documentElement.getAttribute('data-theme')||localStorage.getItem(themeStorageKey())||DB.settings?.uiTheme||'daisy'}
 function darkModeStorageKey(){const u=currentUserId||sessionStorage.getItem('circuitdesk_user_id')||'admin';return 'shop_manager_dark_mode_v1_'+String(u)}
 function isDarkMode(){return document.documentElement.getAttribute('data-dark-mode')==='1'}
-function setAppTheme(theme){if(!THEME_OPTIONS.some(t=>t.id===theme))theme='classic';document.documentElement.setAttribute('data-theme',theme);localStorage.setItem(themeStorageKey(),theme);document.querySelectorAll('[data-theme-choice]').forEach(b=>b.classList.toggle('active',b.dataset.themeChoice===theme));}
+function setAppTheme(theme){if(!THEME_OPTIONS.some(t=>t.id===theme))theme='daisy';document.documentElement.setAttribute('data-theme',theme);localStorage.setItem(themeStorageKey(),theme);document.querySelectorAll('[data-theme-choice]').forEach(b=>b.classList.toggle('active',b.dataset.themeChoice===theme));}
 function darkPrefKey(){return darkModeStorageKey()+'_pref'}
 function getDarkPref(){const p=localStorage.getItem(darkPrefKey());if(p)return p;const o=localStorage.getItem(darkModeStorageKey());return o==='1'?'on':o==='0'?'off':'auto'}
 function applyDarkPref(){const p=getDarkPref(),dev=!!(window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches),th=['midnight','graphite'].includes(typeof getCurrentTheme==='function'?getCurrentTheme():''),on=p==='on'||(p==='auto'&&(dev||th))||(p!=='off'&&th);
@@ -4959,7 +5063,7 @@ function applyDarkPref(){const p=getDarkPref(),dev=!!(window.matchMedia&&matchMe
   document.querySelectorAll('[data-dark-choice]').forEach(b=>b.classList.toggle('active',b.dataset.darkChoice===p));}
 function setDarkPref(p){localStorage.setItem(darkPrefKey(),p);applyDarkPref();}
 try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{if(getDarkPref()==='auto')applyDarkPref();});}catch(e){}
-function initAppTheme(){initUIScale();setAppTheme(localStorage.getItem(themeStorageKey())||DB.settings?.uiTheme||'classic');applyDarkPref();}
+function initAppTheme(){initUIScale();let t=localStorage.getItem(themeStorageKey())||DB.settings?.uiTheme||'daisy';try{if(!localStorage.getItem('daisy_skin_v1')){localStorage.setItem('daisy_skin_v1','1');if(t==='classic')t='daisy';}}catch(e){}setAppTheme(t);applyDarkPref();}
 function uiScaleKey(){const u=currentUserId||sessionStorage.getItem('circuitdesk_user_id')||'admin';return 'shop_manager_ui_scale_v1_'+String(u)}
 function getUIScale(){const v=parseFloat(localStorage.getItem(uiScaleKey()));return v>=.8&&v<=1.3?v:1}
 function setUIScale(v){v=parseFloat(v)||1;localStorage.setItem(uiScaleKey(),String(v));document.documentElement.style.setProperty('--ui-scale',v);document.querySelectorAll('[data-scale-choice]').forEach(b=>b.classList.toggle('active',parseFloat(b.dataset.scaleChoice)===v));}
@@ -5996,6 +6100,7 @@ async function attemptLogin(){
   }catch(error){console.error('Login verification failed',error);errEl.textContent=error.message||'Could not verify account';errEl.style.display='block';}
 }
 function logoutUser(){
+  if(cloudReady&&isDirty()){showToast('Saving your last changes to the cloud before signing out…');syncCloudNow().then(ok=>{if(ok&&!isDirty())logoutUser();});return;}
   pushUnsubscribeDevice();
   clearKeepLoggedIn();
   sessionStorage.removeItem('circuitdesk_role');

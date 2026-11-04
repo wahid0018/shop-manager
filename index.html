@@ -1628,7 +1628,7 @@ window.APP_ENV = Object.freeze({
 </script>
 <script>
 /* App version. Bumped by tools/release.py (also updates version.json and the ?v= cache stamps in index.html). */
-const APP_VERSION='1.0.121';
+const APP_VERSION='1.0.122';
 document.title='Shop Manager — v'+APP_VERSION;
 
 </script>
@@ -2554,6 +2554,7 @@ function renderInventory(){
         <h3>Products (${DB.products.length})</h3>
         <div class="row" style="gap:8px;margin:0;">
           <div class="field" style="margin:0;min-width:240px;"><input id="inv_search" placeholder="Search by name, brand, SKU, category…" oninput="renderInventoryTable()"></div>
+          <div class="field" style="margin:0;"><select id="inv_stock" onchange="renderInventoryTable()" title="Stock filter"><option value="">All stock</option><option value="in">In stock (&gt;0)</option><option value="out">Out of stock (0)</option><option value="neg">Negative (&lt;0)</option></select></div>
           <div class="seg" role="group" aria-label="View mode"><button type="button" data-inv-mode="cards" class="${m==='cards'?'active':''}" onclick="setInvView('cards')" title="Cards">▤ Cards</button><button type="button" data-inv-mode="table" class="${m==='table'?'active':''}" onclick="setInvView('table')" title="Details table">☰ Details</button><button type="button" data-inv-mode="grid" class="${m==='grid'?'active':''}" onclick="setInvView('grid')" title="Grid">▦ Grid</button></div>
           <button class="btn ghost sm" onclick="exportInventoryToExcel()">⬇ Export to Excel</button>
           <button class="btn amber sm" onclick="openProductModal()">+ Add Product</button>
@@ -2579,9 +2580,11 @@ function openItemHistory(id){
    (rows.length?rows.map(r=>'<tr><td>'+safeText(r.date)+'</td><td><span class="badge '+(r.sign>0?'ok':'partial')+'">'+r.kind+'</span></td><td class="mono">'+safeText(r.no)+'</td><td>'+safeText(r.party)+'</td><td class="num mono">'+(r.sign>0?'+':'−')+r.qty+'</td><td class="num mono">'+fmt(r.price)+'</td><td class="mono">'+safeText(r.code)+'</td></tr>').join(''):'<tr><td colspan="7" class="empty">No sales or purchases recorded for this item.</td></tr>')+
    '</tbody></table></div>','<button class="btn ghost" onclick="closeModal()">Close</button>');
 }
+function invStockOk(p){const f=document.getElementById('inv_stock')?.value||'';const n=+p.stock||0;return !f||(f==='in'&&n>0)||(f==='out'&&n===0)||(f==='neg'&&n<0);}
 function exportInventoryToExcel(){
   const q = (document.getElementById('inv_search')?.value||'').toLowerCase();
   const rows = DB.products.filter(p=>{
+    if(!invStockOk(p)) return false;
     if(!q) return true;
     return [p.name,p.brand,p.sku,p.category,p.hsn].filter(Boolean).some(v=>v.toLowerCase().includes(q));
   });
@@ -2603,6 +2606,7 @@ function exportInventoryToExcel(){
 function renderInventoryTable(){
   const q = (document.getElementById('inv_search').value||'').toLowerCase();
   const rows = DB.products.filter(p=>{
+    if(!invStockOk(p)) return false;
     if(!q) return true;
     return [p.name,p.brand,p.sku,p.category,p.hsn].filter(Boolean).some(v=>v.toLowerCase().includes(q));
   });

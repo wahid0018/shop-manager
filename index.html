@@ -1474,6 +1474,7 @@ html[data-theme="daisy"] :is(.stat .foot,#dashboardOut .stat .foot,.approval-top
 }
 </style>
 <style id="toast-pos">@media (max-width:700px){html body .toast{top:10px!important;bottom:auto!important;transform:translateY(-8px);}html body .toast.show{transform:translateY(0)!important;}}</style>
+<style id="cb-style">tr.cb-sum td{background:rgba(128,128,128,.14)!important;}</style>
 </head>
 <body>
 <div id="loginScreen" style="position:fixed;inset:0;background:var(--ink);display:flex;align-items:center;justify-content:center;z-index:2000;">
@@ -1630,7 +1631,7 @@ window.APP_ENV = Object.freeze({
 </script>
 <script>
 /* App version. Bumped by tools/release.py (also updates version.json and the ?v= cache stamps in index.html). */
-const APP_VERSION='1.0.124';
+const APP_VERSION='1.0.125';
 document.title='Shop Manager — v'+APP_VERSION;
 
 </script>
@@ -3188,11 +3189,11 @@ function renderCashbookTable(){
   const tin=show.filter(r=>r.type==='in').reduce((t,r)=>t+ +r.amount,0),tout=show.filter(r=>r.type==='out').reduce((t,r)=>t+ +r.amount,0);
   const flag=DB.settings.cashFlagId;
   W.innerHTML=`<table><thead><tr><th>Date</th><th>Narration</th><th class="num">Cash In ₹</th><th class="num">Cash Out ₹</th><th class="num">Balance ₹</th><th class="no-print">Actions</th></tr></thead><tbody>
-  <tr style="background:var(--b2,#f4f4f4);"><td colspan="4"><b>Opening balance</b></td><td class="num mono"><b>${fmt(v.open)}</b></td><td class="no-print"></td></tr>
+  <tr class="cb-sum"><td colspan="4"><b>Opening balance</b></td><td class="num mono"><b>${fmt(v.open)}</b></td><td class="no-print"></td></tr>
   ${show.length?show.map(r=>`<tr${r.id===flag?' style="outline:2px solid #d9a441;outline-offset:-2px;"':''}><td>${safeText(r.date)}</td><td>${safeText(r.narration||'')}</td><td class="num mono">${r.type==='in'?fmt(r.amount):''}</td><td class="num mono">${r.type==='out'?fmt(r.amount):''}</td><td class="num mono"><b>${fmt(r.bal)}</b></td>
    <td class="no-print" style="white-space:nowrap;"><button class="btn ghost sm" title="${r.id===flag?'Remove flag':'Flag: start balance count from this entry'}" onclick="toggleCashFlag('${r.id}')">${r.id===flag?'⚑':'⚐'}</button> <button class="btn ghost sm" onclick="cashEditId='${r.id}';renderCashbook();window.scrollTo(0,0)">Edit</button> <button class="btn ghost sm" onclick="deleteCashEntry('${r.id}')">Delete</button></td></tr>`).join(''):'<tr><td colspan="6" class="muted" style="text-align:center;padding:18px;">No entries for this selection</td></tr>'}
   </tbody><tfoot><tr><td colspan="2"><b>Total (shown)</b></td><td class="num mono"><b>${fmt(tin)}</b></td><td class="num mono"><b>${fmt(tout)}</b></td><td class="num mono"></td><td class="no-print"></td></tr>
-  <tr style="background:var(--b2,#f4f4f4);"><td colspan="4"><b>Closing balance${cashPeriod==='flag'&&flag?' (since ⚑ flag)':''}</b></td><td class="num mono"><b>${fmt(v.close)}</b></td><td class="no-print"></td></tr></tfoot></table>`;
+  <tr class="cb-sum"><td colspan="4"><b>Closing balance${cashPeriod==='flag'&&flag?' (since ⚑ flag)':''}</b></td><td class="num mono"><b>${fmt(v.close)}</b></td><td class="no-print"></td></tr></tfoot></table>`;
 }
 function saveCashEntry(){
   const date=document.getElementById('cb_date').value,type=document.getElementById('cb_type').value,amount=Math.round((+document.getElementById('cb_amt').value||0)*100)/100,narration=document.getElementById('cb_nar').value.trim();

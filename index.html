@@ -1548,6 +1548,7 @@ html[data-theme="daisy"] :is(.stat .foot,#dashboardOut .stat .foot,.approval-top
       <button class="navbtn" data-view="duesregister"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M4 10h9M4 15h6"/><circle cx="17" cy="16" r="4"/><path d="M17 14v2l1.2 1"/></svg></span> <span class="label">Pending Dues Register</span></button>
       <button class="navbtn" data-view="warranty"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg></span> <span class="label">Warranty / Out Repair</span></button>
       <div class="navlabel">Records</div>
+      <button class="navbtn adminonly" data-view="cashbook"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 9v.01M18 15v.01"/></svg></span> <span class="label">Cash In / Out</span></button>
       <button class="navbtn" data-view="scrap"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v5M14 11v5"/></svg></span> <span class="label">Scrap Products</span></button>
       <button class="navbtn" data-view="inventory"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg></span> <span class="label">Inventory</span></button>
       <button class="navbtn adminonly" data-view="employees"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 14a6.5 6.5 0 0 1 3.5 6"/></svg></span> <span class="label">Employees</span></button>
@@ -1629,7 +1630,7 @@ window.APP_ENV = Object.freeze({
 </script>
 <script>
 /* App version. Bumped by tools/release.py (also updates version.json and the ?v= cache stamps in index.html). */
-const APP_VERSION='1.0.123';
+const APP_VERSION='1.0.124';
 document.title='Shop Manager — v'+APP_VERSION;
 
 </script>
@@ -1693,7 +1694,7 @@ const AppStore=(function(){
 <script>
 /* Global state containers and ID helpers */
 const DB_KEY=APP_ENV.STORAGE.DB_KEY,SUPERBASE_TABLE=APP_ENV.SUPABASE.TABLE,SUPERBASE_CREDENTIALS_KEY=APP_ENV.STORAGE.CREDENTIALS_KEY;
-const DB_ARRAYS=['products','employees','purchases','sales','services','quotations','customers','vouchers','paymentVouchers','creditNotes','todoPages','warrantyJobs','warrantyRequests','approvalRequests','repairProviders','users','renewals','salaryEntries','renewalClients','renewalEntries','recycleBin','alerts','alertAcks','pushSubs','scrapItems'];
+const DB_ARRAYS=['products','employees','purchases','sales','services','quotations','customers','vouchers','paymentVouchers','creditNotes','todoPages','warrantyJobs','warrantyRequests','approvalRequests','repairProviders','users','renewals','salaryEntries','renewalClients','renewalEntries','recycleBin','alerts','alertAcks','pushSubs','scrapItems','cashEntries'];
 const USER_CREDENTIALS={[APP_ENV.BOOTSTRAP_ADMIN.username]:APP_ENV.BOOTSTRAP_ADMIN.password};
 let DB,supabaseClient=null,supabaseChannel=null,cloudReady=false,cloudSessionConnected=false,cloudSyncInFlight=false,cloudSnapshot=null,cloudConfig={url:'',key:''},dbInitPromise=null,dbAttemptId=0,cloudAttemptDone=false,lastSavedDBSnapshot=null,lastLocalEditAt=0,localStorageAvailable=true,localRecoveryFileHandle=null,localRecoveryFileName='';
 function cid(){return 'id'+Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4)}
@@ -1721,7 +1722,7 @@ function seedDB(){return ensureManagedUsers({
   purchases:[],sales:[],services:[],salaryEntries:[],renewalClients:[],renewalEntries:[],quotations:[],customers:[],vouchers:[],paymentVouchers:[],users:[],todoPages:[{id:cid(),name:'General',tasks:[]}],warrantyJobs:[],warrantyRequests:[],approvalRequests:[],repairProviders:[],renewals:[]});}
 function normalizeDB(data){
   data=data&&typeof data==='object'?data:{};data.settings=data.settings&&typeof data.settings==='object'?data.settings:{};ensureManagedUsers(data);
-  ['customers','vouchers','paymentVouchers','creditNotes','warrantyJobs','warrantyRequests','approvalRequests','repairProviders','renewals','salaryEntries','renewalClients','renewalEntries','recycleBin','alerts','alertAcks','pushSubs','scrapItems'].forEach(k=>{if(!Array.isArray(data[k]))data[k]=[]});
+  ['customers','vouchers','paymentVouchers','creditNotes','warrantyJobs','warrantyRequests','approvalRequests','repairProviders','renewals','salaryEntries','renewalClients','renewalEntries','recycleBin','alerts','alertAcks','pushSubs','scrapItems','cashEntries'].forEach(k=>{if(!Array.isArray(data[k]))data[k]=[]});
   ['products','employees','purchases','sales','services','quotations','todoPages'].forEach(k=>{if(!Array.isArray(data[k]))data[k]=[]});
   const s=data.settings;
   if(!s.paymentVoucherPrefix)s.paymentVoucherPrefix='PV';if(!s.nextPaymentVoucherNo)s.nextPaymentVoucherNo=1;if(!Array.isArray(s.userHiddenExtra))s.userHiddenExtra=[];if(!s.voucherPrefix)s.voucherPrefix='SV';if(!s.nextVoucherNo)s.nextVoucherNo=1;
@@ -2430,6 +2431,7 @@ const titles = {
   myapprovals:['My Approvals','Your requests sent to Admin'],
   uisettings:['UI Settings','Theme, dark mode and text size'],
   recyclebin:['Recycle Bin','Deleted records kept for restore (Admin only)'],
+  cashbook:['Cash In / Out','Daily cash book with running balance'],
   scrap:['Scrap Products','Faulty or replaced items kept as scrap; move to inventory once repaired'],
   staffdash:['My Dashboard','Your tasks, alerts and recent documents'],
   settings:['Shop Settings','Business details used on printed documents'],
@@ -2440,7 +2442,7 @@ function route(view){
   document.querySelectorAll('.navbtn').forEach(b=>b.classList.toggle('active', b.dataset.view===view));
   document.getElementById('pageTitle').textContent = titles[view][0];
   document.getElementById('pageCrumb').textContent = titles[view][1];
-  const renderers = {alerts:renderAlertsAdmin,creditnote:renderCreditNote, gstr1:renderGstr1, recyclebin:renderRecycleBin, duesregister:renderDuesRegister, renewaltrack:renderRenewals, salary:renderSalary, myapprovals:renderMyApprovals, uisettings:renderUISettings, dashboard:renderDashboardPlus, approvals:renderApprovals, purchase:()=>renderPurchase(), paymentvoucher:()=>renderPaymentVoucher(), sale:()=>renderSale(), voucher:()=>renderVoucher(), voucherregister:renderVoucherRegister, service:()=>renderService(), quotation:()=>renderQuotation(), salesregister:renderSalesRegister, purchaseregister:renderPurchaseRegister, serviceregister:renderServiceRegister, warranty:renderWarranty, inventory:renderInventory, employees:renderEmployees, customers:renderCustomers, todos:renderTodos, settings:renderSettings, staffdash:renderStaffDash, scrap:renderScrap};
+  const renderers = {alerts:renderAlertsAdmin,creditnote:renderCreditNote, gstr1:renderGstr1, recyclebin:renderRecycleBin, duesregister:renderDuesRegister, renewaltrack:renderRenewals, salary:renderSalary, myapprovals:renderMyApprovals, uisettings:renderUISettings, dashboard:renderDashboardPlus, approvals:renderApprovals, purchase:()=>renderPurchase(), paymentvoucher:()=>renderPaymentVoucher(), sale:()=>renderSale(), voucher:()=>renderVoucher(), voucherregister:renderVoucherRegister, service:()=>renderService(), quotation:()=>renderQuotation(), salesregister:renderSalesRegister, purchaseregister:renderPurchaseRegister, serviceregister:renderServiceRegister, warranty:renderWarranty, inventory:renderInventory, employees:renderEmployees, customers:renderCustomers, todos:renderTodos, settings:renderSettings, staffdash:renderStaffDash, scrap:renderScrap, cashbook:renderCashbook};
   currentPageKey=view;AppStore.set('ui.page',view);
   try{renderers[view]();}
   catch(e){AppErrors.report(e,'route:'+view);document.getElementById('view').innerHTML='<div class="panel"><div class="panel-body"><b>This screen could not be loaded.</b><br><span style="font-size:12px;color:var(--text-soft)">'+safeText(e.message||'Unknown error')+'</span><br><br><button class="btn amber sm" type="button" onclick="route(\''+view+'\')">Try again</button></div></div>';}
@@ -3135,6 +3137,79 @@ function scPhotoAdd(inp){const f=inp.files&&inp.files[0];inp.value='';if(!f)retu
 function scrapPhotoView(id){const x=DB.scrapItems.find(v=>v.id===id);if(!x||!(x.photos||[]).length)return;
   openModal('Photos · '+safeText(x.ref||''),'<div style="display:flex;gap:10px;flex-wrap:wrap;">'+x.photos.map((u,i)=>`<div style="text-align:center;"><img src="${u}" style="max-width:100%;width:240px;border-radius:8px;"><br>${currentUserRole==='admin'?`<button class="btn danger sm" style="margin-top:6px;" onclick="scrapPhotoDelete('${id}',${i})">Delete photo</button>`:''}</div>`).join('')+'</div><p style="font-size:12px;color:#6b6554;margin-top:10px;">Deleting a photo frees its database space.</p>','<button class="btn ghost" onclick="closeModal()">Close</button>');}
 function scrapPhotoDelete(id,i){askConfirm('Delete this photo permanently?',()=>{const x=DB.scrapItems.find(v=>v.id===id);if(!x||!x.photos)return;x.photos.splice(i,1);if(!x.photos.length)delete x.photos;_binArm=false;saveDB();renderScrap();if(x.photos&&x.photos.length)scrapPhotoView(id);});}
+/* ---------- Cash In / Out book (admin) ---------- */
+let cashPeriod='month',cashFrom='',cashTo='',cashEditId=null;
+function localISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function cashSorted(){return (DB.cashEntries||[]).slice().sort((a,b)=>String(a.date).localeCompare(String(b.date))||(a.seq||0)-(b.seq||0));}
+function cashRange(){const n=new Date(),t=localISO(n);
+  if(cashPeriod==='today')return[t,t];
+  if(cashPeriod==='week'){const d=new Date(n);d.setDate(d.getDate()-((d.getDay()+6)%7));return[localISO(d),t];}
+  if(cashPeriod==='month')return[t.slice(0,8)+'01',t];
+  if(cashPeriod==='custom')return[cashFrom||'',cashTo||''];
+  return['',''];}
+function setCashPeriod(p){cashPeriod=p;if(p==='custom'){cashFrom=document.getElementById('cb_from')?.value||cashFrom;cashTo=document.getElementById('cb_to')?.value||cashTo;}renderCashbook();}
+function renderCashbook(){
+  DB.cashEntries=DB.cashEntries||[];
+  const ed=cashEditId&&DB.cashEntries.find(x=>x.id===cashEditId);
+  const P=[['today','Today'],['week','This week'],['month','This month'],['flag','From ⚑ flag'],['custom','Custom'],['all','All']];
+  const [rf,rt]=cashRange();
+  document.getElementById('view').innerHTML=`
+  <div class="panel" style="margin-bottom:14px;"><div class="panel-head"><h3>${ed?'Edit entry':'New cash entry'}</h3></div><div class="panel-body">
+    <div class="row" style="gap:10px;align-items:flex-end;flex-wrap:wrap;">
+      <div class="field" style="margin:0;"><label>Date</label><input type="date" id="cb_date" value="${ed?ed.date:localISO(new Date())}"></div>
+      <div class="field" style="margin:0;"><label>Type</label><select id="cb_type"><option value="in" ${ed&&ed.type==='in'?'selected':''}>Cash In (+)</option><option value="out" ${ed&&ed.type==='out'?'selected':''}>Cash Out (−)</option></select></div>
+      <div class="field" style="margin:0;"><label>Amount ₹</label><input type="number" id="cb_amt" min="0" step="0.01" value="${ed?ed.amount:''}"></div>
+      <div class="field" style="margin:0;flex:1;min-width:200px;"><label>Narration</label><input id="cb_nar" value="${ed?safeText(ed.narration||''):''}" placeholder="e.g. Sale cash received / Tea expense"></div>
+      <button class="btn amber" onclick="saveCashEntry()">${ed?'Update':'+ Add'}</button>${ed?'<button class="btn ghost" onclick="cashEditId=null;renderCashbook()">Cancel</button>':''}
+    </div></div></div>
+  <div class="panel"><div class="panel-head"><h3>Cash Book</h3>
+    <div class="row" style="gap:8px;margin:0;flex-wrap:wrap;">
+      <div class="seg" role="group">${P.map(([k,l])=>`<button type="button" class="${cashPeriod===k?'active':''}" onclick="setCashPeriod('${k}')">${l}</button>`).join('')}</div>
+      ${cashPeriod==='custom'?`<input type="date" id="cb_from" value="${cashFrom}" onchange="setCashPeriod('custom')"><input type="date" id="cb_to" value="${cashTo}" onchange="setCashPeriod('custom')">`:''}
+      <select id="cb_f" onchange="renderCashbookTable()"><option value="">In + Out</option><option value="in">Cash In only</option><option value="out">Cash Out only</option></select>
+      <input id="cb_q" placeholder="Search narration…" oninput="renderCashbookTable()" style="min-width:150px;">
+      <button class="btn ghost sm" onclick="exportCashbook()">⬇ Excel</button><button class="btn ghost sm" onclick="window.print()">🖨 Print</button>
+    </div></div>
+    <div class="panel-body table-scroll" style="padding:0;" id="cb_wrap"></div></div>`;
+  renderCashbookTable();
+}
+function cashView(){ // rows of the chosen period with running balance over ALL entries in it
+  const all=cashSorted(),flag=DB.settings.cashFlagId;let [from,to]=cashRange();let startIdx=0;
+  if(cashPeriod==='flag'){const i=all.findIndex(x=>x.id===flag);startIdx=i<0?0:i;from='';to='';}
+  const inRange=(x,i)=>cashPeriod==='flag'?i>=startIdx:(!from||x.date>=from)&&(!to||x.date<=to);
+  let open=0;all.forEach((x,i)=>{const before=cashPeriod==='flag'?i<startIdx:(from&&x.date<from);if(before)open+=x.type==='in'?+x.amount:-x.amount;});
+  let bal=open;const rows=[];all.forEach((x,i)=>{if(!inRange(x,i))return;bal+=x.type==='in'?+x.amount:-x.amount;rows.push({...x,bal});});
+  return{open,rows,close:bal};
+}
+function renderCashbookTable(){
+  const W=document.getElementById('cb_wrap');if(!W)return;
+  const f=document.getElementById('cb_f')?.value||'',q=(document.getElementById('cb_q')?.value||'').toLowerCase();
+  const v=cashView(),show=v.rows.filter(r=>(!f||r.type===f)&&(!q||(r.narration||'').toLowerCase().includes(q)));
+  const tin=show.filter(r=>r.type==='in').reduce((t,r)=>t+ +r.amount,0),tout=show.filter(r=>r.type==='out').reduce((t,r)=>t+ +r.amount,0);
+  const flag=DB.settings.cashFlagId;
+  W.innerHTML=`<table><thead><tr><th>Date</th><th>Narration</th><th class="num">Cash In ₹</th><th class="num">Cash Out ₹</th><th class="num">Balance ₹</th><th class="no-print">Actions</th></tr></thead><tbody>
+  <tr style="background:var(--b2,#f4f4f4);"><td colspan="4"><b>Opening balance</b></td><td class="num mono"><b>${fmt(v.open)}</b></td><td class="no-print"></td></tr>
+  ${show.length?show.map(r=>`<tr${r.id===flag?' style="outline:2px solid #d9a441;outline-offset:-2px;"':''}><td>${safeText(r.date)}</td><td>${safeText(r.narration||'')}</td><td class="num mono">${r.type==='in'?fmt(r.amount):''}</td><td class="num mono">${r.type==='out'?fmt(r.amount):''}</td><td class="num mono"><b>${fmt(r.bal)}</b></td>
+   <td class="no-print" style="white-space:nowrap;"><button class="btn ghost sm" title="${r.id===flag?'Remove flag':'Flag: start balance count from this entry'}" onclick="toggleCashFlag('${r.id}')">${r.id===flag?'⚑':'⚐'}</button> <button class="btn ghost sm" onclick="cashEditId='${r.id}';renderCashbook();window.scrollTo(0,0)">Edit</button> <button class="btn ghost sm" onclick="deleteCashEntry('${r.id}')">Delete</button></td></tr>`).join(''):'<tr><td colspan="6" class="muted" style="text-align:center;padding:18px;">No entries for this selection</td></tr>'}
+  </tbody><tfoot><tr><td colspan="2"><b>Total (shown)</b></td><td class="num mono"><b>${fmt(tin)}</b></td><td class="num mono"><b>${fmt(tout)}</b></td><td class="num mono"></td><td class="no-print"></td></tr>
+  <tr style="background:var(--b2,#f4f4f4);"><td colspan="4"><b>Closing balance${cashPeriod==='flag'&&flag?' (since ⚑ flag)':''}</b></td><td class="num mono"><b>${fmt(v.close)}</b></td><td class="no-print"></td></tr></tfoot></table>`;
+}
+function saveCashEntry(){
+  const date=document.getElementById('cb_date').value,type=document.getElementById('cb_type').value,amount=Math.round((+document.getElementById('cb_amt').value||0)*100)/100,narration=document.getElementById('cb_nar').value.trim();
+  if(!date){showToast('Enter the date');return;}if(!(amount>0)){showToast('Enter an amount greater than 0');return;}
+  DB.cashEntries=DB.cashEntries||[];
+  if(cashEditId){const x=DB.cashEntries.find(v=>v.id===cashEditId);if(x)Object.assign(x,{date,type,amount,narration});cashEditId=null;}
+  else DB.cashEntries.push({id:cid(),seq:Date.now(),date,type,amount,narration,by:currentUserName||currentUserRole});
+  saveDB();renderCashbook();showToast('Cash entry saved');
+}
+function deleteCashEntry(id){askConfirm('Delete this cash entry?',()=>{DB.cashEntries=DB.cashEntries.filter(x=>x.id!==id);if(DB.settings.cashFlagId===id)delete DB.settings.cashFlagId;_binArm=false;saveDB();renderCashbookTable();});}
+function toggleCashFlag(id){if(DB.settings.cashFlagId===id)delete DB.settings.cashFlagId;else DB.settings.cashFlagId=id;saveDB();renderCashbookTable();showToast(DB.settings.cashFlagId?'Flag set — use "From ⚑ flag" to see the balance from this entry':'Flag removed');}
+function exportCashbook(){
+  if(typeof XLSX==='undefined'){showToast('Excel library not loaded — check your internet connection');return;}
+  const v=cashView();if(!v.rows.length){showToast('No entries to export');return;}
+  const data=[{Date:'',Narration:'Opening balance','Cash In':'','Cash Out':'',Balance:v.open},...v.rows.map(r=>({Date:r.date,Narration:r.narration||'','Cash In':r.type==='in'?+r.amount:'','Cash Out':r.type==='out'?+r.amount:'',Balance:r.bal})),{Date:'',Narration:'Closing balance','Cash In':'','Cash Out':'',Balance:v.close}];
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(data),'Cash Book');XLSX.writeFile(wb,'cashbook-'+todayStr()+'.xlsx');
+}
 function renderScrap(){
   DB.scrapItems=DB.scrapItems||[];
   document.getElementById('view').innerHTML=`
@@ -6166,7 +6241,7 @@ function applyRoleRestrictions(){
   const userEl = document.getElementById('sidefootUser');
   if(userEl) userEl.textContent = 'Signed in as '+(currentUserName||(isAdmin?'Admin':'Staff'));
 }
-const ADMIN_ONLY_VIEWS = ['alerts','gstr1','recyclebin','dashboard','approvals','purchase','settings','employees'];
+const ADMIN_ONLY_VIEWS = ['cashbook','alerts','gstr1','recyclebin','dashboard','approvals','purchase','settings','employees'];
 function startApp(){
   // Admin recovery is deliberately allowed even when every database is down.
   // Normal users/staff still require a connected database.

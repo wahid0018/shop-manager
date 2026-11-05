@@ -1549,7 +1549,7 @@ html[data-theme="daisy"] :is(.stat .foot,#dashboardOut .stat .foot,.approval-top
       <button class="navbtn" data-view="duesregister"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16M4 10h9M4 15h6"/><circle cx="17" cy="16" r="4"/><path d="M17 14v2l1.2 1"/></svg></span> <span class="label">Pending Dues Register</span></button>
       <button class="navbtn" data-view="warranty"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg></span> <span class="label">Warranty / Out Repair</span></button>
       <div class="navlabel">Records</div>
-      <button class="navbtn adminonly" data-view="cashbook"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 9v.01M18 15v.01"/></svg></span> <span class="label">Cash In / Out</span></button>
+      <button class="navbtn" data-view="cashbook"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 9v.01M18 15v.01"/></svg></span> <span class="label">Cash In / Out</span></button>
       <button class="navbtn" data-view="scrap"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v5M14 11v5"/></svg></span> <span class="label">Scrap Products</span></button>
       <button class="navbtn" data-view="inventory"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/></svg></span> <span class="label">Inventory</span></button>
       <button class="navbtn adminonly" data-view="employees"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 14a6.5 6.5 0 0 1 3.5 6"/></svg></span> <span class="label">Employees</span></button>
@@ -1631,7 +1631,7 @@ window.APP_ENV = Object.freeze({
 </script>
 <script>
 /* App version. Bumped by tools/release.py (also updates version.json and the ?v= cache stamps in index.html). */
-const APP_VERSION='1.0.125';
+const APP_VERSION='1.0.126';
 document.title='Shop Manager — v'+APP_VERSION;
 
 </script>
@@ -2079,6 +2079,7 @@ function stockBadge(p){
 function updateBranding(){
   document.title = DB.settings.shopName || 'Shop Manager';
   document.getElementById('brandName').textContent = DB.settings.shopName || 'Shop Manager';
+  const lg=DB.settings.logo;if(lg){let l=document.getElementById('favLogo');if(!l){l=document.createElement('link');l.id='favLogo';l.rel='icon';document.head.appendChild(l);}if(l.href!==lg)l.href=lg;}
 }
 function isMobileLayout(){return window.matchMedia('(max-width:700px)').matches || document.documentElement.classList.contains('mobile-device');}
 function detectDeviceLayout(){
@@ -5212,7 +5213,7 @@ function renderMyApprovals(){
   document.getElementById('view').innerHTML=`<div class="panel"><div class="panel-head"><h3>My Approval Requests</h3><span style="font-size:12px;color:var(--text-soft)">In process: ${pend}</span></div><div class="panel-body table-scroll" style="padding:0"><table><thead><tr><th>Requested</th><th>Section</th><th>Record</th><th>Request</th><th>Status</th><th>Reviewed</th></tr></thead><tbody>${rows.length?rows.map(r=>{const rec=r.entity==='warranty'?(DB.warrantyJobs||[]).find(x=>x.id===r.recordId):registerRecords(r.entity).find(x=>x.id===r.recordId);const pv=r.entity==='paymentvoucher'?r.changes?.paymentVoucher:null;const what=r.action==='delete'?'Delete record':r.action==='create'?(pv?'New payment voucher · ₹'+fmt(pv.totalAmount):'New record'):'Edit record';return `<tr><td>${safeText(new Date(r.requestedAt).toLocaleString())}</td><td>${safeText(labels[r.entity]||r.entity)}</td><td>${safeText((r.entity==='product'&&r.action==='create'?'New: '+(r.changes?.product?.name||''):registerRef(r.entity,rec)))}</td><td>${safeText(what)}</td><td>${badge(r.status)}</td><td>${r.reviewedAt?safeText(new Date(r.reviewedAt).toLocaleString()):'—'}</td></tr>`}).join(''):'<tr><td colspan="6" class="empty">You have not sent any approval requests.</td></tr>'}</tbody></table></div></div>`;
 }
 function toggleAdminVisibility(view,visible){DB.settings.adminHiddenViews=(DB.settings.adminHiddenViews||[]).filter(v=>v!==view);if(!visible)DB.settings.adminHiddenViews.push(view);saveDB();applyRoleRestrictions();}
-const ADMIN_TOGGLE_VIEWS=['creditnote','gstr1','duesregister','renewaltrack','salary','dashboard','purchase','sale','voucher','service','quotation','approvals','purchaseregister','paymentvoucher','salesregister','voucherregister','serviceregister','warranty','inventory','employees','customers','todos','scrap'];
+const ADMIN_TOGGLE_VIEWS=['cashbook','creditnote','gstr1','duesregister','renewaltrack','salary','dashboard','purchase','sale','voucher','service','quotation','approvals','purchaseregister','paymentvoucher','salesregister','voucherregister','serviceregister','warranty','inventory','employees','customers','todos','scrap'];
 
 </script>
 <script>
@@ -5400,7 +5401,7 @@ function renderUISettings(){
     </div></div>`;
 }
 /* sections an Admin account can show or hide for itself (managed per account in User Accounts & Access) */
-const ADMIN_VIEW_LABELS=[['duesregister','Pending Dues Register'],['renewaltrack','Software Renewals'],['dashboard','Dashboard'],['purchase','Purchase'],['sale','Sale (Invoice)'],['voucher','Challan'],['service','Service Sale'],['quotation','Quotation / Challan'],['approvals','Pending Approvals'],['purchaseregister','Purchase Register'],['paymentvoucher','Purchase Payment Voucher'],['salesregister','Sales Register'],['inventory','Inventory'],['creditnote','Credit / Debit Note'],['voucherregister','Challan Register'],['serviceregister','Service Register'],['warranty','Warranty / Out Repair'],['scrap','Scrap Products'],['employees','Employees'],['salary','Salary Register'],['customers','Customers'],['todos','To-Do List']];
+const ADMIN_VIEW_LABELS=[['cashbook','Cash In / Out'],['duesregister','Pending Dues Register'],['renewaltrack','Software Renewals'],['dashboard','Dashboard'],['purchase','Purchase'],['sale','Sale (Invoice)'],['voucher','Challan'],['service','Service Sale'],['quotation','Quotation / Challan'],['approvals','Pending Approvals'],['purchaseregister','Purchase Register'],['paymentvoucher','Purchase Payment Voucher'],['salesregister','Sales Register'],['inventory','Inventory'],['creditnote','Credit / Debit Note'],['voucherregister','Challan Register'],['serviceregister','Service Register'],['warranty','Warranty / Out Repair'],['scrap','Scrap Products'],['employees','Employees'],['salary','Salary Register'],['customers','Customers'],['todos','To-Do List']];
 function adminHiddenFor(){const acct=(DB.users||[]).find(u=>u.id===currentUserId)||(!currentUserId?(DB.users||[]).find(u=>u.username==='admin'):null);
   if(acct&&Array.isArray(acct.adminViews))return ADMIN_VIEW_LABELS.map(x=>x[0]).filter(v=>!acct.adminViews.includes(v));return (DB.settings&&DB.settings.adminHiddenViews)||[];}
 function renderSettings(){
@@ -5848,7 +5849,7 @@ function togglePaidBox(id, btn){
   el.style.display = open ? 'block' : 'none';
   btn.textContent = btn.textContent.replace(open?'▸':'▾', open?'▾':'▸');
 }
-const STAFF_CONFIGURABLE_VIEWS=['duesregister','renewaltrack','sale','voucher','service','quotation','customers','todos','purchaseregister','paymentvoucher','salesregister','creditnote','voucherregister','serviceregister','warranty','inventory','inventoryedit','scrap'];
+const STAFF_CONFIGURABLE_VIEWS=['cashbook','duesregister','renewaltrack','sale','voucher','service','quotation','customers','todos','purchaseregister','paymentvoucher','salesregister','creditnote','voucherregister','serviceregister','warranty','inventory','inventoryedit','scrap'];
 function canStaffAccess(view){if(view==='uisettings'||view==='myapprovals'||view==='staffdash')return true;if(currentUserRole==='admin')return true;if(ADMIN_ONLY_VIEWS.includes(view)||!STAFF_CONFIGURABLE_VIEWS.includes(view))return false;const account=(DB.users||[]).find(u=>u.id===currentUserId);const allowed=account&&Array.isArray(account.allowedViews)?account.allowedViews:(STAFF_CONFIGURABLE_VIEWS.filter(v=>!(DB.settings.userHiddenExtra||[]).includes(v)));return allowed.includes(view);}
 function userFallbackView(){return STAFF_CONFIGURABLE_VIEWS.find(v=>canStaffAccess(v))||'todos';}
 function toggleUserVisibility(view, visible){
@@ -6234,6 +6235,7 @@ function applyRoleRestrictions(){
   if(isAdmin&&DB.settings&&!DB.settings.inventoryEditDefaultApplied){DB.settings.inventoryEditDefaultApplied=true;DB.settings.userHiddenExtra=[...(DB.settings.userHiddenExtra||[]).filter(v=>v!=='inventoryedit'),'inventoryedit'];setTimeout(()=>{try{saveDB()}catch(e){}},500);}
   document.body.classList.toggle('inv-edit',!isAdmin&&canStaffAccess('inventory')&&canStaffAccess('inventoryedit'));
   if(isAdmin&&DB.settings&&!DB.settings.creditNoteDefaultApplied){DB.settings.creditNoteDefaultApplied=true;DB.settings.userHiddenExtra=[...(DB.settings.userHiddenExtra||[]).filter(v=>v!=='creditnote'),'creditnote'];setTimeout(()=>{try{saveDB()}catch(e){}},500);}
+  if(isAdmin&&DB.settings&&!DB.settings.cashbookDefaultApplied){DB.settings.cashbookDefaultApplied=true;DB.settings.userHiddenExtra=[...(DB.settings.userHiddenExtra||[]).filter(v=>v!=='cashbook'),'cashbook'];setTimeout(()=>{try{saveDB()}catch(e){}},500);}
   if(isAdmin&&DB.settings&&!DB.settings.renewalDefaultApplied){DB.settings.renewalDefaultApplied=true;DB.settings.userHiddenExtra=[...(DB.settings.userHiddenExtra||[]).filter(v=>v!=='renewaltrack'),'renewaltrack'];setTimeout(()=>{try{saveDB()}catch(e){}},500);}
   document.querySelectorAll('.staffonly').forEach(el=>{ el.style.display = isAdmin ? 'none' : ''; });
   if(isAdmin){ const hid=adminHiddenFor(); ADMIN_TOGGLE_VIEWS.forEach(v=>{const b=document.querySelector('.navbtn[data-view="'+v+'"]'); if(b) b.style.display=hid.includes(v)?'none':'';}); }
@@ -6242,7 +6244,7 @@ function applyRoleRestrictions(){
   const userEl = document.getElementById('sidefootUser');
   if(userEl) userEl.textContent = 'Signed in as '+(currentUserName||(isAdmin?'Admin':'Staff'));
 }
-const ADMIN_ONLY_VIEWS = ['cashbook','alerts','gstr1','recyclebin','dashboard','approvals','purchase','settings','employees'];
+const ADMIN_ONLY_VIEWS = ['alerts','gstr1','recyclebin','dashboard','approvals','purchase','settings','employees'];
 function startApp(){
   // Admin recovery is deliberately allowed even when every database is down.
   // Normal users/staff still require a connected database.

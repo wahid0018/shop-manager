@@ -1290,6 +1290,7 @@ html[data-dark-mode="1"] button.btn.danger:hover,html[data-theme="midnight"] but
 <meta name="theme-color" content="#22262C">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <style id="clean-ui">
 /* ===== v1.0.89 — Clean UI: one token set, flat surfaces, consistent radius/spacing/focus =====
@@ -1475,6 +1476,7 @@ html[data-theme="daisy"] :is(.stat .foot,#dashboardOut .stat .foot,.approval-top
 </style>
 <style id="toast-pos">@media (max-width:700px){html body .toast{top:10px!important;bottom:auto!important;transform:translateY(-8px);}html body .toast.show{transform:translateY(0)!important;}}</style>
 <style id="cb-style">tr.cb-sum td{background:rgba(128,128,128,.14)!important;}</style>
+<style id="topbar-fix">@media (max-width:700px){html body header.topbar{flex-wrap:nowrap!important;height:56px!important;overflow:hidden;}html body header.topbar .topbar-title{flex:1 1 0!important;min-width:0!important;max-width:none!important;overflow:hidden;}html body header.topbar .crumb{max-width:100%!important;}html body header.topbar>*{flex-shrink:0;}html body header.topbar>.topbar-title{flex-shrink:1;}}</style>
 </head>
 <body>
 <div id="loginScreen" style="position:fixed;inset:0;background:var(--ink);display:flex;align-items:center;justify-content:center;z-index:2000;">
@@ -1631,7 +1633,7 @@ window.APP_ENV = Object.freeze({
 </script>
 <script>
 /* App version. Bumped by tools/release.py (also updates version.json and the ?v= cache stamps in index.html). */
-const APP_VERSION='1.0.126';
+const APP_VERSION='1.0.129';
 document.title='Shop Manager — v'+APP_VERSION;
 
 </script>
@@ -1785,6 +1787,12 @@ function loadDB(){
   if(saved.url||saved.key){data.settings=data.settings||{};data.settings.supabaseUrl=saved.url;data.settings.supabaseAnonKey=saved.key;data.settings.superbaseUrl=saved.url;data.settings.superbaseKey=saved.key;}
   return data;
 }
+const _ixC=new WeakMap();
+function byId(arr,id){ // indexed lookup; a stale or missing hit falls back to the linear find, so results never differ
+  if(!arr||id==null)return arr?arr.find(x=>x.id===id):undefined;
+  let m=_ixC.get(arr);if(!m||m.n!==arr.length){m={n:arr.length,map:new Map()};arr.forEach((x,i)=>{if(x&&x.id!=null&&!m.map.has(x.id))m.map.set(x.id,i);});_ixC.set(arr,m);}
+  const h=arr[m.map.get(id)];if(h&&h.id===id)return h;
+  return arr.find(x=>x.id===id);}
 function cloneDB(v){return JSON.parse(JSON.stringify(v||{}))}
 
 </script>
@@ -1941,11 +1949,9 @@ async function _doSyncCloud(){
   if(!upserts.length&&!deletes.length){if(lastLocalEditAt===t0)markDirty(false);return true;}
   cloudSyncInFlight=true;
   try{
-    if(upserts.length){const {error}=await supabaseClient.from(SUPERBASE_TABLE).upsert(upserts,{onConflict:'id'});if(error)throw error}
-    if(deletes.length){const {error}=await supabaseClient.from(SUPERBASE_TABLE).upsert(deletes,{onConflict:'id'});if(error)throw error}
-    saveOvStage('Verifying on cloud…');
-    const all=[...upserts,...deletes],got=new Map();
-    for(let i=0;i<all.length;i+=100){const ids=all.slice(i,i+100).map(r=>r.id);const {data,error}=await supabaseClient.from(SUPERBASE_TABLE).select('id,deleted,data').in('id',ids);if(error)throw error;(data||[]).forEach(r=>got.set(String(r.id),r))}
+    const all=[...upserts,...deletes],got=new Map(),chunks=(n)=>{const o=[];for(let i=0;i<all.length;i+=n)o.push(all.slice(i,i+n));return o};
+    (await Promise.all(chunks(50).map(c=>supabaseClient.from(SUPERBASE_TABLE).upsert(c,{onConflict:'id'})))).forEach(r=>{if(r.error)throw r.error});
+    (await Promise.all(chunks(100).map(c=>supabaseClient.from(SUPERBASE_TABLE).select('id,deleted,data').in('id',c.map(r=>r.id))))).forEach(r=>{if(r.error)throw r.error;(r.data||[]).forEach(x=>got.set(String(x.id),x))});
     const bad=all.filter(r=>{const g=got.get(String(r.id));return !g||!!g.deleted!==!!r.deleted||(!r.deleted&&smStable(g.data)!==smStable(r.data))});
     if(bad.length)throw new Error(bad.length+' record(s) could not be verified on the cloud database');
     cloudSnapshot=after;saveBase(after);if(lastLocalEditAt===t0){markDirty(false);if(_rtMissed){_rtMissed=false;rtCatchUp();}}cloudStatusText();setTopbarSyncStatus('Superbase synced · '+after.size+' records · confirmed '+new Date().toLocaleTimeString('en-IN'),true);
@@ -1953,10 +1959,14 @@ async function _doSyncCloud(){
   }catch(e){console.error('Superbase sync failed',e);setTopbarSyncStatus('⚠ NOT SAVED to the cloud — kept on this device, retrying',false);showSyncFatal(e);return false}
   finally{cloudSyncInFlight=false}
 }
+(function(){const skip=i=>i.closest('#loginScreen,#sidebar,header.topbar,.modal');
+  const fix=i=>{if(i.tagName==='IMG'&&!i.hasAttribute('loading')&&!skip(i)){i.loading='lazy';i.decoding='async';}};
+  const all=r=>(r.querySelectorAll?r.querySelectorAll('img'):[]).forEach(fix);
+  const go=()=>{all(document);new MutationObserver(ms=>ms.forEach(m=>m.addedNodes.forEach(n=>{if(n.nodeType===1){fix(n);all(n);}}))).observe(document.body,{childList:true,subtree:true});};document.body?go():document.addEventListener('DOMContentLoaded',go);})();
 function saveOvEl(){let o=document.getElementById('saveOv');if(!o){o=document.createElement('div');o.id='saveOv';o.className='no-print';document.body.appendChild(o);}return o;}
 function saveOvStage(t){const m=document.getElementById('saveOvMsg');if(m)m.textContent=t;}
-function showSaving(){const o=saveOvEl();if(o.dataset.state==='saving')return;o.dataset.state='saving';o.innerHTML='<div class="sov-card"><div class="sov-spin"></div><div id="saveOvMsg">Saving record…</div></div>';}
-function showSavedOk(){const o=saveOvEl();o.dataset.state='ok';o.innerHTML='<div class="sov-card"><svg class="sov-tick" viewBox="0 0 52 52"><circle cx="26" cy="26" r="23"/><path d="M15 27l8 8 14-16"/></svg><div>Saved &amp; verified on cloud</div></div>';setTimeout(()=>{if(o.dataset.state==='ok')o.remove();},750);}
+function showSaving(){/* silent: saves are verified in the background; only a failure interrupts the user */}
+function showSavedOk(){const o=document.getElementById('saveOv');if(o)o.remove();}
 function showSyncFatal(e){const o=saveOvEl();o.dataset.state='fail';const m=String((e&&e.message)||e||'Unknown error');
   o.innerHTML='<div class="sov-card sov-fail"><svg class="sov-tick sov-x" viewBox="0 0 52 52"><circle cx="26" cy="26" r="23"/><path d="M18 18l16 16M34 18L18 34"/></svg><div class="sov-title">FATAL: Superbase sync failed</div><div class="sov-sub">Not saved — your last change is not on the cloud database. Entry is disabled until it is saved.</div><div class="sov-err">'+safeText(m)+'</div><div class="sov-btns"><button class="btn amber sm" onclick="retrySaveFromOverlay()">Try saving again</button><button class="btn ghost sm" onclick="location.reload()">Reload app</button></div></div>';}
 async function retrySaveFromOverlay(){showSaving();const ok=await syncCloudNow();if(ok)showSavedOk();}
@@ -2079,7 +2089,6 @@ function stockBadge(p){
 function updateBranding(){
   document.title = DB.settings.shopName || 'Shop Manager';
   document.getElementById('brandName').textContent = DB.settings.shopName || 'Shop Manager';
-  const lg=DB.settings.logo;if(lg){let l=document.getElementById('favLogo');if(!l){l=document.createElement('link');l.id='favLogo';l.rel='icon';document.head.appendChild(l);}if(l.href!==lg)l.href=lg;}
 }
 function isMobileLayout(){return window.matchMedia('(max-width:700px)').matches || document.documentElement.classList.contains('mobile-device');}
 function detectDeviceLayout(){
@@ -2570,7 +2579,7 @@ function renderInventory(){
 }
 function openItemHistory(id){
   if(currentUserRole!=='admin'){showToast('Item history is available to Admin only');return;}
-  const p=DB.products.find(x=>x.id===id);if(!p)return;
+  const p=byId(DB.products,id);if(!p)return;
   const rows=[];
   const add=(list,kind,noF,partyF,sign)=>(list||[]).forEach(d=>(d.lines||[]).forEach(l=>{if(l.productId===id)rows.push({date:d.date||'',kind,no:d[noF]||'',party:d[partyF]||'',qty:+l.qty||0,price:+l.price||+l.purchasePrice||0,code:l.detail||(l.barcodes||[]).join(', '),sign});}));
   add(DB.sales,'Sale','invoiceNo','customer',-1);add(DB.vouchers,'Challan','voucherNo','customer',-1);if(currentUserRole==='admin')add(DB.purchases,'Purchase','purchaseNo','supplier',1);
@@ -2663,7 +2672,7 @@ function findAnyUnitOwner(code){
   return null;
 }
 function openBarcodeManager(productId){
-  const p = DB.products.find(x=>x.id===productId);
+  const p = byId(DB.products,productId);
   if(!p) return;
   if(!p.barcodeUnits) p.barcodeUnits = [];
   openModal('Barcodes — '+p.name, `
@@ -2680,7 +2689,7 @@ function openBarcodeManager(productId){
   renderBarcodeUnitList(productId);
 }
 function renderBarcodeUnitList(productId){
-  const p = DB.products.find(x=>x.id===productId);
+  const p = byId(DB.products,productId);
   const box = document.getElementById('bc_unit_list');
   if(!box || !p) return;
   const units = p.barcodeUnits||[],sold=units.filter(u=>u.status!=='available').length; /* sold barcodes stay on file (they never repeat) but are not listed */
@@ -2694,7 +2703,7 @@ function addBarcodeUnit(productId){
   if(!code) return;
   const owner = findAnyUnitOwner(code);
   if(owner){ showToast('This barcode is already recorded'+(owner.product.id!==productId?' on "'+owner.product.name+'"':' for this item')); return; }
-  const p = DB.products.find(x=>x.id===productId);
+  const p = byId(DB.products,productId);
   if(!p.barcodeUnits) p.barcodeUnits = [];
   p.barcodeUnits.push({code, status:'available'});
   saveDB();
@@ -2703,9 +2712,9 @@ function addBarcodeUnit(productId){
   renderBarcodeUnitList(productId);
 }
 function removeBarcodeUnit(productId, idx){
-  if(currentUserRole!=='admin'){const u=((DB.products.find(x=>x.id===productId)||{}).barcodeUnits||[])[idx];if(!u)return;askConfirm('Send a request to the Admin to remove barcode '+u.code+'?',()=>requestRegisterApproval('product',productId,'barcode-remove',{code:u.code}));return;}
+  if(currentUserRole!=='admin'){const u=((byId(DB.products,productId)||{}).barcodeUnits||[])[idx];if(!u)return;askConfirm('Send a request to the Admin to remove barcode '+u.code+'?',()=>requestRegisterApproval('product',productId,'barcode-remove',{code:u.code}));return;}
   askConfirm('Remove this barcode record?', ()=>{
-    const p = DB.products.find(x=>x.id===productId);
+    const p = byId(DB.products,productId);
     p.barcodeUnits.splice(idx,1);
     saveDB();
     renderBarcodeUnitList(productId);
@@ -2713,7 +2722,7 @@ function removeBarcodeUnit(productId, idx){
 }
 function openProductModal(id){
   if(currentUserRole!=='admin'&&!document.body.classList.contains('inv-edit')){showToast('You do not have permission to edit products');return;}
-  const p = id ? DB.products.find(x=>x.id===id) : {sku:'',hsn:'',brand:'',name:'',category:'',purchasePrice:'',salePrice:'',stock:0,reorderLevel:3,image:''};
+  const p = id ? byId(DB.products,id) : {sku:'',hsn:'',brand:'',name:'',category:'',purchasePrice:'',salePrice:'',stock:0,reorderLevel:3,image:''};
   productImageDraft = null;
   const urlVal = p.image && !p.image.startsWith('data:') ? p.image : '';
   openModal(id?'Edit Product':'Add Product', `
@@ -2810,13 +2819,13 @@ function saveProduct(id){
   let image;
   if(productImageDraft==='REMOVE') image='';
   else if(productImageDraft) image=productImageDraft;
-  else image = document.getElementById('f_image_url').value.trim() || (id ? (DB.products.find(x=>x.id===id).image||'') : '');
+  else image = document.getElementById('f_image_url').value.trim() || (id ? (byId(DB.products,id).image||'') : '');
   const data = {
     sku: sku || ('SKU-'+Math.floor(Math.random()*9000+1000)),
     brand: document.getElementById('f_brand').value.trim(),
     hsn: document.getElementById('f_hsn').value.trim(),
     name, category: document.getElementById('f_cat').value.trim()||'General',
-    purchasePrice: document.getElementById('f_pp')?(parseFloat(document.getElementById('f_pp').value)||0):(id?(DB.products.find(x=>x.id===id)||{}).purchasePrice||0:0),
+    purchasePrice: document.getElementById('f_pp')?(parseFloat(document.getElementById('f_pp').value)||0):(id?(byId(DB.products,id)||{}).purchasePrice||0:0),
     salePrice: parseFloat(document.getElementById('f_sp').value)||0,
     gstPercent: parseFloat(document.getElementById('f_gst').value)||0,
     stock: parseInt(document.getElementById('f_stock').value)||0,
@@ -2827,18 +2836,18 @@ function saveProduct(id){
   };
   if(currentUserRole!=='admin'){
     productImageDraft=null;
-    if(id){const cur=DB.products.find(x=>x.id===id)||{},ch={};Object.keys(data).forEach(k=>{if(k!=='purchasePrice'&&data[k]!==cur[k]&&!(k==='disabled'&&!!data[k]===!!cur[k])&&!(cur[k]==null&&(data[k]===''||data[k]==='NOS')))ch[k]=data[k];});
+    if(id){const cur=byId(DB.products,id)||{},ch={};Object.keys(data).forEach(k=>{if(k!=='purchasePrice'&&data[k]!==cur[k]&&!(k==='disabled'&&!!data[k]===!!cur[k])&&!(cur[k]==null&&(data[k]===''||data[k]==='NOS')))ch[k]=data[k];});
       if(!Object.keys(ch).length){showToast('No changes to send');closeModal();return;}
       requestRegisterApproval('product',id,'update',ch);}
     else{DB.products.push({id:cid(),...data,purchasePrice:0});saveDB();showToast('Product added');}
     closeModal();renderInventoryTable();return;}
-  if(id){ Object.assign(DB.products.find(x=>x.id===id), data); showToast('Product updated'); }
+  if(id){ Object.assign(byId(DB.products,id), data); showToast('Product updated'); }
   else { DB.products.push({id:cid(), ...data}); showToast('Product added'); }
   productImageDraft = null;
   saveDB(); closeModal(); renderInventoryTable();
 }
 function deleteProduct(id){
-  if(currentUserRole!=='admin'){if(!document.body.classList.contains('inv-edit')){showToast('You do not have permission to delete products');return;}askConfirm('Send a request to the Admin to delete this product?',()=>requestRegisterApproval('product',id,'delete',{name:(DB.products.find(x=>x.id===id)||{}).name||'',sku:(DB.products.find(x=>x.id===id)||{}).sku||''}));return;}
+  if(currentUserRole!=='admin'){if(!document.body.classList.contains('inv-edit')){showToast('You do not have permission to delete products');return;}askConfirm('Send a request to the Admin to delete this product?',()=>requestRegisterApproval('product',id,'delete',{name:(byId(DB.products,id)||{}).name||'',sku:(byId(DB.products,id)||{}).sku||''}));return;}
   askConfirm('Delete this product? This cannot be undone.', ()=>{
     DB.products = DB.products.filter(x=>x.id!==id); saveDB(); renderInventoryTable();
   });
@@ -2858,7 +2867,7 @@ function renderEmployees(){
     </tbody></table></div></div>`;
 }
 function openEmployeeModal(id){
-  const e = id? DB.employees.find(x=>x.id===id) : {name:'',role:'',phone:''};
+  const e = id? byId(DB.employees,id) : {name:'',role:'',phone:''};
   openModal(id?'Edit Employee':'Add Employee', `
     <div class="field"><label>Full Name</label><input id="e_name" value="${e.name}"></div>
     <div class="row"><div class="field"><label>Role</label><input id="e_role" value="${e.role}" placeholder="Sales Associate, Technician..."></div>
@@ -2869,7 +2878,7 @@ function saveEmployee(id){
   const name=document.getElementById('e_name').value.trim();
   if(!name){ showToast('Name is required'); return; }
   const data={name, role:document.getElementById('e_role').value.trim()||'Staff', phone:document.getElementById('e_phone').value.trim()};
-  if(id){ Object.assign(DB.employees.find(x=>x.id===id), data); showToast('Employee updated'); }
+  if(id){ Object.assign(byId(DB.employees,id), data); showToast('Employee updated'); }
   else { DB.employees.push({id:cid(), ...data}); showToast('Employee added'); }
   saveDB(); closeModal(); renderEmployees();
 }
@@ -2893,7 +2902,7 @@ let activeTodoPageId = null;
 let completedSectionOpen = false;
 function renderTodos(){
   if(!DB.todoPages.length) DB.todoPages.push({id:cid(), name:'General', tasks:[]});
-  if(!activeTodoPageId || !DB.todoPages.find(p=>p.id===activeTodoPageId)) activeTodoPageId = DB.todoPages[0].id;
+  if(!activeTodoPageId || !byId(DB.todoPages,activeTodoPageId)) activeTodoPageId = DB.todoPages[0].id;
   document.getElementById('view').innerHTML = `
     <div class="panel">
       <div class="panel-head" style="flex-wrap:wrap;">
@@ -2932,14 +2941,14 @@ function addTodoPage(){
 function deleteTodoPage(id){
   if(DB.todoPages.length<=1){ showToast("Can't delete the only page"); return; }
   askConfirm('Delete this page and all its tasks?', ()=>{
-    const gp = DB.todoPages.find(p=>p.id===id); if(gp&&gp.gtListId)(DB.settings.gtDeleted=DB.settings.gtDeleted||[]).push({l:gp.gtListId});
+    const gp = byId(DB.todoPages,id); if(gp&&gp.gtListId)(DB.settings.gtDeleted=DB.settings.gtDeleted||[]).push({l:gp.gtListId});
     DB.todoPages = DB.todoPages.filter(p=>p.id!==id);
     activeTodoPageId = DB.todoPages[0].id;
     saveDB(); renderTodos();
   });
 }
 function renderTodoPageBody(){
-  const page = DB.todoPages.find(p=>p.id===activeTodoPageId);
+  const page = byId(DB.todoPages,activeTodoPageId);
   if(!page) return;
   const active = page.tasks.filter(t=>!t.done);
   const completed = page.tasks.filter(t=>t.done);
@@ -2988,7 +2997,7 @@ function addTask(){
   const text = document.getElementById('newTaskText').value.trim();
   if(!text){ showToast('Enter a task first'); return; }
   const priority = document.getElementById('newTaskPriority').value;
-  const page = DB.todoPages.find(p=>p.id===activeTodoPageId);
+  const page = byId(DB.todoPages,activeTodoPageId);
   const asg=(document.getElementById('newTaskAssign')||{}).value||'';
   page.tasks.push({id:cid(), text, priority, done:false, assignedTo:asg});
   if((document.getElementById('newTaskAlert')||{}).checked)assignAlert(asg,text,page.name);
@@ -2996,21 +3005,21 @@ function addTask(){
   renderTodoPageBody();
 }
 function toggleTask(id){
-  const page = DB.todoPages.find(p=>p.id===activeTodoPageId);
+  const page = byId(DB.todoPages,activeTodoPageId);
   const t = page.tasks.find(x=>x.id===id);
   if(t&&currentUserRole!=='admin'&&t.assignedTo){ showToast('Only Admin can complete assigned tasks'); renderTodoPageBody(); return; }
   if(t){ t.done = !t.done; if(!t.done){t.staffDone=false;} saveDB(); renderTodoPageBody(); }
 }
 function deleteTask(id){
   askConfirm('Delete this task?', ()=>{
-    const page = DB.todoPages.find(p=>p.id===activeTodoPageId);
+    const page = byId(DB.todoPages,activeTodoPageId);
     const gone = page.tasks.find(x=>x.id===id); if(gone&&gone.gtId&&page.gtListId)(DB.settings.gtDeleted=DB.settings.gtDeleted||[]).push({l:page.gtListId,id:gone.gtId});
     page.tasks = page.tasks.filter(x=>x.id!==id);
     saveDB(); renderTodoPageBody();
   });
 }
 function editTask(id){
-  const page = DB.todoPages.find(p=>p.id===activeTodoPageId);
+  const page = byId(DB.todoPages,activeTodoPageId);
   const t = page.tasks.find(x=>x.id===id);
   if(!t) return;
   openModal('Edit Task', `
@@ -3026,7 +3035,7 @@ function editTask(id){
 function saveTaskEdit(id){
   const text = document.getElementById('edit_task_text').value.trim();
   if(!text){ showToast('Task text is required'); return; }
-  const page = DB.todoPages.find(p=>p.id===activeTodoPageId);
+  const page = byId(DB.todoPages,activeTodoPageId);
   const t = page.tasks.find(x=>x.id===id);
   t.text = text; t.priority = document.getElementById('edit_task_priority').value; const as=document.getElementById('edit_task_assign'); if(as&&as.value!==(t.assignedTo||'')){t.assignedTo=as.value||'';t.staffDone=false;t.doneBy='';if((document.getElementById('edit_task_alert')||{}).checked)assignAlert(t.assignedTo,text,page.name);}
   saveDB(); closeModal(); renderTodoPageBody();
@@ -3106,7 +3115,7 @@ function gtOpen(){
 function assignOptions(sel){return '<option value="">— nobody —</option>'+(DB.users||[]).filter(u=>u.enabled!==false&&u.role!=='admin').map(u=>`<option value="${safeText(u.id)}" ${u.id===sel?'selected':''}>${safeText(u.name||u.username)}</option>`).join('');}
 function assignAlert(uid,text,page){if(!uid)return;(DB.alerts=DB.alerts||[]).push({id:cid(),title:'New task assigned',message:text+(page?'  ('+page+')':''),to:[uid],from:currentUserName||'Admin',createdAt:new Date().toISOString(),urgent:false,repeatMin:0});}
 function assigneeName(id){const u=(DB.users||[]).find(x=>x.id===id);return u?(u.name||u.username):'(removed user)';}
-function staffTaskDone(pid,tid){const p=DB.todoPages.find(x=>x.id===pid),t=p&&p.tasks.find(x=>x.id===tid);if(!t)return;t.staffDone=true;t.doneBy=currentUserName||'Staff';t.doneAt=new Date().toLocaleString('en-IN');saveDB();renderStaffDash();}
+function staffTaskDone(pid,tid){const p=byId(DB.todoPages,pid),t=p&&p.tasks.find(x=>x.id===tid);if(!t)return;t.staffDone=true;t.doneBy=currentUserName||'Staff';t.doneAt=new Date().toLocaleString('en-IN');saveDB();renderStaffDash();}
 function renderStaffDash(){
   const me=currentUserId||'',k=window.alertMyKey?alertMyKey():'';
   const tasks=[];DB.todoPages.forEach(p=>p.tasks.forEach(t=>{if(me&&t.assignedTo===me&&!t.done)tasks.push({p,t});}));
@@ -3136,9 +3145,9 @@ function scPhotoAdd(inp){const f=inp.files&&inp.files[0];inp.value='';if(!f)retu
     const sc=Math.min(1,900/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*sc);c.height=Math.round(im.height*sc);
     c.getContext('2d').drawImage(im,0,0,c.width,c.height);
     if(scPhotos.length>=SC_MAX_PHOTOS)return;scPhotos.push(c.toDataURL('image/jpeg',0.6));scPhotosPaint();};im.onerror=()=>showToast('Could not read that image');im.src=e.target.result;};rd.readAsDataURL(f);}
-function scrapPhotoView(id){const x=DB.scrapItems.find(v=>v.id===id);if(!x||!(x.photos||[]).length)return;
+function scrapPhotoView(id){const x=byId(DB.scrapItems,id);if(!x||!(x.photos||[]).length)return;
   openModal('Photos · '+safeText(x.ref||''),'<div style="display:flex;gap:10px;flex-wrap:wrap;">'+x.photos.map((u,i)=>`<div style="text-align:center;"><img src="${u}" style="max-width:100%;width:240px;border-radius:8px;"><br>${currentUserRole==='admin'?`<button class="btn danger sm" style="margin-top:6px;" onclick="scrapPhotoDelete('${id}',${i})">Delete photo</button>`:''}</div>`).join('')+'</div><p style="font-size:12px;color:#6b6554;margin-top:10px;">Deleting a photo frees its database space.</p>','<button class="btn ghost" onclick="closeModal()">Close</button>');}
-function scrapPhotoDelete(id,i){askConfirm('Delete this photo permanently?',()=>{const x=DB.scrapItems.find(v=>v.id===id);if(!x||!x.photos)return;x.photos.splice(i,1);if(!x.photos.length)delete x.photos;_binArm=false;saveDB();renderScrap();if(x.photos&&x.photos.length)scrapPhotoView(id);});}
+function scrapPhotoDelete(id,i){askConfirm('Delete this photo permanently?',()=>{const x=byId(DB.scrapItems,id);if(!x||!x.photos)return;x.photos.splice(i,1);if(!x.photos.length)delete x.photos;_binArm=false;saveDB();renderScrap();if(x.photos&&x.photos.length)scrapPhotoView(id);});}
 /* ---------- Cash In / Out book (admin) ---------- */
 let cashPeriod='month',cashFrom='',cashTo='',cashEditId=null;
 function localISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
@@ -3152,7 +3161,7 @@ function cashRange(){const n=new Date(),t=localISO(n);
 function setCashPeriod(p){cashPeriod=p;if(p==='custom'){cashFrom=document.getElementById('cb_from')?.value||cashFrom;cashTo=document.getElementById('cb_to')?.value||cashTo;}renderCashbook();}
 function renderCashbook(){
   DB.cashEntries=DB.cashEntries||[];
-  const ed=cashEditId&&DB.cashEntries.find(x=>x.id===cashEditId);
+  const ed=cashEditId&&byId(DB.cashEntries,cashEditId);
   const P=[['today','Today'],['week','This week'],['month','This month'],['flag','From ⚑ flag'],['custom','Custom'],['all','All']];
   const [rf,rt]=cashRange();
   document.getElementById('view').innerHTML=`
@@ -3200,7 +3209,7 @@ function saveCashEntry(){
   const date=document.getElementById('cb_date').value,type=document.getElementById('cb_type').value,amount=Math.round((+document.getElementById('cb_amt').value||0)*100)/100,narration=document.getElementById('cb_nar').value.trim();
   if(!date){showToast('Enter the date');return;}if(!(amount>0)){showToast('Enter an amount greater than 0');return;}
   DB.cashEntries=DB.cashEntries||[];
-  if(cashEditId){const x=DB.cashEntries.find(v=>v.id===cashEditId);if(x)Object.assign(x,{date,type,amount,narration});cashEditId=null;}
+  if(cashEditId){const x=byId(DB.cashEntries,cashEditId);if(x)Object.assign(x,{date,type,amount,narration});cashEditId=null;}
   else DB.cashEntries.push({id:cid(),seq:Date.now(),date,type,amount,narration,by:currentUserName||currentUserRole});
   saveDB();renderCashbook();showToast('Cash entry saved');
 }
@@ -3256,7 +3265,7 @@ function scrapDelete(id){
   askConfirm('Delete this scrap entry?',()=>{DB.scrapItems=DB.scrapItems.filter(x=>x.id!==id);saveDB();renderScrap();});
 }
 function scrapMoveOpen(id){
-  const x=DB.scrapItems.find(v=>v.id===id);if(!x||currentUserRole!=='admin')return;
+  const x=byId(DB.scrapItems,id);if(!x||currentUserRole!=='admin')return;
   const match=DB.products.find(p=>!p.disabled&&p.name.toLowerCase()===x.name.toLowerCase());
   openModal('Repaired → move to inventory',`
     <p style="font-size:13px;margin:0 0 10px;"><b>${safeText(x.name)}</b> · ${safeText(x.ref)} · ${x.qty} in scrap</p>
@@ -3267,7 +3276,7 @@ function scrapMoveOpen(id){
     `<button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn amber" onclick="scrapMove('${id}')">Move to Inventory</button>`);
 }
 function scrapMove(id){
-  const x=DB.scrapItems.find(v=>v.id===id);if(!x||currentUserRole!=='admin'||x.status==='Used in inventory')return;
+  const x=byId(DB.scrapItems,id);if(!x||currentUserRole!=='admin'||x.status==='Used in inventory')return;
   const q=parseInt(document.getElementById('sm_qty').value);
   if(!(q>=1)||q>x.qty){showToast('Quantity must be between 1 and '+x.qty);return;}
   let prod=DB.products.find(p=>p.id===document.getElementById('sm_prod').value);
@@ -3344,7 +3353,7 @@ async function fillGstinDetails(){
   finally{clearTimeout(t);btn.disabled=false;btn.textContent='Fill GSTIN Details';}
 }
 function openCustomerModal(id){
-  const c = id? DB.customers.find(x=>x.id===id) : {name:'',phone:'',gstin:'',address:'',state:'',partyRef:''};
+  const c = id? byId(DB.customers,id) : {name:'',phone:'',gstin:'',address:'',state:'',partyRef:''};
   openModal(id?'Edit Customer':'Add Customer', `
 <label style="display:flex;gap:6px;align-items:center;font-size:13px;margin-bottom:8px;"><input type="checkbox" id="c_disabled" ${c.disabled?'checked':''} style="width:auto;"> Disabled — hide from new invoices, vouchers and pickers (records are kept)</label>
     <div class="field"><label>Customer / Business Name</label><input id="c_name" value="${c.name}"></div>
@@ -3360,8 +3369,8 @@ function saveCustomer(id){
   const name=document.getElementById('c_name').value.trim();
   if(!name){ showToast('Customer name is required'); return; }
   const data={name, disabled:document.getElementById('c_disabled').checked, phone:document.getElementById('c_phone').value.trim(), gstin:document.getElementById('c_gstin').value.trim(), address:document.getElementById('c_address').value.trim(), state:document.getElementById('c_state').value, partyRef:document.getElementById('c_partyref').value.trim()};
-  if(id&&currentUserRole!=='admin'){const cur=DB.customers.find(x=>x.id===id)||{},ch={};Object.keys(data).forEach(k=>{if(String(data[k]||'')!==String(cur[k]||''))ch[k]=data[k];});if(!Object.keys(ch).length){showToast('No changes to send');closeModal();return;}requestRegisterApproval('customer',id,'update',ch);closeModal();return;}
-  if(id){ Object.assign(DB.customers.find(x=>x.id===id), data); showToast('Customer updated'); }
+  if(id&&currentUserRole!=='admin'){const cur=byId(DB.customers,id)||{},ch={};Object.keys(data).forEach(k=>{if(String(data[k]||'')!==String(cur[k]||''))ch[k]=data[k];});if(!Object.keys(ch).length){showToast('No changes to send');closeModal();return;}requestRegisterApproval('customer',id,'update',ch);closeModal();return;}
+  if(id){ Object.assign(byId(DB.customers,id), data); showToast('Customer updated'); }
   else { DB.customers.push({id:cid(), ...data}); showToast('Customer added'); }
   saveDB(); closeModal(); renderCustomers();
 }
@@ -3411,7 +3420,7 @@ function hideCustomerSuggestLater(kind){
   setTimeout(()=>{ const box=document.getElementById('suggest-cust-'+kind); if(box) box.style.display='none'; }, 150);
 }
 function pickCustomer(kind, custId){
-  const c = DB.customers.find(x=>x.id===custId);
+  const c = byId(DB.customers,custId);
   if(!c) return;
   const prefix = kind==='sale' ? 's_' : (kind==='voucher' ? 'v_' : 'q_');
   document.getElementById(prefix+'customer').value = c.name;
@@ -3556,7 +3565,7 @@ function pickProduct(kind, idx, productId){
   else if(kind==='voucher'){ voucherLines[idx].productId=productId; onVoucherLineChange(idx); }
 }
 function productSearchInputHTML(kind, idx, currentId){
-  const prod = DB.products.find(p=>p.id===currentId);
+  const prod = byId(DB.products,currentId);
   return `<div style="position:relative;">
     <input value="${prod?prod.name.replace(/"/g,'&quot;'):''}" placeholder="Search product by name, brand, category…" autocomplete="off"
       oninput="showProductSuggest(this,'${kind}',${idx})" onfocus="showProductSuggest(this,'${kind}',${idx})" onblur="hideProductSuggestLater('${kind}',${idx})">
@@ -3606,7 +3615,7 @@ function pickPurchaseSupplier(index){
 }
 function renderPurchase(editId){
   editingPurchaseId = editId || null;
-  const editing = editingPurchaseId ? DB.purchases.find(x=>x.id===editingPurchaseId) : null;
+  const editing = editingPurchaseId ? byId(DB.purchases,editingPurchaseId) : null;
   purchaseLines = editing ? editing.lines.map(l=>({...l, barcodes:[...(l.barcodes||[])]})) : [{productId:'', qty:1, cost:0, barcodes:[]}];
   document.getElementById('view').innerHTML = `
     <div class="grid g2-form" style="align-items:start;">
@@ -3655,7 +3664,7 @@ function renderPurchase(editId){
 }
 function renderPurchaseLines(){
   document.getElementById('purchaseLines').innerHTML = purchaseLines.map((l,i)=>{
-    const prod = DB.products.find(p=>p.id===l.productId);
+    const prod = byId(DB.products,l.productId);
     return `
     <div class="line-block">
       <div class="line-item-row-p" style="grid-template-columns:44px 1.9fr .7fr 1fr 1fr 30px;">
@@ -3704,7 +3713,7 @@ function openPurchaseLineBarcodes(idx){
   activePurchaseLineIdx = idx;
   const line = purchaseLines[idx];
   if(!line.barcodes) line.barcodes = [];
-  const prodName = line.productId ? (DB.products.find(p=>p.id===line.productId)||{}).name : null;
+  const prodName = line.productId ? (byId(DB.products,line.productId)||{}).name : null;
   openModal('Barcodes for this line'+(prodName?' — '+prodName:''), `
     <p style="font-size:12.5px;color:#8a8578;margin-top:0;">Every purchase can bring in different barcodes for the same item — add one per physical unit received (quantity on this line: ${line.qty}).</p>
     <div class="field"><label>Add Barcode</label>
@@ -3764,7 +3773,7 @@ function markPurchaseFullyPaid(){
 function applyPurchaseLineBarcodes(lines){
   lines.forEach(l=>{
     if(!l.barcodes || !l.barcodes.length) return;
-    const prod = DB.products.find(p=>p.id===l.productId);
+    const prod = byId(DB.products,l.productId);
     if(!prod) return;
     if(!prod.barcodeUnits) prod.barcodeUnits = [];
     l.barcodes.forEach(code=>{
@@ -3783,26 +3792,26 @@ function savePurchase(){
   const paidAmount = parseFloat(document.getElementById('p_paid').value)||0;
   const paymentMode = document.getElementById('p_paymode').value;
   if(editingPurchaseId){
-    const old = DB.purchases.find(x=>x.id===editingPurchaseId);
-    if(currentUserRole!=='admin'){requestRegisterApproval('purchase',old.id,'update',{supplier,date:document.getElementById('p_date').value||todayStr(),lines:lines.map(l=>({...l,name:DB.products.find(p=>p.id===l.productId).name,barcodes:[...(l.barcodes||[])]})),grandTotal,paidAmount,paymentMode});showToast('Purchase changes sent for Admin approval');renderPurchaseRegister();return;}
-    old.lines.forEach(l=>{ const prod=DB.products.find(p=>p.id===l.productId); if(prod) prod.stock -= l.qty; });
+    const old = byId(DB.purchases,editingPurchaseId);
+    if(currentUserRole!=='admin'){requestRegisterApproval('purchase',old.id,'update',{supplier,date:document.getElementById('p_date').value||todayStr(),lines:lines.map(l=>({...l,name:byId(DB.products,l.productId).name,barcodes:[...(l.barcodes||[])]})),grandTotal,paidAmount,paymentMode});showToast('Purchase changes sent for Admin approval');renderPurchaseRegister();return;}
+    old.lines.forEach(l=>{ const prod=byId(DB.products,l.productId); if(prod) prod.stock -= l.qty; });
     old.supplier = supplier; old.date = document.getElementById('p_date').value||todayStr();
-    old.lines = lines.map(l=>({...l, name: DB.products.find(p=>p.id===l.productId).name, barcodes:[...(l.barcodes||[])]}));
+    old.lines = lines.map(l=>({...l, name: byId(DB.products,l.productId).name, barcodes:[...(l.barcodes||[])]}));
     old.grandTotal = grandTotal; old.paidAmount = paidAmount; old.paymentMode = paymentMode;
-    lines.forEach(l=>{ const prod = DB.products.find(p=>p.id===l.productId); prod.stock += l.qty; prod.purchasePrice = l.cost; });
+    lines.forEach(l=>{ const prod = byId(DB.products,l.productId); prod.stock += l.qty; prod.purchasePrice = l.cost; });
     applyPurchaseLineBarcodes(lines);
     saveDB(); showToast('Purchase updated — stock adjusted'); renderPurchase();
     return;
   }
   const purchaseNo = buildDocNo('PUR', seriesNext(DB.purchases,'purchaseNo','PUR'));
   DB.purchases.push({ id:cid(), purchaseNo, supplier, date:document.getElementById('p_date').value||todayStr(),
-    lines: lines.map(l=>({...l, name: DB.products.find(p=>p.id===l.productId).name, barcodes:[...(l.barcodes||[])]})), grandTotal, paidAmount, paymentMode });
-  lines.forEach(l=>{ const prod = DB.products.find(p=>p.id===l.productId); prod.stock += l.qty; prod.purchasePrice = l.cost; });
+    lines: lines.map(l=>({...l, name: byId(DB.products,l.productId).name, barcodes:[...(l.barcodes||[])]})), grandTotal, paidAmount, paymentMode });
+  lines.forEach(l=>{ const prod = byId(DB.products,l.productId); prod.stock += l.qty; prod.purchasePrice = l.cost; });
   applyPurchaseLineBarcodes(lines);
   DB.settings.nextPurchaseNo++;
   saveDB(); showToast('Purchase saved — stock updated'); renderPurchase();
 }
-function deletePurchase(id,afterFn){if(currentUserRole!=='admin'){requestRegisterApproval('purchase',id,'delete',null);return;}requirePassword('delete this purchase',()=>askConfirm('Delete this purchase? Stock added by it will be reversed.',()=>{const p=DB.purchases.find(x=>x.id===id);if(!p)return;p.lines.forEach(l=>{const prod=DB.products.find(x=>x.id===l.productId);if(prod)prod.stock-=l.qty;});DB.purchases=DB.purchases.filter(x=>x.id!==id);saveDB();showToast('Purchase deleted — stock reversed');(afterFn||renderPurchaseRegister)();}));}
+function deletePurchase(id,afterFn){if(currentUserRole!=='admin'){requestRegisterApproval('purchase',id,'delete',null);return;}requirePassword('delete this purchase',()=>askConfirm('Delete this purchase? Stock added by it will be reversed.',()=>{const p=byId(DB.purchases,id);if(!p)return;p.lines.forEach(l=>{const prod=byId(DB.products,l.productId);if(prod)prod.stock-=l.qty;});DB.purchases=DB.purchases.filter(x=>x.id!==id);saveDB();showToast('Purchase deleted — stock reversed');(afterFn||renderPurchaseRegister)();}));}
 function purchasePaymentStatus(p){
   const due = p.grandTotal-(p.paidAmount||0);
   if(due<=0.004) return 'Paid';
@@ -3878,7 +3887,7 @@ function updatePurchasePayment(id,val){updateRegisterField('purchase',id,'paidAm
 function exportSelectedPurchases(){
   const ids = [...document.querySelectorAll('.pr-chk:checked, .pur-chk:checked')].map(c=>c.dataset.id);
   if(!ids.length){ showToast('Select at least one purchase first'); return; }
-  exportPurchasesCSV(DB.purchases.filter(p=>ids.includes(p.id)));
+  exportPurchasesCSV(DB.purchases.filter(function(p){return this.has(p.id)},new Set(ids)));
 }
 
 
@@ -3890,7 +3899,7 @@ let saleLines = [];
 let editingSaleId = null;
 function renderSale(editId){
   editingSaleId = editId || null;
-  const editing = editingSaleId ? DB.sales.find(x=>x.id===editingSaleId) : null;
+  const editing = editingSaleId ? byId(DB.sales,editingSaleId) : null;
   saleLines = editing ? editing.lines.map(l=>({...l})) : [{productId:'', qty:1, price:0, gstPercent:DB.settings.gstPercent||18, detail:'', description:''}];
   const priceModeDefault = editing ? (editing.priceMode||'exclusive') : 'inclusive';
   const suggestedInvNo = editing ? editing.invoiceNo : (buildDocNo(DB.settings.invoicePrefix, seriesNext(DB.sales,'invoiceNo',DB.settings.invoicePrefix)));
@@ -3978,7 +3987,7 @@ function renderSale(editId){
 }
 function renderSaleLines(){
   document.getElementById('saleLines').innerHTML = saleLines.map((l,i)=>{
-    const prod = DB.products.find(p=>p.id===l.productId);
+    const prod = byId(DB.products,l.productId);
     const lineAmt = l.qty*l.price;
     return `
     <div class="line-block">
@@ -4001,7 +4010,7 @@ function renderSaleLines(){
 }
 function setBarcodeStatus(productId, code, status){
   if(!code) return;
-  const prod = DB.products.find(p=>p.id===productId);
+  const prod = byId(DB.products,productId);
   if(!prod || !prod.barcodeUnits) return;
   const u = prod.barcodeUnits.find(x=>x.code===code);
   if(u) u.status = status;
@@ -4185,15 +4194,15 @@ function saveSale(){
   if(!lines.length){ showToast('Add at least one valid line item'); return; }
   { const bad = lines.find(l=>lineCodes(l).length > l.qty); if(bad){ showToast(''+(bad.name||'An item')+' has more barcodes than its quantity — increase Qty or remove a barcode'); return; } }
   // negative stock is allowed (e.g. sold ahead of a pending purchase) — just warn, never block
-  const oldSale = editingSaleId ? DB.sales.find(x=>x.id===editingSaleId) : null;
+  const oldSale = editingSaleId ? byId(DB.sales,editingSaleId) : null;
   let willGoNegative = [];
   for(const l of lines){
-    const prod = DB.products.find(p=>p.id===l.productId);
+    const prod = byId(DB.products,l.productId);
     const oldQty = oldSale ? (oldSale.lines.find(x=>x.productId===l.productId)?.qty||0) : 0;
     const available = prod.stock + oldQty;
     if(l.qty > available) willGoNegative.push(prod.name);
   }
-  const emp = DB.employees.find(e=>e.id===empId);
+  const emp = byId(DB.employees,empId);
   const supply = document.getElementById('s_supply').value;
   const priceMode = document.getElementById('s_pricemode').value;
   const invoiceNo = document.getElementById('s_invno').value.trim();
@@ -4215,14 +4224,14 @@ function saveSale(){
   const notes = document.getElementById('s_notes').value.trim();
   const customerGstin = document.getElementById('s_gstin').value.trim();
   const paymentMode = document.getElementById('s_paymode').value;
-  const newLines = lines.map(l=>({...l, name: DB.products.find(p=>p.id===l.productId).name, hsn: DB.products.find(p=>p.id===l.productId).hsn||''}));
+  const newLines = lines.map(l=>({...l, name: byId(DB.products,l.productId).name, hsn: byId(DB.products,l.productId).hsn||''}));
 
   if(editingSaleId){
     const saleChanges={invoiceNo,customer,phone:document.getElementById('s_phone').value.trim(),customerGstin,employee:emp?emp.name:'—',date:document.getElementById('s_date').value||todayStr(),lines:newLines,subtotal:sub,subtotalBeforeDiscount,supplyType:supply,placeOfSupply:document.getElementById('s_pos').value,priceMode,gstAmount:gstAmt,breakup,discountAmount,grandTotal,paidAmount,deduction,paymentMode,notes};
     if(currentUserRole!=='admin'){requestRegisterApproval('sale',oldSale.id,'update',saleChanges);showToast('Sale changes sent for Admin approval');renderSalesRegister();return;}
-    oldSale.lines.forEach(l=>{ const prod=DB.products.find(p=>p.id===l.productId); if(prod) prod.stock += l.qty; setLineBarcodes(l,'available'); });
+    oldSale.lines.forEach(l=>{ const prod=byId(DB.products,l.productId); if(prod) prod.stock += l.qty; setLineBarcodes(l,'available'); });
     Object.assign(oldSale,saleChanges);
-    newLines.forEach(l=>{ DB.products.find(p=>p.id===l.productId).stock -= l.qty; setLineBarcodes(l,'sold'); });
+    newLines.forEach(l=>{ byId(DB.products,l.productId).stock -= l.qty; setLineBarcodes(l,'sold'); });
     saveDB(); showToast(willGoNegative.length ? ('Sale updated — note: '+willGoNegative.join(', ')+' now below zero stock') : 'Sale updated — stock adjusted');
     renderSale();
     printSaleInvoice(oldSale.id);
@@ -4232,15 +4241,15 @@ function saveSale(){
     employee: emp?emp.name:'—', date:document.getElementById('s_date').value||todayStr(), lines:newLines,
     subtotal:sub, subtotalBeforeDiscount, supplyType:supply, placeOfSupply:document.getElementById('s_pos').value, priceMode, gstAmount:gstAmt, breakup, discountAmount, grandTotal, paidAmount, deduction, paymentMode, notes };
   DB.sales.push(saleObj);
-  newLines.forEach(l=>{ DB.products.find(p=>p.id===l.productId).stock -= l.qty; setLineBarcodes(l,'sold'); });
+  newLines.forEach(l=>{ byId(DB.products,l.productId).stock -= l.qty; setLineBarcodes(l,'sold'); });
   DB.settings.nextInvoiceNo=nextAfter(invoiceNo,DB.settings.nextInvoiceNo+1);
   saveDB(); showToast(willGoNegative.length ? ('Sale recorded — note: '+willGoNegative.join(', ')+' now below zero stock') : 'Sale recorded — stock updated');
   renderSale();
   printSaleInvoice(saleObj.id);
 }
-function deleteSale(id,afterFn){if(currentUserRole!=='admin'){requestRegisterApproval('sale',id,'delete',null);return;}requirePassword('delete this sale',()=>askConfirm('Delete this sale? Stock will be added back.',()=>{const r=DB.sales.find(x=>x.id===id);if(!r)return;r.lines.forEach(l=>{const p=DB.products.find(x=>x.id===l.productId);if(p)p.stock+=l.qty;setLineBarcodes(l,'available');});DB.sales=DB.sales.filter(x=>x.id!==id);saveDB();(afterFn||renderSalesRegister)();}));}
+function deleteSale(id,afterFn){if(currentUserRole!=='admin'){requestRegisterApproval('sale',id,'delete',null);return;}requirePassword('delete this sale',()=>askConfirm('Delete this sale? Stock will be added back.',()=>{const r=byId(DB.sales,id);if(!r)return;r.lines.forEach(l=>{const p=byId(DB.products,l.productId);if(p)p.stock+=l.qty;setLineBarcodes(l,'available');});DB.sales=DB.sales.filter(x=>x.id!==id);saveDB();(afterFn||renderSalesRegister)();}));}
 function printSaleInvoice(id){
-  const s = DB.sales.find(x=>x.id===id);
+  const s = byId(DB.sales,id);
   const st = DB.settings;
   const due = s.grandTotal-(s.paidAmount||0);
   document.querySelectorAll('#invoiceWrap').forEach(n=>n.remove());
@@ -4304,7 +4313,7 @@ let voucherLines = [];
 let editingVoucherId = null;
 function renderVoucher(editId){
   editingVoucherId = editId || null;
-  const editing = editingVoucherId ? DB.vouchers.find(x=>x.id===editingVoucherId) : null;
+  const editing = editingVoucherId ? byId(DB.vouchers,editingVoucherId) : null;
   voucherLines = editing ? editing.lines.map(l=>({...l})) : [{productId:'', qty:1, price:0, detail:'', description:''}];
   const suggestedVoucherNo = editing ? editing.voucherNo : buildDocNo(DB.settings.voucherPrefix, seriesNext(DB.vouchers,'voucherNo',DB.settings.voucherPrefix));
   document.getElementById('view').innerHTML = `
@@ -4368,7 +4377,7 @@ function renderVoucher(editId){
 }
 function renderVoucherLines(){
   document.getElementById('voucherLines').innerHTML = voucherLines.map((l,i)=>{
-    const prod = DB.products.find(p=>p.id===l.productId);
+    const prod = byId(DB.products,l.productId);
     return `
     <div class="line-block">
       <div class="line-item-row" style="grid-template-columns:40px 2.1fr .6fr .9fr 1fr 28px;">
@@ -4428,10 +4437,10 @@ function saveVoucher(){
   const lines = voucherLines.filter(l=>l.productId && l.qty>0);
   if(!lines.length){ showToast('Add at least one valid line item'); return; }
   { const bad = lines.find(l=>lineCodes(l).length > l.qty); if(bad){ showToast((bad.name||'An item')+' has more barcodes than its quantity — increase Qty or remove a barcode'); return; } }
-  const oldVoucher = editingVoucherId ? DB.vouchers.find(x=>x.id===editingVoucherId) : null;
+  const oldVoucher = editingVoucherId ? byId(DB.vouchers,editingVoucherId) : null;
   let willGoNegative = [];
   for(const l of lines){
-    const prod = DB.products.find(p=>p.id===l.productId);
+    const prod = byId(DB.products,l.productId);
     const oldQty = oldVoucher ? (oldVoucher.lines.find(x=>x.productId===l.productId)?.qty||0) : 0;
     const available = prod.stock + oldQty;
     if(l.qty > available) willGoNegative.push(prod.name);
@@ -4440,7 +4449,7 @@ function saveVoucher(){
   if(!voucherNo){ showToast('Voucher No is required'); return; }
   const dupe = DB.vouchers.find(x=>x.voucherNo===voucherNo && x.id!==editingVoucherId);
   if(dupe){ showToast('Voucher No "'+voucherNo+'" is already used — please choose a different one'); return; }
-  const emp = DB.employees.find(e=>e.id===empId);
+  const emp = byId(DB.employees,empId);
   const lineTotal = lines.reduce((s,l)=>s+l.qty*l.price,0);
   let discountAmount = parseFloat(document.getElementById('v_discount').value)||0;
   if(discountAmount<0) discountAmount=0;
@@ -4450,14 +4459,14 @@ function saveVoucher(){
   const deduction = parseFloat(document.getElementById('v_deduction').value)||0;
   const notes = document.getElementById('v_notes').value.trim();
   const paymentMode = document.getElementById('v_paymode').value;
-  const newLines = lines.map(l=>({...l, name: DB.products.find(p=>p.id===l.productId).name}));
+  const newLines = lines.map(l=>({...l, name: byId(DB.products,l.productId).name}));
 
   if(editingVoucherId){
     const voucherChanges={voucherNo,customer,phone:document.getElementById('v_phone').value.trim(),employee:emp?emp.name:'—',date:document.getElementById('v_date').value||todayStr(),lines:newLines,subtotal:lineTotal,discountAmount,grandTotal,paidAmount,deduction,paymentMode,notes};
     if(currentUserRole!=='admin'){requestRegisterApproval('voucher',oldVoucher.id,'update',voucherChanges);showToast('Challan changes sent for Admin approval');renderVoucherRegister();return;}
-    oldVoucher.lines.forEach(l=>{ const prod=DB.products.find(p=>p.id===l.productId); if(prod) prod.stock += l.qty; setLineBarcodes(l,'available'); });
+    oldVoucher.lines.forEach(l=>{ const prod=byId(DB.products,l.productId); if(prod) prod.stock += l.qty; setLineBarcodes(l,'available'); });
     Object.assign(oldVoucher,voucherChanges);
-    newLines.forEach(l=>{ DB.products.find(p=>p.id===l.productId).stock -= l.qty; setLineBarcodes(l,'sold'); });
+    newLines.forEach(l=>{ byId(DB.products,l.productId).stock -= l.qty; setLineBarcodes(l,'sold'); });
     saveDB(); showToast(willGoNegative.length ? ('Voucher updated — note: '+willGoNegative.join(', ')+' now below zero stock') : 'Voucher updated — stock adjusted');
     renderVoucher();
     printVoucher(oldVoucher.id);
@@ -4467,24 +4476,24 @@ function saveVoucher(){
     employee: emp?emp.name:'—', date:document.getElementById('v_date').value||todayStr(), lines:newLines,
     subtotal:lineTotal, discountAmount, grandTotal, paidAmount, deduction, paymentMode, notes };
   DB.vouchers.push(voucherObj);
-  newLines.forEach(l=>{ DB.products.find(p=>p.id===l.productId).stock -= l.qty; setLineBarcodes(l,'sold'); });
+  newLines.forEach(l=>{ byId(DB.products,l.productId).stock -= l.qty; setLineBarcodes(l,'sold'); });
   DB.settings.nextVoucherNo=nextAfter(voucherNo,DB.settings.nextVoucherNo+1);
   saveDB(); showToast(willGoNegative.length ? ('Voucher recorded — note: '+willGoNegative.join(', ')+' now below zero stock') : 'Voucher recorded — stock updated');
   renderVoucher();
   printVoucher(voucherObj.id);
 }
-function deleteVoucher(id){if(currentUserRole!=='admin'){requestRegisterApproval('voucher',id,'delete',null);return;}requirePassword('delete this challan',()=>askConfirm('Delete this voucher? Stock will be added back.',()=>{const r=DB.vouchers.find(x=>x.id===id);if(!r)return;r.lines.forEach(l=>{const p=DB.products.find(x=>x.id===l.productId);if(p)p.stock+=l.qty;setLineBarcodes(l,'available');});DB.vouchers=DB.vouchers.filter(x=>x.id!==id);saveDB();renderVoucher();}));}
+function deleteVoucher(id){if(currentUserRole!=='admin'){requestRegisterApproval('voucher',id,'delete',null);return;}requirePassword('delete this challan',()=>askConfirm('Delete this voucher? Stock will be added back.',()=>{const r=byId(DB.vouchers,id);if(!r)return;r.lines.forEach(l=>{const p=byId(DB.products,l.productId);if(p)p.stock+=l.qty;setLineBarcodes(l,'available');});DB.vouchers=DB.vouchers.filter(x=>x.id!==id);saveDB();renderVoucher();}));}
 /* ===== Transfer a Non-GST sale voucher to a GST sale invoice ===== */
 function transferVoucherToSale(id){
   if(currentUserRole!=='admin'){showToast('Only Admin can transfer a voucher to a GST invoice');return;}
-  const v=DB.vouchers.find(x=>x.id===id);if(!v)return;
+  const v=byId(DB.vouchers,id);if(!v)return;
   if(DB.sales.some(x=>x.transferredFrom===v.voucherNo)){showToast('This voucher was already transferred to a GST invoice');return;}
-  const bad=(v.lines||[]).find(l=>!DB.products.find(p=>p.id===l.productId));
+  const bad=(v.lines||[]).find(l=>!byId(DB.products,l.productId));
   if(bad){showToast('Cannot transfer — "'+(bad.name||'an item')+'" no longer exists in the product list');return;}
   const pre=DB.settings.invoicePrefix,newNo=buildDocNo(pre,seriesNext(DB.sales,'invoiceNo',pre));
   askConfirm('Transfer challan <b>'+safeText(v.voucherNo)+'</b> ('+safeText(v.customer)+', ₹'+fmt(v.grandTotal)+') to a <b>GST sale invoice</b> numbered <b>'+safeText(newNo)+'</b>?<br><br><span style="font-size:12.5px">The voucher prices are treated as <b>inclusive of GST</b> (each item\'s GST % from the product master), so the invoice total stays ₹'+fmt(v.grandTotal)+'. Stock is not changed. The voucher is removed from the Non-GST register and the invoice appears in Sales Register and GSTR-1.</span>',function(){
-    const cur=DB.vouchers.find(x=>x.id===id);if(!cur||DB.sales.some(x=>x.transferredFrom===cur.voucherNo))return;
-    const lines=(cur.lines||[]).map(l=>{const p=DB.products.find(x=>x.id===l.productId);return{productId:l.productId,qty:+l.qty||0,price:+l.price||0,gstPercent:p.gstPercent!=null?p.gstPercent:(DB.settings.gstPercent||18),detail:l.detail||'',description:l.description||'',name:p.name,hsn:p.hsn||''};});
+    const cur=byId(DB.vouchers,id);if(!cur||DB.sales.some(x=>x.transferredFrom===cur.voucherNo))return;
+    const lines=(cur.lines||[]).map(l=>{const p=byId(DB.products,l.productId);return{productId:l.productId,qty:+l.qty||0,price:+l.price||0,gstPercent:p.gstPercent!=null?p.gstPercent:(DB.settings.gstPercent||18),detail:l.detail||'',description:l.description||'',name:p.name,hsn:p.hsn||''};});
     const raw=computeItemwiseTotals(lines,'inclusive'),D=+cur.discountAmount||0;
     const res=applyDiscountBeforeTax(raw,raw.grandTotal>0?raw.subtotal*D/raw.grandTotal:0);
     const cu=(DB.customers||[]).find(c=>c.name===cur.customer),sellerState=String(DB.settings.gstin||'').slice(0,2);
@@ -4506,17 +4515,17 @@ function transferVoucherToSale(id){
 }
 function revertSaleToChallan(id){
   if(currentUserRole!=='admin'){showToast('Only Admin can revert an invoice to a challan');return;}
-  const s=DB.sales.find(x=>x.id===id);if(!s||!s.transferredVoucher)return;
+  const s=byId(DB.sales,id);if(!s||!s.transferredVoucher)return;
   const v0=s.transferredVoucher;
   if(DB.vouchers.some(x=>x.id===v0.id||x.voucherNo===v0.voucherNo)){showToast('Challan '+v0.voucherNo+' already exists');return;}
   askConfirm('Revert invoice <b>'+safeText(s.invoiceNo)+'</b> back to challan <b>'+safeText(v0.voucherNo)+'</b>?<br><br>The GST invoice is deleted (it will no longer appear in GSTR-1) and the challan returns to the register with the payments recorded on the invoice. Stock is not changed.',function(){
-    const cur=DB.sales.find(x=>x.id===id);if(!cur)return;
+    const cur=byId(DB.sales,id);if(!cur)return;
     const v=JSON.parse(JSON.stringify(v0));v.paidAmount=+cur.paidAmount||0;v.deduction=+cur.deduction||0;v.paymentMode=cur.paymentMode||v.paymentMode;
     DB.sales=DB.sales.filter(x=>x.id!==id);DB.vouchers.push(v);_binArm=false;saveDB();
     document.querySelectorAll('#invoiceWrap').forEach(n=>n.remove());showToast('Reverted to challan '+v.voucherNo);route('voucherregister');});
 }
 function printVoucher(id){
-  const v = DB.vouchers.find(x=>x.id===id);
+  const v = byId(DB.vouchers,id);
   const st = DB.settings;
   document.querySelectorAll('#invoiceWrap').forEach(n=>n.remove());
   document.getElementById('view').insertAdjacentHTML('beforeend', `
@@ -4576,7 +4585,7 @@ function printVoucher(id){
 /* ================= SERVICE SALE (no GST) ================= */
 function renderService(editId){
   editingServiceId = editId || null;
-  const editing = editingServiceId ? DB.services.find(x=>x.id===editingServiceId) : null;
+  const editing = editingServiceId ? byId(DB.services,editingServiceId) : null;
   document.getElementById('view').innerHTML = `
     <div class="grid g2-form" style="align-items:start;">
       <div class="panel">
@@ -4692,7 +4701,7 @@ function saveService(){
   const empId = document.getElementById('sv_employee').value;
   const desc = document.getElementById('sv_desc').value.trim();
   if(!desc){ showToast('Enter a service description'); return; }
-  const emp = DB.employees.find(e=>e.id===empId);
+  const emp = byId(DB.employees,empId);
   const parts = parseFloat(document.getElementById('sv_parts').value)||0;
   const labor = parseFloat(document.getElementById('sv_labor').value)||0;
   const gstPct = parseFloat(document.getElementById('sv_gst').value)||0;
@@ -4707,7 +4716,7 @@ function saveService(){
     employee: emp?emp.name:'—', date:document.getElementById('sv_date').value||todayStr(),
     parts, labor, gstPercent:gstPct, supplyType:supply, priceMode, taxable, gstAmount:gstAmt, amount, paidAmount, deduction, paymentMode };
   if(editingServiceId){
-    const old = DB.services.find(x=>x.id===editingServiceId);
+    const old = byId(DB.services,editingServiceId);
     if(currentUserRole!=='admin'){requestRegisterApproval('service',old.id,'update',fields);showToast('Service changes sent for Admin approval');renderServiceRegister();return;}
     Object.assign(old, fields);
     saveDB(); showToast('Service updated');
@@ -4724,7 +4733,7 @@ function saveService(){
   printServiceInvoice(obj.id);
 }
 function printServiceInvoice(id){
-  const s = DB.services.find(x=>x.id===id);
+  const s = byId(DB.services,id);
   const st = DB.settings;
   const due = s.amount-(s.paidAmount||0);
   document.querySelectorAll('#invoiceWrap').forEach(n=>n.remove());
@@ -4818,7 +4827,7 @@ function renderQuotation(){
 }
 function renderQuoteLines(){
   document.getElementById('quoteLines').innerHTML = quoteLines.map((l,i)=>{
-    const prod = DB.products.find(p=>p.id===l.productId);
+    const prod = byId(DB.products,l.productId);
     return `
     <div class="line-block">
       <div class="line-item-row" style="grid-template-columns:44px 1.7fr .6fr .9fr 1fr 30px;">
@@ -4858,7 +4867,7 @@ function saveQuotation(){
   const obj = { id:cid(), quoteNo, type, customer, phone:document.getElementById('q_phone').value.trim(), customerGstin:document.getElementById('q_gstin').value.trim(),
     employee: emp?emp.name:'—', date:document.getElementById('q_date').value||todayStr(),
     notes: document.getElementById('q_notes').value.trim(),
-    lines: lines.map(l=>({...l, name: DB.products.find(p=>p.id===l.productId).name})), grandTotal };
+    lines: lines.map(l=>({...l, name: byId(DB.products,l.productId).name})), grandTotal };
   DB.quotations.push(obj);
   DB.settings.nextQuoteNo++;
   saveDB(); showToast(type+' saved');
@@ -4872,7 +4881,7 @@ function deleteQuotation(id){
   });
 }
 function printQuotation(id){
-  const q = DB.quotations.find(x=>x.id===id);
+  const q = byId(DB.quotations,id);
   const st = DB.settings;
   document.querySelectorAll('#invoiceWrap').forEach(n=>n.remove());
   document.getElementById('view').insertAdjacentHTML('beforeend', `
@@ -4990,7 +4999,7 @@ function renderSalesRegisterTable(){
 function exportSelectedSales(){
   const ids = [...document.querySelectorAll('.sr-chk:checked')].map(c=>c.dataset.id);
   if(!ids.length){ showToast('Select at least one invoice first'); return; }
-  const rows = DB.sales.filter(s=>ids.includes(s.id));
+  const rows = DB.sales.filter(function(s){return this.has(s.id)},new Set(ids));
   exportSalesCSV(rows);
 }
 function updateSalePayment(id,val){updateRegisterField('sale',id,'paidAmount',val,renderSalesRegisterTable);}
@@ -5061,13 +5070,13 @@ function renderVoucherRegisterTable(){
       ${voucherRegPaidOpen?`<div style="margin-top:10px;overflow-x:auto;"><table><thead>${headHtml}</thead><tbody>${paid.length?paid.map(rowHtml).join(''):'<tr><td colspan="12" class="empty">No paid vouchers.</td></tr>'}</tbody></table></div>`:''}
     </div>`;
 }
-function deleteVoucherFromRegister(id){if(currentUserRole!=='admin'){requestRegisterApproval('voucher',id,'delete',null);return;}requirePassword('delete this challan',()=>askConfirm('Delete this voucher? Stock will be added back.',()=>{const r=DB.vouchers.find(x=>x.id===id);if(!r)return;r.lines.forEach(l=>{const p=DB.products.find(x=>x.id===l.productId);if(p)p.stock+=l.qty;setLineBarcodes(l,'available');});DB.vouchers=DB.vouchers.filter(x=>x.id!==id);saveDB();renderVoucherRegister();}));}
+function deleteVoucherFromRegister(id){if(currentUserRole!=='admin'){requestRegisterApproval('voucher',id,'delete',null);return;}requirePassword('delete this challan',()=>askConfirm('Delete this voucher? Stock will be added back.',()=>{const r=byId(DB.vouchers,id);if(!r)return;r.lines.forEach(l=>{const p=byId(DB.products,l.productId);if(p)p.stock+=l.qty;setLineBarcodes(l,'available');});DB.vouchers=DB.vouchers.filter(x=>x.id!==id);saveDB();renderVoucherRegister();}));}
 function updateVoucherPayment(id,val){updateRegisterField('voucher',id,'paidAmount',val,renderVoucherRegisterTable);}
 function updateVoucherDeduction(id,val){updateRegisterField('voucher',id,'deduction',val,renderVoucherRegisterTable);}
 function exportSelectedVouchers(){
   const ids = [...document.querySelectorAll('.vor-chk:checked')].map(c=>c.dataset.id);
   if(!ids.length){ showToast('Select at least one voucher first'); return; }
-  exportVouchersCSV(DB.vouchers.filter(v=>ids.includes(v.id)));
+  exportVouchersCSV(DB.vouchers.filter(function(v){return this.has(v.id)},new Set(ids)));
 }
 
 /* ================= SERVICE REGISTER ================= */
@@ -5221,7 +5230,7 @@ const ADMIN_TOGGLE_VIEWS=['cashbook','creditnote','gstr1','duesregister','renewa
 let salaryMonth=todayStr().slice(0,7),salaryEmp='',editingSalaryId=null;
 const SALARY_MODES=['Cash','UPI','Bank Transfer','Cheque','Other'];
 function renderSalary(){if(!Array.isArray(DB.salaryEntries))DB.salaryEntries=[];
-  const ed=editingSalaryId?DB.salaryEntries.find(x=>x.id===editingSalaryId):null,emps=DB.employees||[];
+  const ed=editingSalaryId?byId(DB.salaryEntries,editingSalaryId):null,emps=DB.employees||[];
   const ents=DB.salaryEntries.filter(x=>(!salaryMonth||x.month===salaryMonth)&&(!salaryEmp||x.employeeId===salaryEmp)).sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
   const sum=emps.filter(m=>!salaryEmp||m.id===salaryEmp).map(m=>{const mine=DB.salaryEntries.filter(x=>x.employeeId===m.id&&x.month===salaryMonth),adv=mine.filter(x=>x.type==='Advance').reduce((n,x)=>n+(+x.amount||0),0),paid=mine.filter(x=>x.type==='Salary').reduce((n,x)=>n+(+x.amount||0),0),base=+m.monthlySalary||0;return{m,base,adv,paid,bal:base-adv-paid};});
   const T=sum.reduce((t,r)=>({base:t.base+r.base,adv:t.adv+r.adv,paid:t.paid+r.paid,bal:t.bal+r.bal}),{base:0,adv:0,paid:0,bal:0});
@@ -5242,12 +5251,12 @@ function renderSalary(){if(!Array.isArray(DB.salaryEntries))DB.salaryEntries=[];
   <div class="panel"><div class="panel-head"><h3>Salary Register (${ents.length})</h3></div><div class="panel-body table-scroll" style="padding:0"><table><thead><tr><th>Date</th><th>Month</th><th>Employee</th><th>Type</th><th class="num">Amount</th><th>Mode</th><th>Note</th><th></th></tr></thead><tbody>${ents.length?ents.map(x=>`<tr><td>${safeText(x.date)}</td><td>${safeText(x.month)}</td><td>${safeText(x.employeeName)}</td><td>${safeText(x.type)}</td><td class="num mono">₹${fmt(x.amount)}</td><td>${safeText(x.mode)}</td><td>${safeText(x.note||'')}</td><td style="white-space:nowrap"><button class="btn ghost sm" onclick="editingSalaryId='${x.id}';renderSalary();window.scrollTo(0,0)">Edit</button> <button class="btn danger sm" onclick="deleteSalaryEntry('${x.id}')">Del</button></td></tr>`).join(''):'<tr><td colspan="8" class="empty">No entries for this selection.</td></tr>'}</tbody></table></div></div>`;
   applyShowMore(document.getElementById('view'),10);
 }
-function setMonthlySalary(empId,v){if(!Array.isArray(DB.salaryEntries))DB.salaryEntries=[];const m=DB.employees.find(x=>x.id===empId),n=Number(v);if(!m||!Number.isFinite(n)||n<0){showToast('Invalid salary');return;}m.monthlySalary=n;saveDB();renderSalary();}
+function setMonthlySalary(empId,v){if(!Array.isArray(DB.salaryEntries))DB.salaryEntries=[];const m=byId(DB.employees,empId),n=Number(v);if(!m||!Number.isFinite(n)||n<0){showToast('Invalid salary');return;}m.monthlySalary=n;saveDB();renderSalary();}
 function saveSalaryEntry(){if(!Array.isArray(DB.salaryEntries))DB.salaryEntries=[];
   const g=i=>document.getElementById('sl_'+i).value.trim(),emp=DB.employees.find(x=>x.id===g('emp')),amount=Number(g('amount')),month=g('month');
   if(!emp){showToast('Select an employee');return;}if(!month){showToast('Select the month');return;}if(!Number.isFinite(amount)||amount<=0){showToast('Enter a valid amount');return;}
   const data={employeeId:emp.id,employeeName:emp.name,month,type:g('type'),amount,mode:g('mode'),date:g('date')||todayStr(),note:g('note')};
-  if(editingSalaryId){const x=DB.salaryEntries.find(e=>e.id===editingSalaryId);if(x)Object.assign(x,data);editingSalaryId=null;}else DB.salaryEntries.push({id:cid(),...data});
+  if(editingSalaryId){const x=byId(DB.salaryEntries,editingSalaryId);if(x)Object.assign(x,data);editingSalaryId=null;}else DB.salaryEntries.push({id:cid(),...data});
   salaryMonth=month;saveDB();renderSalary();showToast('Entry saved');
 }
 function deleteSalaryEntry(id){if(!Array.isArray(DB.salaryEntries))DB.salaryEntries=[];if(!confirm('Delete this salary / advance entry?'))return;DB.salaryEntries=DB.salaryEntries.filter(x=>x.id!==id);saveDB();renderSalary();}
@@ -5279,7 +5288,7 @@ function renderRenewals(){
     return `<tr><td>${safeText(c.name).length?'':''}${nameCell(c).slice(4)}<td>${safeText(c.plan||'—')}<br><span style="font-size:11px;color:var(--text-soft)">${safeText((e&&e.period)||c.period||'')}</span></td><td class="num mono">₹${fmt(b)}</td><td>${e?(e.gst?'GST '+(+e.gstPercent||18)+'%':'No GST'):'—'}</td><td class="num mono">₹${fmt(cal.total)}</td><td class="num mono">₹${fmt(pd)}</td><td class="num mono" style="font-weight:700;color:${due>0?'var(--red)':'inherit'}">₹${fmt(due)}</td><td>${safeText(e&&e.mode||'—')}${e&&e.paidDate?'<br><span style="font-size:11px;color:var(--text-soft)">'+safeText(e.paidDate)+'</span>':''}</td>${acts(c,e,kind)}</tr>`;};
   const head='<thead><tr><th>Client</th><th>Plan / Period</th><th class="num">Subscription</th><th>GST</th><th class="num">Total</th><th class="num">Paid</th><th class="num">Due</th><th>Mode / Date</th><th></th></tr></thead>';
   const tbl=(rows,kind,empty)=>`<div class="panel-body table-scroll" style="padding:0"><table>${head}<tbody>${rows.length?rows.map(r=>row(r,kind)).join(''):`<tr><td colspan="9" class="empty">${empty}</td></tr>`}</tbody></table></div>`;
-  const cl=renEditClient&&renEditClient!=='new'?DB.renewalClients.find(x=>x.id===renEditClient):null;
+  const cl=renEditClient&&renEditClient!=='new'?byId(DB.renewalClients,renEditClient):null;
   const clientForm=renEditClient?`<div class="panel" style="margin-bottom:12px"><div class="panel-head"><h3>${cl?'Edit':'New'} Client</h3></div><div class="panel-body"><div class="row">
     <div class="field"><label>Client Name</label><input id="rc_name" value="${safeText(cl?.name||'')}"></div>
     <div class="field" style="flex:2 1 220px"><label>Aliases (comma separated)</label><input id="rc_alias" value="${safeText((cl?.aliases||[]).join(', '))}" placeholder="Other names this client uses"></div>
@@ -5290,7 +5299,7 @@ function renderRenewals(){
     <div class="field"><label>Default Amount (₹)</label><input type="number" min="0" step="0.01" id="rc_amount" value="${cl?cl.amount||'':''}"></div>
     <div class="field"><label>Period</label><select id="rc_period">${REN_PERIODS.map(p=>`<option ${(cl?.period||'Yearly')===p?'selected':''}>${p}</option>`).join('')}</select></div>
   </div><div style="display:flex;gap:8px;margin-top:10px"><button class="btn amber" onclick="saveRenClient()">Save Client</button><button class="btn ghost" onclick="renEditClient=null;renderRenewals()">Cancel</button></div></div></div>`:'';
-  const pc=renPay?DB.renewalClients.find(x=>x.id===renPay):null,pe=pc?renEntryFor(pc.id,renFY):null;
+  const pc=renPay?byId(DB.renewalClients,renPay):null,pe=pc?renEntryFor(pc.id,renFY):null;
   const payForm=pc?`<div class="panel" style="margin-bottom:12px"><div class="panel-head"><h3>Payment · ${safeText(pc.name)} · FY ${renFY}</h3></div><div class="panel-body"><div class="row">
     <div class="field"><label>Subscription (₹)</label><input type="number" min="0" step="0.01" id="rp_amount" value="${pe?pe.amount:(pc.amount||'')}" oninput="renLive()"></div>
     <div class="field"><label>Period</label><select id="rp_period">${REN_PERIODS.map(p=>`<option ${((pe&&pe.period)||pc.period||'Yearly')===p?'selected':''}>${p}</option>`).join('')}</select></div>
@@ -5312,19 +5321,19 @@ function renderRenewals(){
 function renLive(){const el=document.getElementById('rp_live');if(!el)return;const g=document.getElementById('rp_gst').value==='1',cal=renCalc(document.getElementById('rp_amount').value,g,document.getElementById('rp_gstp').value),pd=+document.getElementById('rp_paid').value||0;el.textContent='Total ₹'+fmt(cal.total)+(g?' (incl. GST ₹'+fmt(cal.g)+')':'')+'  ·  Due ₹'+fmt(Math.max(0,cal.total-pd));}
 function saveRenClient(){renInit();const g=i=>document.getElementById('rc_'+i).value.trim(),name=g('name');if(!name){showToast('Client name is required');return;}
   const data={name,aliases:g('alias').split(',').map(x=>x.trim()).filter(Boolean),contact:g('contact'),gstin:g('gstin').toUpperCase(),address:g('address'),plan:g('plan'),amount:Number(g('amount'))||0,period:g('period')};
-  if(renEditClient&&renEditClient!=='new'){const c=DB.renewalClients.find(x=>x.id===renEditClient);if(c)Object.assign(c,data);}else DB.renewalClients.push({id:cid(),notRenewFY:[],...data});
+  if(renEditClient&&renEditClient!=='new'){const c=byId(DB.renewalClients,renEditClient);if(c)Object.assign(c,data);}else DB.renewalClients.push({id:cid(),notRenewFY:[],...data});
   renEditClient=null;saveDB();renderRenewals();showToast('Client saved');}
-function saveRenPayment(){renInit();const c=DB.renewalClients.find(x=>x.id===renPay);if(!c)return;const v=i=>document.getElementById('rp_'+i).value,gst=v('gst')==='1',amount=Number(v('amount')),paid=Number(v('paid'))||0;
+function saveRenPayment(){renInit();const c=byId(DB.renewalClients,renPay);if(!c)return;const v=i=>document.getElementById('rp_'+i).value,gst=v('gst')==='1',amount=Number(v('amount')),paid=Number(v('paid'))||0;
   if(!Number.isFinite(amount)||amount<=0){showToast('Enter the subscription amount');return;}
   const cal=renCalc(amount,gst,v('gstp'));if(paid<0||paid>cal.total+0.004){showToast('Paid amount cannot exceed the total');return;}
   const data={amount,period:v('period'),gst,gstPercent:Number(v('gstp'))||18,gstAmount:cal.g,total:cal.total,paidAmount:paid,mode:v('mode'),paidDate:v('date')||todayStr()};
   const e=renEntryFor(c.id,renFY);if(e)Object.assign(e,data);else DB.renewalEntries.push({id:cid(),clientId:c.id,fy:renFY,...data});
   renPay=null;saveDB();renderRenewals();showToast(cal.total-paid<=0.004?'Paid — moved to the Paid section':'Payment saved');}
-function markNotRenewing(id){const c=DB.renewalClients.find(x=>x.id===id);if(!c)return;c.notRenewFY=[...(c.notRenewFY||[]).filter(f=>f!==renFY),renFY];saveDB();renderRenewals();}
-function restoreRenClient(id){const c=DB.renewalClients.find(x=>x.id===id);if(!c)return;c.notRenewFY=(c.notRenewFY||[]).filter(f=>f!==renFY);saveDB();renderRenewals();}
-function deleteRenClient(id){const c=DB.renewalClients.find(x=>x.id===id);if(!c||!confirm('Delete "'+c.name+'" and all of their renewal records?'))return;DB.renewalClients=DB.renewalClients.filter(x=>x.id!==id);DB.renewalEntries=DB.renewalEntries.filter(e=>e.clientId!==id);saveDB();renderRenewals();}
+function markNotRenewing(id){const c=byId(DB.renewalClients,id);if(!c)return;c.notRenewFY=[...(c.notRenewFY||[]).filter(f=>f!==renFY),renFY];saveDB();renderRenewals();}
+function restoreRenClient(id){const c=byId(DB.renewalClients,id);if(!c)return;c.notRenewFY=(c.notRenewFY||[]).filter(f=>f!==renFY);saveDB();renderRenewals();}
+function deleteRenClient(id){const c=byId(DB.renewalClients,id);if(!c||!confirm('Delete "'+c.name+'" and all of their renewal records?'))return;DB.renewalClients=DB.renewalClients.filter(x=>x.id!==id);DB.renewalEntries=DB.renewalEntries.filter(e=>e.clientId!==id);saveDB();renderRenewals();}
 function printRenewalVoucher(id,asPdf=false){
-  const e=DB.renewalEntries.find(x=>x.id===id),c=e&&DB.renewalClients.find(x=>x.id===e.clientId);if(!c)return;
+  const e=byId(DB.renewalEntries,id),c=e&&byId(DB.renewalClients,e.clientId);if(!c)return;
   const st=DB.settings||{},shop=safeText(st.shopName||'Shop'),dt=e.paidDate?e.paidDate.split('-').reverse().join('-'):'……………………';
   const rows=[`<tr><td>1</td><td>${safeText((c.plan||'Software')+' Renewal '+fyShort(e.fy))}${e.period?' ('+safeText(e.period)+')':''}</td><td class="n">1</td><td class="n">${renNum(e.amount)}</td><td class="n">${renNum(e.amount)}</td></tr>`];
   if(e.gst)rows.push(`<tr><td></td><td>GST @ ${renNum(e.gstPercent)}%</td><td class="n"></td><td class="n"></td><td class="n">${renNum(e.gstAmount)}</td></tr>`);
@@ -5551,8 +5560,8 @@ async function saveManagedUser(){
   }catch(e){fail(e.message||'Could not save this account.');}
   const darkSwitch=document.getElementById('darkModeSwitch'); if(darkSwitch) darkSwitch.checked=isDarkMode();
 }
-function toggleUserAccount(id){const user=DB.users.find(u=>u.id===id);if(!user)return;if(currentUserId===id){showToast('You cannot disable the account currently in use');return;}user.enabled=user.enabled===false;saveDB();renderSettings();showToast(user.enabled?'Account enabled':'Account disabled');}
-function deleteUserAccount(id){const user=DB.users.find(u=>u.id===id);if(!user||user.builtin||user.username==='admin')return;if(currentUserId===id){showToast('You cannot delete the account currently in use');return;}askConfirm('Delete the account for '+(user.name||user.username)+'?',()=>{DB.users=DB.users.filter(u=>u.id!==id);saveDB();renderSettings();showToast('User account deleted');});}
+function toggleUserAccount(id){const user=byId(DB.users,id);if(!user)return;if(currentUserId===id){showToast('You cannot disable the account currently in use');return;}user.enabled=user.enabled===false;saveDB();renderSettings();showToast(user.enabled?'Account enabled':'Account disabled');}
+function deleteUserAccount(id){const user=byId(DB.users,id);if(!user||user.builtin||user.username==='admin')return;if(currentUserId===id){showToast('You cannot delete the account currently in use');return;}askConfirm('Delete the account for '+(user.name||user.username)+'?',()=>{DB.users=DB.users.filter(u=>u.id!==id);saveDB();renderSettings();showToast('User account deleted');});}
 
 
 </script>
@@ -5748,10 +5757,10 @@ function resetData(){
 function requestRegisterApproval(entity,recordId,action,changes){if(!Array.isArray(DB.approvalRequests))DB.approvalRequests=[];DB.approvalRequests.push({id:cid(),entity,recordId,action,changes,requestedBy:currentUserRole||'staff',requestedById:currentUserId||'',requestedByName:currentUserName||'',requestedAt:new Date().toISOString(),status:'Pending'});saveDB();showToast('Request sent to Admin for approval');}
 function registerRecords(entity){return ({quotation:DB.quotations,product:DB.products,purchase:DB.purchases,sale:DB.sales,voucher:DB.vouchers,service:DB.services,paymentvoucher:DB.paymentVouchers,customer:DB.customers,scrap:DB.scrapItems})[entity]||[];}
 function registerRef(entity,record){if(entity==='product')return record?record.name:'(deleted product)';return record?.purchaseNo||record?.invoiceNo||record?.quoteNo||record?.voucherNo||record?.serviceNo||record?.ref||record?.name||'Pending payment voucher';}
-function renderApprovals(){updateApprovalNotifications();const warranty=(DB.warrantyRequests||[]).filter(r=>r.status==='Pending').map(r=>({...r,queue:'warranty',entity:'warranty',recordId:r.jobId}));const rows=[...warranty,...(DB.approvalRequests||[]).filter(r=>r.status==='Pending').map(r=>({...r,queue:'register'}))];document.getElementById('view').innerHTML=`<div class="panel"><div class="panel-head"><h3>Pending Approvals (${rows.length})</h3>${rows.length&&currentUserRole==='admin'?'<button class="btn amber sm" onclick="approveAllRequests()">✔ Approve all</button>':''}</div><div class="panel-body table-scroll" style="padding:0"><table><thead><tr><th>Requested</th><th>Register</th><th>Record</th><th>Staff</th><th>Requested Changes</th><th>Actions</th></tr></thead><tbody>${rows.length?rows.map(r=>{const record=r.entity==='warranty'?DB.warrantyJobs.find(x=>x.id===r.recordId):registerRecords(r.entity).find(x=>x.id===r.recordId);const pv=r.entity==='paymentvoucher'?r.changes?.paymentVoucher:null;const changes=r.action==='delete'?(r.entity==='product'?'Delete product '+(r.changes?.name||''):'Delete record'):r.entity==='product'&&r.action==='create'?('New product · '+(r.changes?.product?.sku||'')+' · sale ₹'+fmt(r.changes?.product?.salePrice)+' · stock '+(r.changes?.product?.stock||0)):pv?('New payment voucher · '+(pv.supplier||'Multiple suppliers')+' · ₹'+fmt(pv.totalAmount)+' · '+(pv.allocations||[]).length+' purchase allocation(s)'):Object.entries(r.changes||{}).map(([k,v])=>k+': '+(typeof v==='object'?'[updated]':v)).join(' · ')||'Open/edit record';return `<tr><td>${safeText(new Date(r.requestedAt).toLocaleString())}</td><td>${safeText(({purchase:'Purchase',sale:'Sale',voucher:'Challan',service:'Service',warranty:'Warranty / Out Repair',paymentvoucher:'Purchase Payment Voucher',customer:'Customer',product:'Product',quotation:'Quotation / Challan'})[r.entity]||r.entity)}</td><td>${safeText(r.entity==='warranty'&&r.action==='create'?'New: '+(r.changes?.product||''):(r.entity==='product'&&r.action==='create'?'New: '+(r.changes?.product?.name||''):registerRef(r.entity,record)))}</td><td>${safeText(r.requestedByName||r.requestedBy)}</td><td>${safeText(changes)}</td><td style="white-space:nowrap"><button class="btn ghost sm" onclick="openApprovalRecord('${r.entity}','${r.recordId}','${r.id}')">Open Record</button> <button class="btn amber sm" onclick="${r.queue==='warranty'?'approveWarrantyRequest':'approveRegisterRequest'}('${r.id}')">Approve</button> <button class="btn danger sm" onclick="${r.queue==='warranty'?'rejectWarrantyRequest':'rejectRegisterRequest'}('${r.id}')">Reject</button></td></tr>`}).join(''):'<tr><td colspan="6" class="empty">No pending approvals.</td></tr>'}</tbody></table></div></div>`;}
+function renderApprovals(){updateApprovalNotifications();const warranty=(DB.warrantyRequests||[]).filter(r=>r.status==='Pending').map(r=>({...r,queue:'warranty',entity:'warranty',recordId:r.jobId}));const rows=[...warranty,...(DB.approvalRequests||[]).filter(r=>r.status==='Pending').map(r=>({...r,queue:'register'}))];document.getElementById('view').innerHTML=`<div class="panel"><div class="panel-head"><h3>Pending Approvals (${rows.length})</h3>${rows.length&&currentUserRole==='admin'?'<button class="btn amber sm" onclick="approveAllRequests()">✔ Approve all</button>':''}</div><div class="panel-body table-scroll" style="padding:0"><table><thead><tr><th>Requested</th><th>Register</th><th>Record</th><th>Staff</th><th>Requested Changes</th><th>Actions</th></tr></thead><tbody>${rows.length?rows.map(r=>{const record=r.entity==='warranty'?byId(DB.warrantyJobs,r.recordId):registerRecords(r.entity).find(x=>x.id===r.recordId);const pv=r.entity==='paymentvoucher'?r.changes?.paymentVoucher:null;const changes=r.action==='delete'?(r.entity==='product'?'Delete product '+(r.changes?.name||''):'Delete record'):r.entity==='product'&&r.action==='create'?('New product · '+(r.changes?.product?.sku||'')+' · sale ₹'+fmt(r.changes?.product?.salePrice)+' · stock '+(r.changes?.product?.stock||0)):pv?('New payment voucher · '+(pv.supplier||'Multiple suppliers')+' · ₹'+fmt(pv.totalAmount)+' · '+(pv.allocations||[]).length+' purchase allocation(s)'):Object.entries(r.changes||{}).map(([k,v])=>k+': '+(typeof v==='object'?'[updated]':v)).join(' · ')||'Open/edit record';return `<tr><td>${safeText(new Date(r.requestedAt).toLocaleString())}</td><td>${safeText(({purchase:'Purchase',sale:'Sale',voucher:'Challan',service:'Service',warranty:'Warranty / Out Repair',paymentvoucher:'Purchase Payment Voucher',customer:'Customer',product:'Product',quotation:'Quotation / Challan'})[r.entity]||r.entity)}</td><td>${safeText(r.entity==='warranty'&&r.action==='create'?'New: '+(r.changes?.product||''):(r.entity==='product'&&r.action==='create'?'New: '+(r.changes?.product?.name||''):registerRef(r.entity,record)))}</td><td>${safeText(r.requestedByName||r.requestedBy)}</td><td>${safeText(changes)}</td><td style="white-space:nowrap"><button class="btn ghost sm" onclick="openApprovalRecord('${r.entity}','${r.recordId}','${r.id}')">Open Record</button> <button class="btn amber sm" onclick="${r.queue==='warranty'?'approveWarrantyRequest':'approveRegisterRequest'}('${r.id}')">Approve</button> <button class="btn danger sm" onclick="${r.queue==='warranty'?'rejectWarrantyRequest':'rejectRegisterRequest'}('${r.id}')">Reject</button></td></tr>`}).join(''):'<tr><td colspan="6" class="empty">No pending approvals.</td></tr>'}</tbody></table></div></div>`;}
 function openProductRequest(id,reqId){
   const rq=(DB.approvalRequests||[]).filter(x=>x.entity==='product'&&x.recordId===id&&(!reqId||x.id===reqId)).sort((a,b)=>String(b.requestedAt).localeCompare(String(a.requestedAt)))[0];
-  if(!rq)return;const cur=DB.products.find(x=>x.id===id)||{};
+  if(!rq)return;const cur=byId(DB.products,id)||{};
   const L={sku:'SKU',brand:'Brand',hsn:'HSN',name:'Name',category:'Category',salePrice:'Sale ₹',gstPercent:'GST %',stock:'Stock',reorderLevel:'Reorder level',uqc:'UQC',image:'Image'};
   const row=(k,a,b)=>'<tr><td>'+safeText(L[k]||k)+'</td><td>'+safeText(a==null?'—':a)+'</td><td><b>'+safeText(b==null?'—':b)+'</b></td></tr>';
   let body;
@@ -5762,14 +5771,14 @@ function openProductRequest(id,reqId){
   openModal('Product request — '+({create:'new product',update:'edit',delete:'delete','barcode-remove':'remove barcode'})[rq.action]+' by '+(rq.requestedByName||rq.requestedBy||''),'<table class="no-ct"><thead><tr><th>Field</th><th>Current</th><th>Requested</th></tr></thead><tbody>'+body+'</tbody></table>','<button class="btn ghost" onclick="closeModal()">Close</button>');
 }
 function openApprovalRecord(entity,id,reqId){if(entity==='customer'){route('customers');return;}if(entity==='product'){openProductRequest(id,reqId);return;}if(entity==='quotation'){route('quotation');return;}if(entity==='warranty'){route('warranty');editingWarrantyId=id;renderWarranty();return;}if(entity==='paymentvoucher'){const req=(DB.approvalRequests||[]).find(x=>x.entity===entity&&x.recordId===id&&x.status==='Pending'),pv=req?.changes?.paymentVoucher;if(!pv)return;openModal('Pending Purchase Payment Voucher',`<p><b>Supplier:</b> ${safeText(pv.supplier||'Multiple')}</p><p><b>Date:</b> ${safeText(pv.date)}</p><p><b>Requested amount:</b> ₹${fmt(pv.totalAmount)}</p><p><b>Mode:</b> ${safeText(pv.paymentMode)}</p><p><b>Reference:</b> ${safeText(pv.details||'—')}</p><h4>Purchase allocations</h4><ul>${pv.allocations.map(a=>`<li>${safeText(a.purchaseNo)} — ₹${fmt(a.amountApplied)}</li>`).join('')}</ul>`);return;}const routes={purchase:['purchase',()=>renderPurchase(id)],sale:['sale',()=>renderSale(id)],voucher:['voucher',()=>renderVoucher(id)],service:['service',()=>renderService(id)]};const r=routes[entity];if(!r)return;route(r[0]);setTimeout(r[1],0);}
-function applyRegisterApproval(r){if(r.entity==='customer'&&r.action==='update'){const c=DB.customers.find(x=>x.id===r.recordId);if(!c){showToast('Customer no longer exists');return false;}Object.assign(c,r.changes||{});return true;}
+function applyRegisterApproval(r){if(r.entity==='customer'&&r.action==='update'){const c=byId(DB.customers,r.recordId);if(!c){showToast('Customer no longer exists');return false;}Object.assign(c,r.changes||{});return true;}
 if(r.entity==='product'){
   if(r.action==='create'){const np=r.changes&&r.changes.product;if(!np){showToast('Product request is incomplete');return false;}if(DB.products.some(x=>x.id===np.id))return true;DB.products.push({...np});return true;}
-  const p=DB.products.find(x=>x.id===r.recordId);if(!p){showToast('Product no longer exists');return false;}
+  const p=byId(DB.products,r.recordId);if(!p){showToast('Product no longer exists');return false;}
   if(r.action==='barcode-remove'){const k=(p.barcodeUnits||[]).findIndex(u=>u.code===r.changes.code&&u.status==='available');if(k<0){showToast('That barcode is already sold or removed');return false;}p.barcodeUnits.splice(k,1);return true;}
   if(r.action==='delete'){DB.products=DB.products.filter(x=>x.id!==r.recordId);return true;}
   const c={...(r.changes||{})};delete c.purchasePrice;delete c.id;Object.assign(p,c);return true;}
-if(r.action==='delete'&&r.entity==='scrap'){DB.scrapItems=DB.scrapItems.filter(x=>x.id!==r.recordId);return true;}if(r.action==='delete'&&r.entity==='customer'){DB.customers=DB.customers.filter(x=>x.id!==r.recordId);return true;}if(r.action==='delete'&&r.entity==='warranty'){DB.warrantyJobs=DB.warrantyJobs.filter(x=>x.id!==r.recordId);return true;}if(r.entity==='paymentvoucher'&&r.action==='create'){const data=r.changes?.paymentVoucher;if(!data||!Array.isArray(data.allocations)||!data.allocations.length||Math.abs(data.allocations.reduce((n,a)=>n+(+a.amountApplied||0),0)-(+data.totalAmount||0))>.004){showToast('Payment voucher request is incomplete or its allocations do not match the total');return false;}for(const a of data.allocations){const p=DB.purchases.find(x=>x.id===a.purchaseId),amt=+a.amountApplied||0;if(!p||amt<=0||amt>(+p.grandTotal||0)-(+p.paidAmount||0)+.004){showToast('Approval failed: a purchase balance changed or is no longer due');return false;}}const pv={...data,voucherNo:buildDocNo(DB.settings.paymentVoucherPrefix,seriesNext(DB.paymentVouchers,'voucherNo',DB.settings.paymentVoucherPrefix))};pv.allocations.forEach(a=>{const p=DB.purchases.find(x=>x.id===a.purchaseId);p.paidAmount=(+p.paidAmount||0)+(+a.amountApplied||0);});DB.paymentVouchers.push(pv);DB.settings.nextPaymentVoucherNo++;return true;}const rows=registerRecords(r.entity),record=rows.find(x=>x.id===r.recordId);if(!record){showToast('Record no longer exists');return false;}if(r.action==='delete'){if(r.entity==='purchase')record.lines.forEach(l=>{const p=DB.products.find(x=>x.id===l.productId);if(p)p.stock-=l.qty;});if(r.entity==='sale'||r.entity==='voucher')record.lines.forEach(l=>{const p=DB.products.find(x=>x.id===l.productId);if(p)p.stock+=l.qty;setLineBarcodes(l,'available');});rows.splice(rows.indexOf(record),1);return true;}const c=r.changes||{},total=+(Object.prototype.hasOwnProperty.call(c,'grandTotal')?c.grandTotal:(r.entity==='service'?record.amount:record.grandTotal))||0,paid=+(Object.prototype.hasOwnProperty.call(c,'paidAmount')?c.paidAmount:record.paidAmount)||0,deduction=+(Object.prototype.hasOwnProperty.call(c,'deduction')?c.deduction:record.deduction)||0;if(paid<0||deduction<0||paid+deduction>total+.004){showToast('Approval rejected: paid amount and deduction exceed record total');return false;}if(r.entity==='purchase'&&c.lines){record.lines.forEach(l=>{const p=DB.products.find(x=>x.id===l.productId);if(p)p.stock-=l.qty;});c.lines.forEach(l=>{const p=DB.products.find(x=>x.id===l.productId);if(p){p.stock+=l.qty;if(l.cost!=null)p.purchasePrice=l.cost;}});applyPurchaseLineBarcodes(c.lines);}if((r.entity==='sale'||r.entity==='voucher')&&c.lines){record.lines.forEach(l=>{const p=DB.products.find(x=>x.id===l.productId);if(p)p.stock+=l.qty;setLineBarcodes(l,'available');});c.lines.forEach(l=>{const p=DB.products.find(x=>x.id===l.productId);if(p)p.stock-=l.qty;setLineBarcodes(l,'sold');});}Object.assign(record,c);return true;}
+if(r.action==='delete'&&r.entity==='scrap'){DB.scrapItems=DB.scrapItems.filter(x=>x.id!==r.recordId);return true;}if(r.action==='delete'&&r.entity==='customer'){DB.customers=DB.customers.filter(x=>x.id!==r.recordId);return true;}if(r.action==='delete'&&r.entity==='warranty'){DB.warrantyJobs=DB.warrantyJobs.filter(x=>x.id!==r.recordId);return true;}if(r.entity==='paymentvoucher'&&r.action==='create'){const data=r.changes?.paymentVoucher;if(!data||!Array.isArray(data.allocations)||!data.allocations.length||Math.abs(data.allocations.reduce((n,a)=>n+(+a.amountApplied||0),0)-(+data.totalAmount||0))>.004){showToast('Payment voucher request is incomplete or its allocations do not match the total');return false;}for(const a of data.allocations){const p=byId(DB.purchases,a.purchaseId),amt=+a.amountApplied||0;if(!p||amt<=0||amt>(+p.grandTotal||0)-(+p.paidAmount||0)+.004){showToast('Approval failed: a purchase balance changed or is no longer due');return false;}}const pv={...data,voucherNo:buildDocNo(DB.settings.paymentVoucherPrefix,seriesNext(DB.paymentVouchers,'voucherNo',DB.settings.paymentVoucherPrefix))};pv.allocations.forEach(a=>{const p=byId(DB.purchases,a.purchaseId);p.paidAmount=(+p.paidAmount||0)+(+a.amountApplied||0);});DB.paymentVouchers.push(pv);DB.settings.nextPaymentVoucherNo++;return true;}const rows=registerRecords(r.entity),record=rows.find(x=>x.id===r.recordId);if(!record){showToast('Record no longer exists');return false;}if(r.action==='delete'){if(r.entity==='purchase')record.lines.forEach(l=>{const p=byId(DB.products,l.productId);if(p)p.stock-=l.qty;});if(r.entity==='sale'||r.entity==='voucher')record.lines.forEach(l=>{const p=byId(DB.products,l.productId);if(p)p.stock+=l.qty;setLineBarcodes(l,'available');});rows.splice(rows.indexOf(record),1);return true;}const c=r.changes||{},total=+(Object.prototype.hasOwnProperty.call(c,'grandTotal')?c.grandTotal:(r.entity==='service'?record.amount:record.grandTotal))||0,paid=+(Object.prototype.hasOwnProperty.call(c,'paidAmount')?c.paidAmount:record.paidAmount)||0,deduction=+(Object.prototype.hasOwnProperty.call(c,'deduction')?c.deduction:record.deduction)||0;if(paid<0||deduction<0||paid+deduction>total+.004){showToast('Approval rejected: paid amount and deduction exceed record total');return false;}if(r.entity==='purchase'&&c.lines){record.lines.forEach(l=>{const p=byId(DB.products,l.productId);if(p)p.stock-=l.qty;});c.lines.forEach(l=>{const p=byId(DB.products,l.productId);if(p){p.stock+=l.qty;if(l.cost!=null)p.purchasePrice=l.cost;}});applyPurchaseLineBarcodes(c.lines);}if((r.entity==='sale'||r.entity==='voucher')&&c.lines){record.lines.forEach(l=>{const p=byId(DB.products,l.productId);if(p)p.stock+=l.qty;setLineBarcodes(l,'available');});c.lines.forEach(l=>{const p=byId(DB.products,l.productId);if(p)p.stock-=l.qty;setLineBarcodes(l,'sold');});}Object.assign(record,c);return true;}
 function approveRegisterRequest(id,bulk){const r=(DB.approvalRequests||[]).find(x=>x.id===id&&x.status==='Pending');if(!r)return false;const go=()=>{if(!applyRegisterApproval(r))return false;r.status='Approved';r.reviewedAt=new Date().toISOString();r.reviewedBy=currentUserRole;if(!bulk){saveDB();renderApprovals();showToast('Request approved');}return true;};if(bulk)return go();requirePassword('approve this register change',go);}
 function approveAllRequests(){if(currentUserRole!=='admin')return;const n=(DB.approvalRequests||[]).filter(x=>x.status==='Pending').length+(DB.warrantyRequests||[]).filter(x=>x.status==='Pending').length;if(!n)return;askConfirm('Approve all '+n+' pending request(s)? Delete requests will move records to the Recycle Bin.',()=>{let ok=0;[...(DB.approvalRequests||[])].filter(x=>x.status==='Pending').forEach(x=>{if(approveRegisterRequest(x.id,true))ok++;});[...(DB.warrantyRequests||[])].filter(x=>x.status==='Pending').forEach(x=>{if(approveWarrantyRequest(x.id,true))ok++;});saveDB();renderApprovals();showToast(ok+' of '+n+' request(s) approved'+(ok<n?' — the rest need individual review':''));});}
 function rejectRegisterRequest(id){const r=(DB.approvalRequests||[]).find(x=>x.id===id&&x.status==='Pending');if(!r)return;requirePassword('reject this register change',()=>{r.status='Rejected';r.reviewedAt=new Date().toISOString();r.reviewedBy=currentUserRole;saveDB();renderApprovals();showToast('Request rejected');});}
@@ -5782,7 +5791,7 @@ function rejectRegisterRequest(id){const r=(DB.approvalRequests||[]).find(x=>x.i
 let editingWarrantyId=null;
 let warrantySearchTerm="";
 function safeText(v){return (v??'').toString().replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-function renderWarranty(){const j=editingWarrantyId?DB.warrantyJobs.find(x=>x.id===editingWarrantyId):null;wrPhotos=(j&&j.photos||[]).slice();document.getElementById('view').innerHTML=
+function renderWarranty(){const j=editingWarrantyId?byId(DB.warrantyJobs,editingWarrantyId):null;wrPhotos=(j&&j.photos||[]).slice();document.getElementById('view').innerHTML=
 '<details class="panel wr-formbox" style="margin-bottom:16px"'+((j||!isMobileLayout())?' open':'')+'><summary class="panel-head recv-sum"><h3>'+(j?'Edit':'New')+' Warranty / Outside Repair Item</h3></summary><div class="panel-body"><div class="row">'+
 '<div class="field wr-half"><label>Type</label><select id="wr_type"><option '+(!j||!j.type||j.type==='Repair'?'selected':'')+'>Repair</option><option '+(j?.type==='Warranty'?'selected':'')+'>Warranty</option><option '+(j?.type==='Out Repair'?'selected':'')+'>Out Repair</option></select></div>'+[['customer','Customer'],['phone','Phone'],['product','Item / Product'],['serial','Serial / IMEI'],['provider','Provider'],['sentDate','Date Sent'],['receivedDate','Expected / Received Date'],['totalAmount','Provider Charge (₹)'],['paidAmount','Paid to Provider (₹)'],['notes','Notes']].map(([k,l])=>'<div class="field'+(['sentDate','receivedDate','totalAmount','paidAmount'].includes(k)?' wr-half':'')+'"><label>'+l+'</label><input id="wr_'+k+'" '+(['sentDate','receivedDate'].includes(k)?'type="date" ':'')+(['totalAmount','paidAmount'].includes(k)?'type="number" min="0" step="0.01" ':'')+'value="'+safeText(j?.[k]??(['sentDate'].includes(k)?todayStr():['totalAmount','paidAmount'].includes(k)?0:''))+'"></div>').join('')+
 '<div class="field" style="flex:1 1 100%"><label>Photos (up to 3)</label><div id="wr_photos" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"></div><input type="file" accept="image/*" id="wr_photo_in" style="display:none" onchange="wrPhotoAdd(this)"></div>'+
@@ -5801,9 +5810,9 @@ function wrPhotoAdd(inp){const f=inp.files&&inp.files[0];inp.value='';if(!f)retu
     c.getContext('2d').drawImage(im,0,0,c.width,c.height);
     if(wrPhotos.length>=WR_MAX_PHOTOS)return;wrPhotos.push(c.toDataURL('image/jpeg',0.6));wrPhotosPaint();};im.onerror=()=>showToast('Could not read that image');im.src=e.target.result;};rd.readAsDataURL(f);}
 function wrPhotoRemove(i){wrPhotos.splice(i,1);wrPhotosPaint();}
-function wrPhotoView(id){const j=DB.warrantyJobs.find(x=>x.id===id);if(!j||!(j.photos||[]).length)return;
+function wrPhotoView(id){const j=byId(DB.warrantyJobs,id);if(!j||!(j.photos||[]).length)return;
   openModal('Photos · '+safeText(j.ref||''),'<div style="display:flex;gap:10px;flex-wrap:wrap;">'+j.photos.map((u,i)=>`<div style="text-align:center;"><img src="${u}" style="max-width:100%;width:240px;border-radius:8px;"><br>${currentUserRole==='admin'?`<button class="btn danger sm" style="margin-top:6px;" onclick="wrPhotoDelete('${id}',${i})">Delete photo</button>`:''}</div>`).join('')+'</div><p style="font-size:12px;color:#6b6554;margin-top:10px;">Deleting a photo frees its database space.'+(currentUserRole==='admin'?'':' Staff: edit the record to request removal.')+'</p>','<button class="btn ghost" onclick="closeModal()">Close</button>');}
-function wrPhotoDelete(id,i){askConfirm('Delete this photo permanently?',()=>{const j=DB.warrantyJobs.find(x=>x.id===id);if(!j||!j.photos)return;j.photos.splice(i,1);if(!j.photos.length)delete j.photos;_binArm=false;saveDB();renderWarranty();if(j.photos&&j.photos.length)wrPhotoView(id);});}
+function wrPhotoDelete(id,i){askConfirm('Delete this photo permanently?',()=>{const j=byId(DB.warrantyJobs,id);if(!j||!j.photos)return;j.photos.splice(i,1);if(!j.photos.length)delete j.photos;_binArm=false;saveDB();renderWarranty();if(j.photos&&j.photos.length)wrPhotoView(id);});}
 function warrantyRow(x,hide){
   const tot=+x.totalAmount||0,pd=+x.paidAmount||0,due=Math.max(0,tot-pd),rec=x.status==='Received',tel=String(x.phone||'').replace(/[^\d+]/g,'');
   return `<tr class="wr-row ${rec?'wr-recvd':'wr-pend'}${due>0?' wr-owing':''}${hide?' sm-hide':''}"><td class="wr-ref">${safeText(x.ref)}</td><td class="wr-item"><b>${safeText(x.type)}</b> / ${safeText(x.product)}${(x.photos&&x.photos.length)?` <button class="btn ghost sm" onclick="wrPhotoView('${x.id}')">📷 ${x.photos.length}</button>`:''}${x.serial?'<br><span class="wr-sub">'+safeText(x.serial)+'</span>':''}</td><td class="wr-cust">${safeText(x.customer)}${x.phone?'<br><a class="wr-sub" href="tel:'+tel+'">'+safeText(x.phone)+'</a>':''}</td><td class="wr-prov" data-label="Provider">${safeText(x.provider||'—')}</td><td class="wr-sent" data-label="Sent">${safeText(x.sentDate||'')}</td><td class="wr-status"><span class="badge ${rec?'ok':'warn'}">${safeText(x.status||'Pending')}</span></td><td class="wr-charge" data-label="Charge">₹${fmt(tot)}</td><td class="wr-paid" data-label="Paid"><input type="number" inputmode="decimal" min="0" max="${tot}" step="0.01" value="${pd}" style="width:90px" aria-label="Paid to provider" onchange="updateWarrantyPaid('${x.id}',this.value)"></td><td class="wr-due" data-label="Due">₹${fmt(due)}</td><td class="wr-act">${rec?`<button class="btn ghost sm wr-recv" onclick="printWarrantyReceipt('${x.id}')">Received Voucher</button>`:''} <button class="btn ghost sm" onclick="printWarrantyReceipt('${x.id}',true)">Manual Print</button> <button class="btn ghost sm" onclick="printWarrantyReceipt('${x.id}',false,true)">PDF</button> <button class="btn ghost sm" onclick="printWarrantyReceipt('${x.id}',false,'share')">Share</button> <button class="btn ghost sm" onclick="editingWarrantyId='${x.id}';renderWarranty()">Edit</button> <button class="btn danger sm" onclick="deleteWarrantyJob('${x.id}')">Del</button></td></tr>`;}
@@ -5822,7 +5831,7 @@ function filterWarrantyRecords(input){const a=input.selectionStart,b=input.selec
 function approveWarrantyRequest(id,bulk){
   const r=(DB.warrantyRequests||[]).find(x=>x.id===id&&x.status==='Pending');if(!r)return false;
   if(r.action==='create'){const d={...(r.changes||{})};if(d.provider&&!DB.repairProviders.includes(d.provider))DB.repairProviders.push(d.provider);d.id=cid();d.ref=buildDocNo('WR',DB.settings.nextWarrantyNo||1);DB.settings.nextWarrantyNo=(DB.settings.nextWarrantyNo||1)+1;DB.warrantyJobs.push(d);}
-  else{if(!DB.warrantyJobs.find(x=>x.id===r.jobId)){if(!bulk)showToast('Record no longer exists');return false;}
+  else{if(!byId(DB.warrantyJobs,r.jobId)){if(!bulk)showToast('Record no longer exists');return false;}
   if(!applyWarrantyChanges(r.jobId,r.changes||{}))return false;}
   r.status='Approved';r.reviewedAt=new Date().toISOString();r.reviewedBy=currentUserRole;if(!bulk){saveDB();renderApprovals();showToast('Request approved');}return true;
 }
@@ -5831,18 +5840,18 @@ function rejectWarrantyRequest(id){
   r.status='Rejected';r.reviewedAt=new Date().toISOString();r.reviewedBy=currentUserRole;saveDB();renderApprovals();showToast('Request rejected');
 }
 function requestWarrantyApproval(action,jobId,changes){if(!Array.isArray(DB.warrantyRequests))DB.warrantyRequests=[];DB.warrantyRequests.push({id:cid(),jobId,action,changes,requestedBy:currentUserRole||'staff',requestedById:currentUserId||'',requestedByName:currentUserName||'',requestedAt:new Date().toISOString(),status:'Pending'});saveDB();showToast('Change sent to Admin for approval');}
-function applyWarrantyChanges(jobId,changes){const job=DB.warrantyJobs.find(x=>x.id===jobId);if(!job){showToast('Record no longer exists');return false;}Object.assign(job,changes);if(changes.provider&&!DB.repairProviders.includes(changes.provider))DB.repairProviders.push(changes.provider);saveDB();return true;}
+function applyWarrantyChanges(jobId,changes){const job=byId(DB.warrantyJobs,jobId);if(!job){showToast('Record no longer exists');return false;}Object.assign(job,changes);if(changes.provider&&!DB.repairProviders.includes(changes.provider))DB.repairProviders.push(changes.provider);saveDB();return true;}
 function saveWarrantyJob(printAfter=false){const g=id=>document.getElementById('wr_'+id).value.trim(),customer=g('customer'),product=g('product'),total=Number(g('totalAmount')),paid=Number(g('paidAmount'));if(!customer||!product){showToast('Customer and item are required');return;}if(!Number.isFinite(total)||total<0||!Number.isFinite(paid)||paid<0||paid>total){showToast('Paid amount must be between zero and the charge');return;}const d={type:document.getElementById('wr_type').value,customer,phone:g('phone'),product,serial:g('serial'),provider:g('provider'),sentDate:g('sentDate')||todayStr(),receivedDate:g('receivedDate'),totalAmount:total,paidAmount:paid,notes:g('notes'),photos:wrPhotos.slice(),status:document.getElementById('wr_status').value};const isAdmin=currentUserRole==='admin';
-  if(editingWarrantyId){const id=editingWarrantyId,old=DB.warrantyJobs.find(x=>x.id===id);editingWarrantyId=null;if(!old)return;
+  if(editingWarrantyId){const id=editingWarrantyId,old=byId(DB.warrantyJobs,id);editingWarrantyId=null;if(!old)return;
     if(!isAdmin){const diff={};Object.keys(d).forEach(k=>{if(String(d[k]??'')!==String(old[k]??''))diff[k]=d[k];});if(!Object.keys(diff).length){showToast('No changes to send');renderWarranty();return;}requestWarrantyApproval('update',id,diff);renderWarranty();return;}
     if(applyWarrantyChanges(id,d))showToast('Record updated');renderWarranty();return;}
   if(d.provider&&!DB.repairProviders.includes(d.provider))DB.repairProviders.push(d.provider);d.id=cid();d.ref=buildDocNo('WR',DB.settings.nextWarrantyNo||1);DB.settings.nextWarrantyNo=(DB.settings.nextWarrantyNo||1)+1;DB.warrantyJobs.push(d);saveDB();renderWarranty();showToast('Repair item added');if(printAfter)printWarrantyReceipt(d.id);}
 
-function updateWarrantyPaid(id,v){const x=DB.warrantyJobs.find(j=>j.id===id),n=Number(v);if(!x)return;if(!Number.isFinite(n)||n<0||n>(+x.totalAmount||0)){showToast('Invalid paid amount');renderWarranty();return;}if(currentUserRole==='admin'){renderWarranty();requirePassword('update this repair payment and due amount',()=>{x.paidAmount=n;saveDB();renderWarranty();});}else{requestWarrantyApproval('update',id,{paidAmount:n});renderWarranty();}}
+function updateWarrantyPaid(id,v){const x=byId(DB.warrantyJobs,id),n=Number(v);if(!x)return;if(!Number.isFinite(n)||n<0||n>(+x.totalAmount||0)){showToast('Invalid paid amount');renderWarranty();return;}if(currentUserRole==='admin'){renderWarranty();requirePassword('update this repair payment and due amount',()=>{x.paidAmount=n;saveDB();renderWarranty();});}else{requestWarrantyApproval('update',id,{paidAmount:n});renderWarranty();}}
 
 function deleteWarrantyJob(id){if(currentUserRole!=='admin'){requestRegisterApproval('warranty',id,'delete',null);return;}requirePassword('delete this warranty / repair record',()=>askConfirm('Delete this repair record?',()=>{DB.warrantyJobs=DB.warrantyJobs.filter(x=>x.id!==id);saveDB();renderWarranty();}));}
 
-function printWarrantyReceipt(id,manual=false,asPdf=false){const x=DB.warrantyJobs.find(j=>j.id===id);if(!x)return;const w=asPdf?null:window.open('','_blank');if(!asPdf&&!w){showToast('Allow pop-ups to print');return;}const html='<!doctype html><html><head><meta charset="utf-8"><title>Received Voucher '+safeText(x.ref)+'</title><style>@page{size:A5 landscape;margin:0}*{box-sizing:border-box}@media print{body{padding:5mm!important}}body{margin:0;font:10pt Arial,sans-serif;color:#20242b}.printbar{width:200mm;margin:0 auto 3mm;display:flex;justify-content:flex-end}.printbar button{padding:2mm 4mm;background:#20242b;color:white;border:0;border-radius:2mm;font-weight:bold}.slip{width:200mm;min-height:138mm;padding:5mm;border:1px solid #c9c4b6;border-radius:3mm}.head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:1px solid #bbb;padding-bottom:2mm}.shop{font-size:15pt;font-weight:700}.sub{font-size:8pt;color:#555;margin-top:1mm}.copy{font-size:8pt;font-weight:bold;border:1px solid #555;padding:1.5mm 2mm}.title{font-size:12pt;font-weight:bold;margin:2mm 0 1mm}.meta{display:flex;justify-content:space-between;font-size:8pt;margin-bottom:2mm}.grid{display:grid;grid-template-columns:1fr 1fr;border:1px solid #bbb}.cell{padding:1mm 2mm;border-bottom:1px solid #ddd;min-height:7mm}.cell:nth-child(odd){border-right:1px solid #ddd}.label{display:block;color:#666;font-size:7.5pt;text-transform:uppercase;margin-bottom:1mm}.value{font-weight:600}.note{margin-top:1.5mm;min-height:4mm;font-size:7.5pt;overflow-wrap:anywhere}.sign{display:flex;justify-content:space-between;margin-top:3mm;font-size:7.5pt}.muted{color:#555}@media print{.printbar{display:none!important}body{print-color-adjust:exact;-webkit-print-color-adjust:exact}.slip{border:1px solid #888}}@media screen{body{background:#eee;padding:8mm}.slip{margin:auto;background:white;box-shadow:0 2mm 8mm #bbb}}</style></head><body><div class="printbar"><button onclick="window.print()">Print Customer Slip</button></div><main class="slip"><header class="head"><div><div class="shop">'+safeText(DB.settings.shopName||'Computer Shop')+'</div><div class="sub">'+safeText(DB.settings.address||'')+'<br>'+safeText(DB.settings.phone||'')+'</div></div><div class="copy">CUSTOMER COPY</div></header><div class="title">'+(x.status==='Received'?'Item Received Voucher':'Warranty / Out Repair Slip')+'</div><div class="meta"><span><b>Voucher:</b> '+safeText(x.ref)+'</span></div><section class="grid"><div class="cell"><span class="label">Customer</span><span class="value">'+safeText(x.customer)+'</span></div><div class="cell"><span class="label">Contact</span><span class="value">'+safeText(x.phone||'—')+'</span></div><div class="cell"><span class="label">Service type</span><span class="value">'+safeText(x.type)+'</span></div><div class="cell"><span class="label">Item / Product</span><span class="value">'+safeText(x.product)+'</span></div><div class="cell"><span class="label">Serial / IMEI</span><span class="value">'+safeText(x.serial||'—')+'</span></div></section><div class="note"><span class="label">Notes</span>'+safeText(x.notes||'—')+'</div><div class="sign"><span>Customer signature: ____________________</span><span>Received by: ____________________</span></div></main>'+(manual?'':'<script>window.onload=function(){setTimeout(function(){window.print()},300)};<\/script>')+'</body></html>';if(asPdf){pdfFromHtml(html,{name:[safeFile(x.customer),safeFile(x.ref)].filter(Boolean).join('_')||'Receipt',w:210,h:148,m:5,share:asPdf==='share'});return;}w.document.open();w.document.write(html);w.document.close();}
+function printWarrantyReceipt(id,manual=false,asPdf=false){const x=byId(DB.warrantyJobs,id);if(!x)return;const w=asPdf?null:window.open('','_blank');if(!asPdf&&!w){showToast('Allow pop-ups to print');return;}const html='<!doctype html><html><head><meta charset="utf-8"><title>Received Voucher '+safeText(x.ref)+'</title><style>@page{size:A5 landscape;margin:0}*{box-sizing:border-box}@media print{body{padding:5mm!important}}body{margin:0;font:10pt Arial,sans-serif;color:#20242b}.printbar{width:200mm;margin:0 auto 3mm;display:flex;justify-content:flex-end}.printbar button{padding:2mm 4mm;background:#20242b;color:white;border:0;border-radius:2mm;font-weight:bold}.slip{width:200mm;min-height:138mm;padding:5mm;border:1px solid #c9c4b6;border-radius:3mm}.head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:1px solid #bbb;padding-bottom:2mm}.shop{font-size:15pt;font-weight:700}.sub{font-size:8pt;color:#555;margin-top:1mm}.copy{font-size:8pt;font-weight:bold;border:1px solid #555;padding:1.5mm 2mm}.title{font-size:12pt;font-weight:bold;margin:2mm 0 1mm}.meta{display:flex;justify-content:space-between;font-size:8pt;margin-bottom:2mm}.grid{display:grid;grid-template-columns:1fr 1fr;border:1px solid #bbb}.cell{padding:1mm 2mm;border-bottom:1px solid #ddd;min-height:7mm}.cell:nth-child(odd){border-right:1px solid #ddd}.label{display:block;color:#666;font-size:7.5pt;text-transform:uppercase;margin-bottom:1mm}.value{font-weight:600}.note{margin-top:1.5mm;min-height:4mm;font-size:7.5pt;overflow-wrap:anywhere}.sign{display:flex;justify-content:space-between;margin-top:3mm;font-size:7.5pt}.muted{color:#555}@media print{.printbar{display:none!important}body{print-color-adjust:exact;-webkit-print-color-adjust:exact}.slip{border:1px solid #888}}@media screen{body{background:#eee;padding:8mm}.slip{margin:auto;background:white;box-shadow:0 2mm 8mm #bbb}}</style></head><body><div class="printbar"><button onclick="window.print()">Print Customer Slip</button></div><main class="slip"><header class="head"><div><div class="shop">'+safeText(DB.settings.shopName||'Computer Shop')+'</div><div class="sub">'+safeText(DB.settings.address||'')+'<br>'+safeText(DB.settings.phone||'')+'</div></div><div class="copy">CUSTOMER COPY</div></header><div class="title">'+(x.status==='Received'?'Item Received Voucher':'Warranty / Out Repair Slip')+'</div><div class="meta"><span><b>Voucher:</b> '+safeText(x.ref)+'</span></div><section class="grid"><div class="cell"><span class="label">Customer</span><span class="value">'+safeText(x.customer)+'</span></div><div class="cell"><span class="label">Contact</span><span class="value">'+safeText(x.phone||'—')+'</span></div><div class="cell"><span class="label">Service type</span><span class="value">'+safeText(x.type)+'</span></div><div class="cell"><span class="label">Item / Product</span><span class="value">'+safeText(x.product)+'</span></div><div class="cell"><span class="label">Serial / IMEI</span><span class="value">'+safeText(x.serial||'—')+'</span></div></section><div class="note"><span class="label">Notes</span>'+safeText(x.notes||'—')+'</div><div class="sign"><span>Customer signature: ____________________</span><span>Received by: ____________________</span></div></main>'+(manual?'':'<script>window.onload=function(){setTimeout(function(){window.print()},300)};<\/script>')+'</body></html>';if(asPdf){pdfFromHtml(html,{name:[safeFile(x.customer),safeFile(x.ref)].filter(Boolean).join('_')||'Receipt',w:210,h:148,m:5,share:asPdf==='share'});return;}w.document.open();w.document.write(html);w.document.close();}
 function togglePaidBox(id, btn){
   const el = document.getElementById(id); if(!el) return;
   const open = el.style.display==='none';
@@ -5876,9 +5885,9 @@ function normalizePhone(ph){
 }
 function sendPaymentReminder(kind, id){
   let r, ref, total, due;
-  if(kind==='sale'){ r=DB.sales.find(x=>x.id===id); ref=r.invoiceNo; total=r.grandTotal; due=r.grandTotal-(r.paidAmount||0)-(r.deduction||0); }
-  else if(kind==='service'){ r=DB.services.find(x=>x.id===id); ref=r.serviceNo; total=r.amount; due=r.amount-(r.paidAmount||0)-(r.deduction||0); }
-  else { r=DB.vouchers.find(x=>x.id===id); ref=r.voucherNo; total=r.grandTotal; due=r.grandTotal-(r.paidAmount||0)-(r.deduction||0); }
+  if(kind==='sale'){ r=byId(DB.sales,id); ref=r.invoiceNo; total=r.grandTotal; due=r.grandTotal-(r.paidAmount||0)-(r.deduction||0); }
+  else if(kind==='service'){ r=byId(DB.services,id); ref=r.serviceNo; total=r.amount; due=r.amount-(r.paidAmount||0)-(r.deduction||0); }
+  else { r=byId(DB.vouchers,id); ref=r.voucherNo; total=r.grandTotal; due=r.grandTotal-(r.paidAmount||0)-(r.deduction||0); }
   const msg = buildReminderMessage(ref, r.date, total, due);
   let phone = normalizePhone(r.phone);
   if(!phone) phone = phoneForParty(r.customer);
@@ -5911,11 +5920,11 @@ let pvAllocations = {};
 let editingPaymentVoucherId=null;
 function pvOutstanding(){
   const supplier = (document.getElementById('pv_supplier')||{}).value || '';
-  const old=editingPaymentVoucherId?DB.paymentVouchers.find(x=>x.id===editingPaymentVoucherId):null,prior=Object.fromEntries((old?.allocations||[]).map(a=>[a.purchaseId,+a.amountApplied||0]));return DB.purchases.filter(p=>((+p.grandTotal||0)-(+p.paidAmount||0)+(prior[p.id]||0))>0.004&&(!supplier||p.supplier===supplier)).sort((a,b)=>a.date<b.date?-1:1);
+  const old=editingPaymentVoucherId?byId(DB.paymentVouchers,editingPaymentVoucherId):null,prior=Object.fromEntries((old?.allocations||[]).map(a=>[a.purchaseId,+a.amountApplied||0]));return DB.purchases.filter(p=>((+p.grandTotal||0)-(+p.paidAmount||0)+(prior[p.id]||0))>0.004&&(!supplier||p.supplier===supplier)).sort((a,b)=>a.date<b.date?-1:1);
 }
 function renderPaymentVoucher(){
   const suppliers = [...new Set(DB.purchases.map(p=>p.supplier).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
-  const editing=editingPaymentVoucherId?DB.paymentVouchers.find(x=>x.id===editingPaymentVoucherId):null;
+  const editing=editingPaymentVoucherId?byId(DB.paymentVouchers,editingPaymentVoucherId):null;
   pvAllocations=editing?Object.fromEntries((editing.allocations||[]).map(a=>[a.purchaseId,a.amountApplied])):{};
   document.getElementById('view').innerHTML = `
     <div class="grid g2-form" style="align-items:start;">
@@ -5956,7 +5965,7 @@ function renderPaymentVoucher(){
 function renderPvOutstandingList(){
   const list = pvOutstanding();
   document.getElementById('pv_outstandingList').innerHTML = `<table><thead><tr><th>Purchase</th><th>Date</th><th>Supplier</th><th class="num">Total</th><th class="num">Paid</th><th class="num">Due</th><th class="num">Apply</th></tr></thead><tbody>
-    ${list.length? list.map(p=>{ const old=editingPaymentVoucherId?DB.paymentVouchers.find(x=>x.id===editingPaymentVoucherId):null,prior=(old?.allocations||[]).find(a=>a.purchaseId===p.id)?.amountApplied||0,due=(+p.grandTotal||0)-(+p.paidAmount||0)+(+prior||0); return `<tr><td class="mono">${p.purchaseNo}</td><td>${p.date}</td><td>${p.supplier}</td><td class="num mono">₹${fmt(p.grandTotal)}</td><td class="num mono">₹${fmt(p.paidAmount||0)}</td><td class="num mono">₹${fmt(due)}</td>
+    ${list.length? list.map(p=>{ const old=editingPaymentVoucherId?byId(DB.paymentVouchers,editingPaymentVoucherId):null,prior=(old?.allocations||[]).find(a=>a.purchaseId===p.id)?.amountApplied||0,due=(+p.grandTotal||0)-(+p.paidAmount||0)+(+prior||0); return `<tr><td class="mono">${p.purchaseNo}</td><td>${p.date}</td><td>${p.supplier}</td><td class="num mono">₹${fmt(p.grandTotal)}</td><td class="num mono">₹${fmt(p.paidAmount||0)}</td><td class="num mono">₹${fmt(due)}</td>
       <td class="num"><input type="number" step="0.01" min="0" value="${pvAllocations[p.id]!=null?pvAllocations[p.id]:''}" placeholder="0.00" style="width:95px;text-align:right;" class="mono" data-pid="${p.id}" data-due="${due}" oninput="onPvAllocationInput(this)"></td></tr>`; }).join('') : '<tr><td colspan="7" class="empty">No outstanding purchases.</td></tr>'}
     </tbody></table>`;
   renderPvTotals();
@@ -5991,25 +6000,25 @@ function autoAllocatePayment(){
   renderPvOutstandingList();
 }
 function editPaymentVoucher(id){if(currentUserRole!=='admin'){showToast('Only Admin can edit payment vouchers');return;}editingPaymentVoucherId=id;renderPaymentVoucher();}
-function deletePaymentVoucher(id){if(currentUserRole!=='admin'){showToast('Only Admin can delete payment vouchers');return;}askConfirm('Delete this payment voucher? Allocations will be removed from purchase paid amounts.',()=>{const pv=DB.paymentVouchers.find(x=>x.id===id);if(!pv)return;(pv.allocations||[]).forEach(a=>{const p=DB.purchases.find(x=>x.id===a.purchaseId);if(p)p.paidAmount=Math.max(0,(+p.paidAmount||0)-(+a.amountApplied||0));});DB.paymentVouchers=DB.paymentVouchers.filter(x=>x.id!==id);saveDB();renderPaymentVoucher();});}
+function deletePaymentVoucher(id){if(currentUserRole!=='admin'){showToast('Only Admin can delete payment vouchers');return;}askConfirm('Delete this payment voucher? Allocations will be removed from purchase paid amounts.',()=>{const pv=byId(DB.paymentVouchers,id);if(!pv)return;(pv.allocations||[]).forEach(a=>{const p=byId(DB.purchases,a.purchaseId);if(p)p.paidAmount=Math.max(0,(+p.paidAmount||0)-(+a.amountApplied||0));});DB.paymentVouchers=DB.paymentVouchers.filter(x=>x.id!==id);saveDB();renderPaymentVoucher();});}
 function savePaymentVoucher(){
   const entered=Number(document.getElementById('pv_amount').value),ids=Object.keys(pvAllocations).filter(id=>+pvAllocations[id]>0);
   if(currentUserRole!=='admin'&&editingPaymentVoucherId){showToast('Staff can submit new payment vouchers only');return;}
   if(!Number.isFinite(entered)||entered<=0||!ids.length){showToast('Enter a payment and allocate it to purchases');return;}
   const allocated=ids.reduce((n,id)=>n+(+pvAllocations[id]||0),0);if(allocated>entered+.004){showToast('Allocated amount exceeds amount entered');return;}
-  const old=editingPaymentVoucherId?DB.paymentVouchers.find(x=>x.id===editingPaymentVoucherId):null,prior=Object.fromEntries((old?.allocations||[]).map(a=>[a.purchaseId,+a.amountApplied||0])),allocations=[];
-  for(const id of ids){const p=DB.purchases.find(x=>x.id===id),a=+pvAllocations[id];if(!p||a>(+p.grandTotal||0)-(+p.paidAmount||0)+(prior[id]||0)+.004){showToast('Purchase allocation is no longer valid');return;}allocations.push({purchaseId:id,purchaseNo:p.purchaseNo,amountApplied:a});}
+  const old=editingPaymentVoucherId?byId(DB.paymentVouchers,editingPaymentVoucherId):null,prior=Object.fromEntries((old?.allocations||[]).map(a=>[a.purchaseId,+a.amountApplied||0])),allocations=[];
+  for(const id of ids){const p=byId(DB.purchases,id),a=+pvAllocations[id];if(!p||a>(+p.grandTotal||0)-(+p.paidAmount||0)+(prior[id]||0)+.004){showToast('Purchase allocation is no longer valid');return;}allocations.push({purchaseId:id,purchaseNo:p.purchaseNo,amountApplied:a});}
   const pv={id:old?.id||cid(),voucherNo:old?.voucherNo||null,date:document.getElementById('pv_date').value||todayStr(),supplier:document.getElementById('pv_supplier').value||null,paymentMode:document.getElementById('pv_mode').value,details:document.getElementById('pv_details').value.trim(),totalAmount:allocated,allocations};
   if(currentUserRole!=='admin'){requestRegisterApproval('paymentvoucher',pv.id,'create',{paymentVoucher:pv});pvAllocations={};editingPaymentVoucherId=null;renderPaymentVoucher();showToast('Payment voucher submitted to Admin for approval; purchase balances are unchanged until approval');return;}
-  if(old)(old.allocations||[]).forEach(a=>{const p=DB.purchases.find(x=>x.id===a.purchaseId);if(p)p.paidAmount=Math.max(0,(+p.paidAmount||0)-(+a.amountApplied||0));});
-  allocations.forEach(a=>{const p=DB.purchases.find(x=>x.id===a.purchaseId);p.paidAmount=(+p.paidAmount||0)+a.amountApplied;});
+  if(old)(old.allocations||[]).forEach(a=>{const p=byId(DB.purchases,a.purchaseId);if(p)p.paidAmount=Math.max(0,(+p.paidAmount||0)-(+a.amountApplied||0));});
+  allocations.forEach(a=>{const p=byId(DB.purchases,a.purchaseId);p.paidAmount=(+p.paidAmount||0)+a.amountApplied;});
   pv.voucherNo=old?.voucherNo||buildDocNo(DB.settings.paymentVoucherPrefix,seriesNext(DB.paymentVouchers,'voucherNo',DB.settings.paymentVoucherPrefix));
   if(old)Object.assign(old,pv);else{DB.paymentVouchers.push(pv);DB.settings.nextPaymentVoucherNo++;}
   editingPaymentVoucherId=null;saveDB();showToast('Payment voucher '+(old?'updated':'saved'));renderPaymentVoucher();printPaymentVoucher(pv.id);
 }
 
 function printPaymentVoucher(id){
-  const pv = DB.paymentVouchers.find(x=>x.id===id); const st = DB.settings;
+  const pv = byId(DB.paymentVouchers,id); const st = DB.settings;
   document.querySelectorAll('#invoiceWrap').forEach(n=>n.remove());
   document.getElementById('view').insertAdjacentHTML('beforeend', `
   <div id="invoiceWrap" style="margin-top:20px;">
@@ -6094,7 +6103,7 @@ async function pushSubscribe(){
     let sub=await reg.pushManager.getSubscription();
     if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:pushB64(VAPID_PUBLIC)});
     const j=sub.toJSON(),key=alertMyKey(),id=pushId(j.endpoint);DB.pushSubs=DB.pushSubs||[];
-    const cur=DB.pushSubs.find(x=>x.id===id);if(cur&&cur.userKey===key)return;
+    const cur=byId(DB.pushSubs,id);if(cur&&cur.userKey===key)return;
     const row={id,userKey:key,endpoint:j.endpoint,keys:j.keys,user:currentUserName||'',at:new Date().toISOString()};
     if(cur)Object.assign(cur,row);else DB.pushSubs.push(row);
     saveDB();
@@ -6544,9 +6553,9 @@ function binArmed(fn){return function(){_binSnap=binTake();_binArm=true;try{retu
   if(r&&r.action==='delete'&&!bulk){askConfirm('Approve this delete request? The record will move to the Recycle Bin and can be restored.',function(){w(id);});return;}return w(id,bulk);};})();
 function binBadge(){const b=document.getElementById('binBadge');if(!b)return;const n=(DB.recycleBin||[]).length;b.textContent=n;b.style.display=currentUserRole==='admin'&&n>0?'inline-flex':'none';}
 function binRestoreFx(t,r){ /* re-apply the stock / paid-amount effects that deleting had reversed */
-  if(t==='sales'||t==='vouchers')(r.lines||[]).forEach(l=>{const p=DB.products.find(x=>x.id===l.productId);if(p)p.stock-=(+l.qty||0);setLineBarcodes(l,'sold');});
-  if(t==='purchases')(r.lines||[]).forEach(l=>{const p=DB.products.find(x=>x.id===l.productId);if(p)p.stock+=(+l.qty||0);});
-  if(t==='paymentVouchers')(r.allocations||[]).forEach(a=>{const p=DB.purchases.find(x=>x.id===a.purchaseId);if(p)p.paidAmount=(+p.paidAmount||0)+(+a.amountApplied||0);});}
+  if(t==='sales'||t==='vouchers')(r.lines||[]).forEach(l=>{const p=byId(DB.products,l.productId);if(p)p.stock-=(+l.qty||0);setLineBarcodes(l,'sold');});
+  if(t==='purchases')(r.lines||[]).forEach(l=>{const p=byId(DB.products,l.productId);if(p)p.stock+=(+l.qty||0);});
+  if(t==='paymentVouchers')(r.allocations||[]).forEach(a=>{const p=byId(DB.purchases,a.purchaseId);if(p)p.paidAmount=(+p.paidAmount||0)+(+a.amountApplied||0);});}
 function binRestoreOne(b){const t=b.table;if(!Array.isArray(DB[t]))DB[t]=[];
   if(DB[t].some(x=>x.id===b.recordId))return false;DB[t].push(b.record);binRestoreFx(t,b.record);DB.recycleBin=DB.recycleBin.filter(x=>x.id!==b.id);return true;}
 function restoreBin(id){const b=(DB.recycleBin||[]).find(x=>x.id===id);if(!b)return;
@@ -6708,15 +6717,15 @@ function saveCreditNote(){
     lines:act.map(l=>({productId:l.productId,name:l.name,hsn:l.hsn,qty:l.cqty,price:l.price,gstPercent:l.gstPercent})),
     subtotal:t.subtotal,gstAmount:t.gstAmount,breakup:t.breakup,grandTotal:t.grandTotal};
   DB.creditNotes.push(note);
-  if(returnStock)note.lines.forEach(l=>{const p=DB.products.find(x=>x.id===l.productId);if(p)p.stock+=l.qty;});
+  if(returnStock)note.lines.forEach(l=>{const p=byId(DB.products,l.productId);if(p)p.stock+=l.qty;});
   saveDB();showToast(cnK()+' note saved'+(returnStock?' — stock returned':''));
   renderCreditNote();printCreditNote(note.id);
 }
 function deleteCreditNote(id){
   if(currentUserRole!=='admin'){showToast('Only Admin can delete a credit/debit note');return;}
-  askConfirm('Delete this note?'+((DB.creditNotes.find(x=>x.id===id)||{}).returnStock?' Returned stock will be taken out again.':''),()=>{
-    const n=DB.creditNotes.find(x=>x.id===id);if(!n)return;
-    if(n.returnStock)n.lines.forEach(l=>{const p=DB.products.find(x=>x.id===l.productId);if(p)p.stock-=l.qty;});
+  askConfirm('Delete this note?'+((byId(DB.creditNotes,id)||{}).returnStock?' Returned stock will be taken out again.':''),()=>{
+    const n=byId(DB.creditNotes,id);if(!n)return;
+    if(n.returnStock)n.lines.forEach(l=>{const p=byId(DB.products,l.productId);if(p)p.stock-=l.qty;});
     DB.creditNotes=DB.creditNotes.filter(x=>x.id!==id);saveDB();renderCreditNote();});
 }
 function printCreditNote(id){

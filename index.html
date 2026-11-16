@@ -158,7 +158,7 @@
   .x-close{background:none;border:none;font-size:18px;color:#8a8578;}
   .line-block{border:1px solid var(--line-light);border-radius:8px;padding:10px 10px 2px;margin-bottom:10px;background:#FBFAF7;}
   .line-item-row{display:grid;grid-template-columns:2.1fr .7fr 1fr 1fr 30px;gap:8px;align-items:end;margin-bottom:8px;}
-  .line-sub-row{display:grid;grid-template-columns:1fr 2fr;gap:8px;margin-bottom:10px;}
+  .line-sub-row{display:grid;grid-template-columns:1fr 2fr;gap:8px;margin-bottom:10px;align-items:end;}
   .line-item-row-p{display:grid;grid-template-columns:2.2fr .7fr 1fr 1fr 30px;gap:8px;align-items:end;margin-bottom:8px;}
   .badge.partial{background:#fdf1de;color:#b0700a;}
   .suggest-box{position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--line-light);border-radius:8px;box-shadow:0 10px 24px rgba(0,0,0,.12);z-index:50;max-height:220px;overflow-y:auto;margin-top:4px;}
@@ -1477,6 +1477,7 @@ html[data-theme="daisy"] :is(.stat .foot,#dashboardOut .stat .foot,.approval-top
 <style id="toast-pos">@media (max-width:700px){html body .toast{top:10px!important;bottom:auto!important;transform:translateY(-8px);}html body .toast.show{transform:translateY(0)!important;}}</style>
 <style id="cb-style">tr.cb-sum td{background:rgba(128,128,128,.14)!important;}</style>
 <style id="topbar-fix">@media (max-width:700px){html body header.topbar{flex-wrap:nowrap!important;height:56px!important;overflow:hidden;}html body header.topbar .topbar-title{flex:1 1 0!important;min-width:0!important;max-width:none!important;overflow:hidden;}html body header.topbar .crumb{max-width:100%!important;}html body header.topbar>*{flex-shrink:0;}html body header.topbar>.topbar-title{flex-shrink:1;}}</style>
+<style id="dash-pair">.dash-pair{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;margin-bottom:16px;}.dash-pair>.panel{min-width:0;margin:0;}.dash-pair .table-scroll{max-height:420px;overflow:auto;}.dash-pair table{width:100%;min-width:0!important;}.dash-pair th,.dash-pair td{padding:8px 10px;}.dash-pair th{white-space:nowrap;}@media(max-width:800px){.dash-pair{grid-template-columns:1fr;}}</style>
 </head>
 <body>
 <div id="loginScreen" style="position:fixed;inset:0;background:var(--ink);display:flex;align-items:center;justify-content:center;z-index:2000;">
@@ -1633,7 +1634,7 @@ window.APP_ENV = Object.freeze({
 </script>
 <script>
 /* App version. Bumped by tools/release.py (also updates version.json and the ?v= cache stamps in index.html). */
-const APP_VERSION='1.0.129';
+const APP_VERSION='1.0.134';
 document.title='Shop Manager — v'+APP_VERSION;
 
 </script>
@@ -2516,13 +2517,12 @@ function runDashboard(){
       <div class="card stat"><div class="accent-bar" style="background:var(--teal)"></div><div class="label">Service Revenue</div><div class="value mono">₹${fmt(serviceTotal)}</div><div class="foot">${services.length} jobs</div></div>
       <div class="card stat"><div class="accent-bar" style="background:#6C7280"></div><div class="label">Purchase</div><div class="value mono">₹${fmt(purchaseTotal)}</div><div class="foot">${purchases.length} entries</div></div>
     </div>
-    <div style="margin-bottom:12px;">
+    <div class="dash-pair">
       <div class="panel"><div class="panel-head"><h3>Top Selling Products</h3></div>
         <div class="panel-body table-scroll" style="padding:0;"><table><thead><tr><th>Product</th><th class="num">Units Sold</th></tr></thead><tbody>
         ${topProducts.length? topProducts.map(([n,q])=>`<tr><td>${n}</td><td class="num mono">${q}</td></tr>`).join('') : '<tr><td colspan="2" class="empty">No data in range.</td></tr>'}
         </tbody></table></div></div>
-    </div>
-    <div class="panel" style="margin-bottom:16px;">
+    <div class="panel">
       <div class="panel-head" style="align-items:center;">
         <div style="min-width:0;"><h3>Inventory Value: ₹${fmt(stockValue)}</h3><span style="font-size:12px;color:${lowStock.length?'var(--red)':'#8a8578'};">${lowStock.length} item(s) low on stock</span></div>
         <button type="button" class="btn ghost sm" onclick="route('inventory')">View All</button>
@@ -2530,7 +2530,7 @@ function runDashboard(){
       <div class="panel-body table-scroll" style="padding:0;"><table><thead><tr><th>Product</th><th class="num">Stock</th><th class="num">Reorder At</th></tr></thead><tbody>
       ${lowStock.length? lowStock.map(p=>`<tr><td>${p.name}</td><td class="num mono">${p.stock}</td><td class="num mono">${p.reorderLevel}</td></tr>`).join('') : '<tr><td colspan="3" class="empty">Stock levels are healthy.</td></tr>'}
       </tbody></table></div>
-    </div>
+    </div></div>
     <div class="panel" style="margin-bottom:16px;${negativeStock.length?'border-color:var(--red);':''}">
       <div class="panel-head"><h3 style="${negativeStock.length?'color:var(--red);':''}">Negative Stock — Pending / Missing Purchase</h3><span style="font-size:12px;color:${negativeStock.length?'var(--red)':'#8a8578'};">${negativeStock.length} item(s) oversold</span></div>
       <div class="panel-body table-scroll" style="padding:0;">
@@ -3352,8 +3352,8 @@ async function fillGstinDetails(){
   }catch(e){showToast(e.name==='AbortError'?'GST service timed out':(e.message==='Failed to fetch'?'Could not reach the GST service (offline or blocked)':e.message));}
   finally{clearTimeout(t);btn.disabled=false;btn.textContent='Fill GSTIN Details';}
 }
-function openCustomerModal(id){
-  const c = id? byId(DB.customers,id) : {name:'',phone:'',gstin:'',address:'',state:'',partyRef:''};
+function openCustomerModal(id,kind,prefill){ // kind = invoice/challan/quote form to select the new party in afterwards
+  const c = id? byId(DB.customers,id) : {name:(prefill||'').replace(/"/g,'&quot;'),phone:'',gstin:'',address:'',state:'',partyRef:''};
   openModal(id?'Edit Customer':'Add Customer', `
 <label style="display:flex;gap:6px;align-items:center;font-size:13px;margin-bottom:8px;"><input type="checkbox" id="c_disabled" ${c.disabled?'checked':''} style="width:auto;"> Disabled — hide from new invoices, vouchers and pickers (records are kept)</label>
     <div class="field"><label>Customer / Business Name</label><input id="c_name" value="${c.name}"></div>
@@ -3363,16 +3363,17 @@ function openCustomerModal(id){
     <div class="row"><div class="field"><label>State</label><select id="c_state"><option value="">Select state…</option>${GST_STATES.map(([k,n])=>`<option value="${k}" ${c.state===k?'selected':''}>${k} - ${n}</option>`).join('')}</select></div>
     <div class="field"><label>Party Reference</label><input id="c_partyref" value="${safeText(c.partyRef||'')}" placeholder="Reference / short code / referred by"></div></div>
 
-  `, `<button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn amber" onclick="saveCustomer('${id||''}')">Save Customer</button>`);
+  `, `<button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn amber" onclick="saveCustomer('${id||''}','${kind||''}')">${kind?'Save & Use':'Save Customer'}</button>`);
 }
-function saveCustomer(id){
+function saveCustomer(id,kind){
   const name=document.getElementById('c_name').value.trim();
   if(!name){ showToast('Customer name is required'); return; }
   const data={name, disabled:document.getElementById('c_disabled').checked, phone:document.getElementById('c_phone').value.trim(), gstin:document.getElementById('c_gstin').value.trim(), address:document.getElementById('c_address').value.trim(), state:document.getElementById('c_state').value, partyRef:document.getElementById('c_partyref').value.trim()};
   if(id&&currentUserRole!=='admin'){const cur=byId(DB.customers,id)||{},ch={};Object.keys(data).forEach(k=>{if(String(data[k]||'')!==String(cur[k]||''))ch[k]=data[k];});if(!Object.keys(ch).length){showToast('No changes to send');closeModal();return;}requestRegisterApproval('customer',id,'update',ch);closeModal();return;}
   if(id){ Object.assign(byId(DB.customers,id), data); showToast('Customer updated'); }
-  else { DB.customers.push({id:cid(), ...data}); showToast('Customer added'); }
-  saveDB(); closeModal(); renderCustomers();
+  else { var nc={id:cid(), ...data}; DB.customers.push(nc); showToast(kind?'"'+name+'" added to Customers and selected':'Customer added'); }
+  saveDB(); closeModal();
+  if(kind&&nc)pickCustomer(kind,nc.id); else renderCustomers();
 }
 function deleteCustomer(id){
   if(currentUserRole!=='admin'){requestRegisterApproval('customer',id,'delete',null);return;}
@@ -3398,24 +3399,7 @@ function showCustomerSuggest(inputEl, kind){
   </div>`).join('') + createRow;
   box.style.display='block';
 }
-function openQuickAddCustomer(kind, prefillName){
-  openModal('Create New Customer', `
-    <div class="field"><label>Customer / Business Name</label><input id="qc_name" value="${prefillName.replace(/"/g,'&quot;')}"></div>
-    <div class="row"><div class="field"><label>Phone</label><input id="qc_phone" placeholder="Optional"></div>
-    <div class="field"><label>GSTIN</label><input id="qc_gstin" placeholder="Optional"></div></div>
-    <div class="field"><label>Address</label><input id="qc_address" placeholder="Optional"></div>
-  `, `<button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn amber" onclick="saveQuickAddCustomer('${kind}')">Create & Use</button>`);
-}
-function saveQuickAddCustomer(kind){
-  const name = document.getElementById('qc_name').value.trim();
-  if(!name){ showToast('Customer name is required'); return; }
-  const customer = { id:cid(), name, phone:document.getElementById('qc_phone').value.trim(), gstin:document.getElementById('qc_gstin').value.trim(), address:document.getElementById('qc_address').value.trim() };
-  DB.customers.push(customer);
-  saveDB();
-  closeModal();
-  pickCustomer(kind, customer.id);
-  showToast('"'+name+'" added to Customers and selected');
-}
+function openQuickAddCustomer(kind, prefillName){openCustomerModal('',kind,prefillName);} // same form as the Customers master
 function hideCustomerSuggestLater(kind){
   setTimeout(()=>{ const box=document.getElementById('suggest-cust-'+kind); if(box) box.style.display='none'; }, 150);
 }
@@ -3996,12 +3980,12 @@ function renderSaleLines(){
         <div class="field" style="margin:0;"><label>Product${prod?` <span style="color:#8a8578;font-weight:400;">(${prod.stock} in stock)</span>`:''}</label>${productSearchInputHTML('sale', i, l.productId)}</div>
         <div class="field" style="margin:0;"><label>Qty</label><input type="number" min="1" value="${l.qty}" oninput="saleLines[${i}].qty=parseFloat(this.value)||0; renderSaleTotal();"></div>
         <div class="field" style="margin:0;"><label>Unit Price</label><input type="number" step="0.01" value="${l.price}" oninput="saleLines[${i}].price=parseFloat(this.value)||0; renderSaleTotal();"></div>
-        <div class="field" style="margin:0;"><label>Tax % <span style="color:#8a8578;font-weight:400;">(fixed on item)</span></label><input type="number" disabled value="${l.gstPercent!=null?l.gstPercent:0}" style="background:#F0EDE5;"></div>
+        <div class="field" style="margin:0;"><label>Tax %</label><input type="number" disabled value="${l.gstPercent!=null?l.gstPercent:0}" style="background:#F0EDE5;"></div>
         <div class="field" style="margin:0;"><label>Line Total</label><input disabled value="₹${fmt(lineAmt)}"></div>
         <button class="btn danger sm" style="height:37px;align-self:end;" onclick="saleLines.splice(${i},1); renderSaleLines();">✕</button>
       </div>
       <div class="line-sub-row">
-        <div class="field" style="margin:0;"><label>Serial / Barcode <span style="color:#8a8578;font-weight:400;">(scan or type, Enter to add — several allowed per item)</span></label>${lineCodesChipsHTML('sale',i,l)}<input value="" placeholder="Scan/type barcode, press Enter" autocomplete="off" onkeydown="if(event.key==='Enter'){event.preventDefault(); lineBarcodeAdd('sale',${i},this.value);}" onblur="if(this.value.trim())lineBarcodeAdd('sale',${i},this.value,true)"></div>
+        <div class="field" style="margin:0;"><label>Serial / Barcode</label>${lineCodesChipsHTML('sale',i,l)}<input value="" placeholder="Scan/type, Enter to add (several allowed)" autocomplete="off" onkeydown="if(event.key==='Enter'){event.preventDefault(); lineBarcodeAdd('sale',${i},this.value);}" onblur="if(this.value.trim())lineBarcodeAdd('sale',${i},this.value,true)"></div>
         <div class="field" style="margin:0;"><label>Line Description</label><input value="${l.description||''}" placeholder="Extra detail about this item (optional)" oninput="saleLines[${i}].description=this.value;"></div>
       </div>
     </div>`;
@@ -4389,7 +4373,7 @@ function renderVoucherLines(){
         <button class="btn danger sm" style="height:37px;align-self:end;" onclick="voucherLines.splice(${i},1); renderVoucherLines();">✕</button>
       </div>
       <div class="line-sub-row">
-        <div class="field" style="margin:0;"><label>Serial / Barcode <span style="color:#8a8578;font-weight:400;">(Enter to add — several allowed per item)</span></label>${lineCodesChipsHTML('voucher',i,l)}<input value="" placeholder="Scan/type barcode, press Enter" autocomplete="off" onkeydown="if(event.key==='Enter'){event.preventDefault(); lineBarcodeAdd('voucher',${i},this.value);}" onblur="if(this.value.trim())lineBarcodeAdd('voucher',${i},this.value,true)"></div>
+        <div class="field" style="margin:0;"><label>Serial / Barcode</label>${lineCodesChipsHTML('voucher',i,l)}<input value="" placeholder="Scan/type, Enter to add (several allowed)" autocomplete="off" onkeydown="if(event.key==='Enter'){event.preventDefault(); lineBarcodeAdd('voucher',${i},this.value);}" onblur="if(this.value.trim())lineBarcodeAdd('voucher',${i},this.value,true)"></div>
         <div class="field" style="margin:0;"><label>Line Description</label><input value="${l.description||''}" placeholder="Extra detail about this item (optional)" oninput="voucherLines[${i}].description=this.value;"></div>
       </div>
     </div>`;
@@ -5556,7 +5540,7 @@ async function saveManagedUser(){
     let record=existing||{id:cid(),username,passwordSalt:'',passwordHash:'',enabled:true,builtin:false};record.name=name;record.username=username;record.role=record.legacyPassword?'admin':role;record.allowedViews=record.role==='user'?allowedViews:[];record.adminViews=record.role==='admin'?[...document.querySelectorAll('.ua_aview:checked')].map(x=>x.value):undefined;
     if(password){const hashed=await hashManagedPassword(password);record.passwordSalt=hashed.salt;record.passwordHash=hashed.hash;record.builtin=false;record.legacyPassword=false;}
     if(!existing)DB.users.push(record);else Object.assign(existing,record);
-    saveDB();closeModal();renderSettings();showToast(existing?'User account updated':'User account created');
+    saveDB();closeModal();applyRoleRestrictions();renderSettings();showToast(existing?'User account updated':'User account created');
   }catch(e){fail(e.message||'Could not save this account.');}
   const darkSwitch=document.getElementById('darkModeSwitch'); if(darkSwitch) darkSwitch.checked=isDarkMode();
 }
